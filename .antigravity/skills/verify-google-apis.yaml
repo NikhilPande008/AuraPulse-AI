@@ -1,0 +1,8 @@
+name: verify-google-apis
+description: Smoke tests for Google Maps Places API, Google Sheets API v4 exporter, and Google Calendar API v3 integrations.
+triggers:
+  - on_integration_change
+  - pre_deployment_check
+execution:
+  command: "pytest backend/tests/test_integrations.py -v"
+  expected_exit_code: 0

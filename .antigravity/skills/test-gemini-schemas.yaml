@@ -1,0 +1,8 @@
+name: test-gemini-schemas
+description: Reusable validation skill to verify Pydantic schemas, strict JSON output adherence, and Gemini model response typing.
+triggers:
+  - on_schema_change
+  - on_agent_prompt_update
+execution:
+  command: "pytest backend/tests/test_schemas.py -v"
+  expected_exit_code: 0

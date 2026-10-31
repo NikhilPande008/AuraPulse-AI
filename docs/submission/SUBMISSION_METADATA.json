@@ -1,0 +1,86 @@
+{
+  "project_name": "AuraPulse AI",
+  "tagline": "Autonomous Multimodal Event Planning & Reactive Contingency Engine",
+  "version": "2.0.0-PROD",
+  "competition": {
+    "name": "Google PromptWars",
+    "organizer": "Hack2Skill & Google",
+    "track": "Autonomous Agentic AI Applications"
+  },
+  "repository": {
+    "name": "aurapulse-core",
+    "monorepo_structure": ["backend", "frontend", "deployment", "docs", ".antigravity"]
+  },
+  "google_services_and_models": [
+    {
+      "service": "Google Gemini 2.5 Flash",
+      "role": "Multimodal Vision-to-BOQ Deconstruction Engine (structural trusses, lighting, florals, seating)"
+    },
+    {
+      "service": "Google Gemini 2.5 Pro",
+      "role": "Multi-constraint Graph Reasoner & Deterministic Contingency Rebalancer"
+    },
+    {
+      "service": "Google Imagen 3",
+      "role": "Generative decor alternatives and emergency canopy visualization"
+    },
+    {
+      "service": "Google Maps Places API",
+      "role": "Real-time vendor grounding with verified star ratings, addresses, and phone contacts"
+    },
+    {
+      "service": "Google Sheets API v4",
+      "role": "Living multi-tab procurement workbook generation with dynamic =SUM() and =SUMIF() formulas"
+    },
+    {
+      "service": "Google Calendar API v3",
+      "role": "Run-of-show timeline synchronization with outdoor microclimate alarm tagging"
+    },
+    {
+      "service": "Google Cloud Run",
+      "role": "Serverless containerized API deployment with autoscaling (0 to 3 instances)"
+    },
+    {
+      "service": "Google Antigravity",
+      "role": "Agentic full-stack development orchestration, rules enforcement, and automated headless verification"
+    }
+  ],
+  "demo_instructions": {
+    "local_quickstart": [
+      "1. Backend: python3 -m venv .venv && source .venv/bin/activate && pip install -r backend/requirements.txt",
+      "2. Run Backend: uvicorn app.main:app --app-dir backend --port 8000",
+      "3. Frontend: cd frontend && npm install && npm run dev",
+      "4. Open http://localhost:3000 in your browser"
+    ],
+    "instant_judge_presets": [
+      {
+        "name": "Preset 1: Boho Sunset Meadow Wedding",
+        "locality": "Pune",
+        "headcount": 300,
+        "budget_inr": 1500000,
+        "action": "Click 'Preset 1' on the top moodboard bar to auto-hydrate BOQ and timeline"
+      },
+      {
+        "name": "Preset 2: Cyberpunk Neon 30th Birthday",
+        "locality": "Mumbai",
+        "headcount": 60,
+        "budget_inr": 250000,
+        "action": "Click 'Preset 2' to test club-grade sound and violet/cyan wash budget matrix"
+      },
+      {
+        "name": "Preset 3: Eco-Friendly Society Diwali Mela",
+        "locality": "Pune",
+        "headcount": 800,
+        "budget_inr": 500000,
+        "action": "Click 'Preset 3' to test zero-plastic community festival scaling"
+      }
+    ],
+    "what_if_crisis_triggers": [
+      "🌧️ Rain Storm Alert: Injects emergency marquee, moves outdoor schedule blocks, trims florals",
+      "💸 Cut 20% Budget: Preserves Tier-1, surgically recovers budget delta from Tier-3 lines",
+      "⏰ Baraat Delayed 1 Hour: Cascades schedule timeline forward while preserving buffet freshness",
+      "🚨 Caterer Cancelled: Hot-swaps failed supplier with verified Google Maps Places entity"
+    ]
+  },
+  "system_architecture_version": "2.0.0-PROD"
+}

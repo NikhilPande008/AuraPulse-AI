@@ -1,14 +1,21 @@
-# AuraPulse AI
+# AuraPulse AI: Autonomous Multimodal Event Planning & Reactive Contingency Engine
 
-> **Autonomous Multimodal Event Planning & Reactive Contingency Engine**  
-> *Target Challenge: Hack2Skill Google PromptWars | Platform: Google Antigravity | Version: 2.0.0-PROD*
+> **Hack2Skill Google PromptWars — Challenge 5: GenAI-Powered Planning Assistant**  
+> *Version: v2.1.0-PROD | Platform: Google Antigravity*
 
-[![Hack2Skill Google PromptWars](https://img.shields.io/badge/Hack2Skill-Google%20PromptWars-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://hack2skill.com)
-[![Google Gemini 2.5](https://img.shields.io/badge/Gemini%202.5-Flash%20%26%20Pro-8E75C4?style=for-the-badge&logo=googlebard&logoColor=white)](https://ai.google.dev)
+[![Hack2Skill Google PromptWars](https://img.shields.io/badge/Hack2Skill-Google%20PromptWars%20(Challenge%205)-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://hack2skill.com)
+[![Google Gemini 2.5 Flash](https://img.shields.io/badge/Google%20Gemini-2.5%20Flash-8E75C4?style=for-the-badge&logo=googlebard&logoColor=white)](https://ai.google.dev)
+[![Google Places API New](https://img.shields.io/badge/Google%20Maps-Places%20API%20(New)-34A853?style=for-the-badge&logo=googlemaps&logoColor=white)](https://developers.google.com/maps/documentation/places/web-service/op-overview)
 [![Next.js 15](https://img.shields.io/badge/Next.js-15%20App%20Router-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Python%203.12-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![Google Cloud Run](https://img.shields.io/badge/Google%20Cloud-Run%20%26%20Firebase-FF9900?style=for-the-badge&logo=googlecloud&logoColor=white)](https://cloud.google.com/run)
-[![Tests Passing](https://img.shields.io/badge/Pytest-21%2F21%20Passing%20(100%25%20Green)-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](#automated-testing--verification)
+[![Pytest 31/31 Passing](https://img.shields.io/badge/Pytest-31%2F31%20Passing%20(100%25)-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](#-5-automated-testing--verification)
+
+---
+
+## ⚡ Quick Navigation for Judges
+* **Live Demo**: [LIVE_DEMO_URL_PLACEHOLDER]
+* **Demo Video Walkthrough**: [DEMO_VIDEO_URL_PLACEHOLDER]
+* **GitHub Repository**: [https://github.com/NikhilPande008/AuraPulse-AI.git](https://github.com/NikhilPande008/AuraPulse-AI.git)
 
 ---
 
@@ -16,102 +23,99 @@
 
 AuraPulse AI bridges the gap between aesthetic inspiration and real-world event resilience. To evaluate the live dashboard with zero friction:
 
-1. **Launch the Dashboard**: Open [http://localhost:3000](http://localhost:3000) (or the live Cloud Run URL).
-2. **Instant One-Click Presets**: Click any of the 3 pre-calibrated demo cards at the top of the interface to auto-hydrate the entire procurement matrix and run-of-show timeline:
-   * 🌸 **Preset 1 (Wedding)**: *Boho Sunset Meadow Wedding* (Pune | 300 Pax | ₹15,00,000 | Pampas arch, 2,000 ft Edison festoons, farm-to-table banquet).
-   * ⚡ **Preset 2 (Birthday)**: *Cyberpunk Neon 30th Birthday* (Mumbai | 60 Pax | ₹2,50,000 | Violet & electric cyan wash, wireless Astera tubes, DJ synthwave rig).
-   * 🪔 **Preset 3 (Community)**: *Eco-Friendly Society Diwali Mela* (Pune | 800 Pax | ₹5,00,000 | Marigold yellow, zero-plastic food stalls, Puneri Dhol Tasha troupe).
+1. **Launch the Dashboard**: Open [http://localhost:3000](http://localhost:3000).
+2. **Instant One-Click Presets or Real Gemini Planning**:
+   * Click any of the 3 pre-calibrated demo cards at the top of the interface:
+     * 🌸 **Meadow Wedding**: Pune | 300 Pax | ₹15,00,000 | Pampas arch, 2,000 ft Edison festoons, farm-to-table banquet.
+     * ⚡ **Cyberpunk Birthday**: Mumbai | 60 Pax | ₹2,50,000 | Violet & electric cyan wash, wireless Astera tubes, DJ synthwave rig.
+     * 🪔 **Diwali Mela**: Pune | 800 Pax | ₹5,00,000 | Marigold yellow, zero-plastic food stalls, Puneri Dhol Tasha troupe.
+   * Or upload an image and input custom parameters (`event_date`, `city`, `headcount`, `budget`, `culture_region`) to generate a plan via **Gemini 2.5 Flash**.
 3. **Trigger Real-Time Contingency**:
    * Click **`🌧️ Rain Storm Alert`**: Watch the engine automatically inject an emergency German Pagoda marquee into the BOQ, lock Tier-1 items, move outdoor schedule blocks, and trim Tier-3 discretionary florals to offset budget impact.
    * Click **`💸 Cut 20% Budget`**: Observe mathematical surgical trimming of Tier-3 lines while preserving Tier-1 guest safety, power, and food.
-4. **Google Workspace Sync**:
-   * Click **"Export Formula Sheets"** to view living Google Sheets with `=SUM(H2:H11)` & `=SUMIF(...)` formulas.
-   * Click **"Sync Google Calendar"** to dispatch run-of-show timeline blocks with outdoor weather warning chips.
+4. **Chat with AI Co-Pilot**:
+   * Use natural language in the Co-Pilot bar: *"Reduce budget by 15%"*, *"Add live saxophone player"*, or *"Swap menu for Maharashtrian cuisine"*. The co-pilot invokes structured tool calls (`scale_budget`, `add_item`, `remove_item`, `set_event_date`) and outputs visual diffs.
+5. **Authentic Google Calendar & iCal Export**:
+   * Click **"📅 Download iCal (.ics)"** to export standard RFC-5545 calendar files with milestone due dates and day-of schedule blocks (`Asia/Kolkata`).
+   * Click **"🔗 Add to Google Calendar"** for zero-permission web intent synchronization.
 
 ---
 
-## 🏛️ 2. Architectural Topology & Data Flow
+## 🏛️ 2. Architectural Topology & 3 Core Layers
 
-AuraPulse AI coordinates five architectural layers using an ephemeral, reactive client-state model backed by FastAPI Pydantic v2 validation contracts (with `/api/v1/pulse/events/stream` provided as an optional developer telemetry hook):
+AuraPulse AI is architected across 3 clean, production-grade layers using strictly typed Pydantic v2 schemas:
 
 ```
 +-----------------------------------------------------------------------------------+
-|                              1. CLIENT SURFACE                                    |
-|   Next.js 15 (App Router) + Tailwind CSS + Lucide Icons + React Reactive Diff     |
-|   Hosted on: Firebase App Hosting / Cloud CDN                                     |
+|                              1. FRONTEND SURFACE                                  |
+|   Next.js 15 (App Router) + Tailwind CSS + Lucide Icons + TypeScript              |
+|   • Reactive Diff Visualizer (+Added, ~Modified, -Removed)                        |
+|   • Dynamic Backwards Planning Milestone Timeline ("Do Immediately" compression)  |
+|   • Multi-turn Co-Pilot Chat Drawer & Responsive BOQ Procurement Matrix           |
 +------------------------------------------+----------------------------------------+
-                                           | HTTPS / Ephemeral Reactive State Calls
+                                           | HTTPS / REST API
                                            v
 +-----------------------------------------------------------------------------------+
-|                        2. API GATEWAY & SESSION MANAGER                           |
-|   FastAPI (Python 3.12) / Cloud Run (Serverless, Autoscaling 0 -> 3)              |
-|   • Ephemeral Reactive Client-State Model & Pydantic v2 Strict Contracts          |
-|   • Optional Developer Telemetry Hook (/api/v1/pulse/events/stream)               |
+|                         2. BACKEND API GATEWAY (FastAPI)                          |
+|   FastAPI running on Python 3.12 / Pydantic v2 Strict Data Contracts             |
+|   • MasterEventPlan, BOQItem, PlanningMilestone, ContingencyDiff                  |
+|   • Deterministic Contingency Solver & Budget Ceiling Recalculation Engine        |
+|   • Health & Readiness Monitor (/api/health)                                      |
 +---------------------+--------------------+----------------------------------------+
                       |                    |
         +-------------+                    +-------------+
-        | Reasoning Cluster Dispatch                     | Structured Integration Calls
+        | Asynchronous LLM Generation                    | Verified External Grounding
         v                                                v
 +------------------------------------+   +------------------------------------------+
-|  3. GEMINI REASONING CLUSTER       |   |  4. GOOGLE TOOL FABRIC & INTEGRATIONS    |
-|  (Vertex AI / Google GenAI SDK)    |   |                                          |
-|                                    |   |  • Google Maps Places API (Grounding)   |
-|  A. Aura Deconstruct Agent        |   |    Nearby venue, caterer, decor search   |
-|     (Gemini 2.5 Flash Multimodal)  |   |                                          |
-|     Visual parsing -> BOQ mapping  |   |  • Google Sheets API v4                  |
-|                                    |   |    Dynamic formulas, budgeting sheets    |
-|  B. Pulse Dynamic Engine          |   |                                          |
-|     (Gemini 2.5 Pro Reasoner)      |   |  • Google Calendar API v3                |
-|     Multi-constraint graph solver  |   |    Run-of-show dispatch & rescheduling   |
+|  3. INTELLIGENCE & INTEGRATIONS   |   |  GOOGLE SERVICES & EXPORTS               |
 |                                    |   |                                          |
-|  C. Generative Studio              |   |  • Google Cloud Storage                  |
-|     (Imagen 3 Endpoint)            |   |    Raw mood board assets & renders       |
-|     Decor visual alternatives      |   |                                          |
+|  • Google Gemini 2.5 Flash         |   |  • Google Maps Places API (New)          |
+|    - Structured Vision Intake      |   |    Text search with FieldMasks           |
+|    - Schema-Guided Event Planning  |   |    Authentic rating & phone grounding     |
+|    - Function-Calling Co-Pilot     |   |                                          |
+|      (scale_budget, add_item, ...) |   |  • RFC-5545 .ics Calendar Generator      |
+|                                    |   |  • Google Calendar Web Intent Generator  |
 +------------------------------------+   +------------------------------------------+
 ```
 
 ```mermaid
-flowchart LR
-    A["User Moodboard / Presets"] --> B["Aura Vision (Gemini 2.5 Flash)"]
-    B --> C["Master BOQ (3 Tiers: Critical, Operational, Discretionary)"]
-    C --> D["Pulse Engine (Gemini 2.5 Pro Reasoner)"]
-    E["Crisis Triggers (Rain, -20% Budget, Delay, Supply Fail)"] --> D
-    D --> F["Diff Graph (+ADDED, ~MODIFIED, -REMOVED)"]
-    D --> G["Google Maps Places Grounding"]
-    D --> H["Google Sheets API v4 (=SUM / =SUMIF)"]
-    D --> I["Google Calendar API v3 (Timelines)"]
+flowchart TD
+    User["User Intake (Date, City, Headcount, Budget, Vision)"] --> Vision["Gemini 2.5 Flash (Structured Vision / Plan Generation)"]
+    Vision --> BOQ["Master BOQ (Tier-1 Critical, Tier-2 Operational, Tier-3 Discretionary)"]
+    Vision --> Timeline["Dynamic Backwards Milestone Timeline (Due Dates & 'Do Immediately')"]
+    BOQ --> Contingency["Contingency Engine (Rain, -20% Budget, Delay, Supply Fail)"]
+    Contingency --> Diff["Deterministic Diff Visualizer (+Added, ~Modified, -Removed)"]
+    BOQ --> CoPilot["Multi-Turn Co-Pilot (Gemini Tool / Function Calling)"]
+    CoPilot --> Diff
+    BOQ --> Places["Google Maps Places API (New) Grounding"]
+    Timeline --> ICS["RFC-5545 .ics Export & Google Calendar Web Intents"]
 ```
 
 ---
 
-## 🌟 3. Key Google Innovations Matrix
+## 🌟 3. Key Innovations Matrix
 
-| Google Service / Tech | Architectural Role | Value Add & Implementation Detail |
+| Innovation | Implementation Detail | Operational Impact |
 |---|---|---|
-| **Google Gemini 2.5 Flash** | Multimodal Vision-to-BOQ Intake | Isolates structural trusses, botanical density, and lighting fixtures from raw pixels into structured, strict Pydantic models. |
-| **Google Gemini 2.5 Pro** | Multi-Constraint Contingency Reasoner | Executes multi-turn reasoning when crises occur, locking Tier-1 lines and negotiating tradeoffs with deep operational rationale. |
-| **Google Maps Places API** | Vendor Discovery & Grounding | Queries authentic local suppliers with live review scores (`>= 4.0`), addresses, and phone contacts for automated supplier hot-swapping. |
-| **Google Sheets API v4** | Living Budget Exporter | Generates formula-driven workbooks with dynamic `=SUM(H2:H11)` totals and category `=SUMIF(...)` analytics instead of static flat tables. |
-| **Google Calendar API v3** | Run-of-Show Dispatcher | Syncs chronological schedule blocks with outdoor microclimate tags and lead vendor assignments. |
-| **Google Cloud Run** | Serverless Container Hosting | Containerized production deployment with autoscaling (0 to 3 instances), 1 vCPU, and 512MB RAM. |
-| **Google Antigravity** | Autonomous Development Agent | Guided the monorepo architecture, enforced strict Pydantic rules, and executed automated headless verification passes. |
+| **Multimodal Vision-to-BOQ** | Deconstructs user aesthetics or structured inputs using Gemini 2.5 Flash with strict Pydantic schemas. | Automatically calculates deterministic line totals (`quantity * rate`), categorizes items into 3 priority tiers, and enforces budget caps without arbitrary hallucinations. |
+| **Backwards Milestone Timeline** | Computes target milestone completion dates relative to the event date (`T-90d`, `T-60d`, `T-30d`, `T-14d`, `T-7d`, `T-1d`, `T-0d`). | Short-horizon compression automatically shifts tasks due before today into high-priority `"Do Immediately"` action items without generating past dates. |
+| **Function-Calling Co-Pilot** | Multi-turn conversational replanner with schema-backed tool definitions: `scale_budget`, `add_item`, `remove_item`, `set_event_date`, `decline_off_topic`. | Replaces brittle regex matching with genuine Google GenAI function-calling, outputting actionable atomic diffs with Hindi/Marathi language sensitivity. |
+| **Reactive Contingency Simulator** | Mathematical solver that recalculates budget distributions during crises (e.g., rainstorm canopy injection or budget cuts). | Locks Tier-1 Critical safety, food, and power lines, dynamically trimming Tier-3 Discretionary embellishments to balance budget deltas. |
+| **Google Maps Places Grounding** | Queries Places API (New) (`v1/places:searchText`) with field masks for authentic ratings, addresses, and phone contacts. | Transparent fallback indicators when Maps API key is unconfigured—zero fabricated phone numbers or synthetic vendors. |
+| **RFC-5545 Calendar & Web Intents** | Generates standard `.ics` exports with milestone due dates and day-of blocks in `Asia/Kolkata` timezone. | Instant one-click Google Calendar web intents requiring zero OAuth permissions or service account bottlenecks. |
 
 ---
 
-## 🛠️ 4. Reproducible Local Setup Instructions
+## 🛠️ 4. Local Development Guide
 
 ### Prerequisites
 * Python 3.12+ (or Python 3.14)
 * Node.js v20+ & npm
-* Google Cloud SDK (`gcloud`) optional for deployment
 
-### Step 1: Clone & Environment Setup
+### Step 1: Clone Repository
 ```bash
-git clone https://github.com/Hack2Skill-Google-PromptWars/AuraPulse-AI.git
+git clone https://github.com/NikhilPande008/AuraPulse-AI.git
 cd "AuraPulse AI"
-
-# Copy example environment configuration
-cp .env.example .env  # Optional: inject GEMINI_API_KEY, GOOGLE_MAPS_API_KEY
 ```
 
 ### Step 2: Backend Setup (FastAPI Gateway)
@@ -123,11 +127,11 @@ source .venv/bin/activate
 # Install dependencies
 pip install -r backend/requirements.txt
 
-# Launch FastAPI development server (port 8000)
+# Launch FastAPI server (port 8000)
 uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000 --reload
 ```
-*Backend Swagger Docs*: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)  
-*Health Check*: [http://127.0.0.1:8000/api/health](http://127.0.0.1:8000/api/health)
+* Interactive Swagger Docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)  
+* Health Status Check: [http://127.0.0.1:8000/api/health](http://127.0.0.1:8000/api/health)
 
 ### Step 3: Frontend Setup (Next.js 15 App Router)
 In a separate terminal window:
@@ -136,137 +140,123 @@ cd frontend
 npm install
 npm run dev
 ```
-Open **[http://localhost:3000](http://localhost:3000)** in your browser. Next.js proxies all `/api/*` requests directly to `http://127.0.0.1:8000`.
+Open **[http://localhost:3000](http://localhost:3000)** in your browser. Next.js automatically proxies `/api/*` requests to the FastAPI backend.
 
 ---
 
 ## 🧪 5. Automated Testing & Verification
 
-AuraPulse AI includes comprehensive automated test coverage for schemas, integrations, API routes, and edge-case cultural & budgetary boundary conditions (21/21 passing tests, 100% green):
+AuraPulse AI enforces comprehensive test coverage across data schemas, dynamic backwards timelines, Gemini generation, contingency solvers, Places API grounding, and RFC-5545 calendar exports:
 
 ```bash
-# Run pytest test suite
-$ .venv/bin/pytest backend/tests/ -v
+$ pytest backend/tests/ -v
 
 ============================= test session starts ==============================
-backend/tests/test_api_endpoints.py::test_health_endpoint PASSED         [  4%]
-backend/tests/test_api_endpoints.py::test_deconstruct_endpoint PASSED    [  9%]
-backend/tests/test_api_endpoints.py::test_simulate_contingency_endpoint PASSED [ 14%]
-backend/tests/test_api_endpoints.py::test_vendor_discovery_endpoint PASSED [ 19%]
-backend/tests/test_api_endpoints.py::test_sheets_export_endpoint PASSED  [ 23%]
-backend/tests/test_contingency.py::test_weather_risk_contingency PASSED  [ 28%]
-backend/tests/test_contingency.py::test_budget_compression_contingency PASSED [ 33%]
-backend/tests/test_contingency.py::test_timeline_slippage_contingency PASSED [ 38%]
-backend/tests/test_edge_cases.py::test_copilot_endpoint_cultural_cuisine_swap PASSED [ 42%]
-backend/tests/test_edge_cases.py::test_copilot_endpoint_floral_cut_and_sax PASSED [ 47%]
-backend/tests/test_edge_cases.py::test_copilot_party_games_birthday PASSED [ 52%]
-backend/tests/test_edge_cases.py::test_copilot_cultural_sakhar_puda_milestone PASSED [ 57%]
-backend/tests/test_edge_cases.py::test_budget_scale_boundary_small_vs_luxury PASSED [ 61%]
-backend/tests/test_edge_cases.py::test_headcount_scaling_invariants PASSED [ 66%]
-backend/tests/test_edge_cases.py::test_backwards_date_leap_year_and_short_horizon PASSED [ 71%]
-backend/tests/test_integrations.py::test_google_maps_vendor_fetch PASSED [ 76%]
-backend/tests/test_integrations.py::test_google_sheets_export_formulas PASSED [ 80%]
-backend/tests/test_integrations.py::test_google_calendar_schedule_sync PASSED [ 85%]
+backend/tests/test_api_endpoints.py::test_health_endpoint PASSED         [  3%]
+backend/tests/test_api_endpoints.py::test_deconstruct_endpoint PASSED    [  6%]
+backend/tests/test_api_endpoints.py::test_simulate_contingency_endpoint PASSED [  9%]
+backend/tests/test_api_endpoints.py::test_vendor_discovery_endpoint PASSED [ 12%]
+backend/tests/test_api_endpoints.py::test_sheets_export_endpoint PASSED  [ 16%]
+backend/tests/test_batch2_features.py::test_timeline_milestones_generation PASSED [ 19%]
+backend/tests/test_batch2_features.py::test_timeline_short_horizon_do_immediately PASSED [ 22%]
+backend/tests/test_batch2_features.py::test_gemini_client_deterministic_totals PASSED [ 25%]
+backend/tests/test_batch2_features.py::test_copilot_tool_budget_scale PASSED [ 29%]
+backend/tests/test_batch2_features.py::test_copilot_tool_add_item PASSED [ 32%]
+backend/tests/test_batch2_features.py::test_copilot_tool_remove_item PASSED [ 35%]
+backend/tests/test_batch2_features.py::test_preset_isolation PASSED      [ 38%]
+backend/tests/test_batch2_features.py::test_invalid_preset_raises_503 PASSED [ 41%]
+backend/tests/test_batch2_features.py::test_calendar_ics_export_endpoint PASSED [ 45%]
+backend/tests/test_contingency.py::test_weather_risk_contingency PASSED  [ 48%]
+backend/tests/test_contingency.py::test_budget_compression_contingency PASSED [ 51%]
+backend/tests/test_contingency.py::test_timeline_slippage_contingency PASSED [ 54%]
+backend/tests/test_edge_cases.py::test_copilot_endpoint_cultural_cuisine_swap PASSED [ 58%]
+backend/tests/test_edge_cases.py::test_copilot_endpoint_floral_cut_and_sax PASSED [ 61%]
+backend/tests/test_edge_cases.py::test_copilot_party_games_birthday PASSED [ 64%]
+backend/tests/test_edge_cases.py::test_copilot_cultural_sakhar_puda_milestone PASSED [ 67%]
+backend/tests/test_edge_cases.py::test_budget_scale_boundary_small_vs_luxury PASSED [ 70%]
+backend/tests/test_edge_cases.py::test_headcount_scaling_invariants PASSED [ 74%]
+backend/tests/test_edge_cases.py::test_backwards_date_leap_year_and_short_horizon PASSED [ 77%]
+backend/tests/test_integrations.py::test_google_maps_vendor_fetch PASSED [ 80%]
+backend/tests/test_integrations.py::test_google_sheets_export_formulas PASSED [ 83%]
+backend/tests/test_integrations.py::test_google_calendar_schedule_sync PASSED [ 87%]
 backend/tests/test_schemas.py::test_boq_item_strict_validation PASSED    [ 90%]
-backend/tests/test_schemas.py::test_master_event_plan_structure PASSED   [ 95%]
-backend/tests/test_schemas.py::test_crisis_trigger_model PASSED          [100%]
+backend/tests/test_schemas.py::test_master_event_plan_structure PASSED   [ 93%]
+backend/tests/test_schemas.py::test_crisis_trigger_model PASSED          [ 96%]
+backend/tests/test_schemas.py::test_batch2_schema_extensions PASSED      [100%]
 
-======================== 21 passed in 0.24s (100% Green) =========================
+======================== 31 passed in ~0.50s (100% Green) =========================
 ```
 
-Compile the frontend production bundle:
+Frontend production build check:
 ```bash
 $ cd frontend && npm run build
-# ✓ Compiled successfully in 881ms (zero TypeScript / Webpack errors)
+# ✓ Compiled successfully (zero TypeScript or ESLint errors)
 ```
 
 ---
 
-## 🚢 6. Deployment Automation (Google Cloud Run)
-
-To deploy the containerized backend to Google Cloud Run:
-```bash
-chmod +x deployment/deploy_cloud_run.sh
-./deployment/deploy_cloud_run.sh
-```
-* Deploys container image via Google Cloud Build.
-* Managed Cloud Run instance: 1 vCPU, 512MB RAM, min-instances 0, max-instances 3.
-* Firebase App Hosting configured in [`deployment/firebase.json`](deployment/firebase.json) with Cloud CDN rewrites.
-
----
-
-## 📁 7. Repository Structure
+## 📁 6. Repository Layout
 
 ```
-aurapulse-core/
-├── .antigravity/
-│   ├── rules.md                          # Antigravity agent operational guidelines
-│   └── skills/
-│       ├── test-gemini-schemas.yaml      # Schema validation skill
-│       └── verify-google-apis.yaml       # Google API smoke testing skill
+AuraPulse-AI/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py                       # FastAPI gateway, async routes & SSE streams
-│   │   ├── config.py                     # App configuration & Google credentials
-│   │   ├── schemas/                      # Pydantic schemas (strict=True)
-│   │   │   ├── event_plan.py             # MasterEventPlan, BOQItem, ScheduleBlock
+│   │   ├── main.py                       # FastAPI gateway, HTTP routers & health endpoints
+│   │   ├── config.py                     # Environment variables & API keys
+│   │   ├── schemas/
+│   │   │   ├── event_plan.py             # MasterEventPlan, BOQItem, PlanningMilestone, PlanRequest
 │   │   │   └── contingency.py            # CrisisTrigger, ContingencyDiff
 │   │   ├── agents/
-│   │   │   ├── aura_vision.py            # Gemini 2.5 Flash multimodal intake
-│   │   │   ├── pulse_engine.py           # Gemini 2.5 Pro multi-constraint solver
-│   │   │   └── generator_studio.py       # Imagen 3 alternative theme visualizer
+│   │   │   ├── aura_vision.py            # Multimodal vision & preset router
+│   │   │   ├── copilot.py                # Multi-turn tool calling replanner
+│   │   │   └── pulse_engine.py           # Deterministic contingency rebalancing engine
+│   │   ├── fixtures/
+│   │   │   └── sample_plans.py           # Isolated test & demo presets
+│   │   ├── llm/
+│   │   │   └── client.py                 # Async Gemini 2.5 Flash generator & schema guidance
+│   │   ├── services/
+│   │   │   └── timeline.py               # Backwards milestone planning logic
 │   │   └── integrations/
-│   │       ├── google_maps.py            # Places API verified supplier discovery
-│   │       ├── google_sheets.py          # Sheets API v4 dynamic formula workbook
-│   │       └── google_calendar.py        # Calendar API v3 run-of-show scheduler
-│   ├── tests/
-│   │   ├── test_api_endpoints.py         # FastAPI TestClient HTTP smoke tests
-│   │   ├── test_schemas.py               # Pydantic validation tests
-│   │   ├── test_contingency.py           # Deterministic contingency solver tests
-│   │   └── test_integrations.py          # Maps, Sheets formula, and Calendar tests
-│   ├── requirements.txt
-│   └── pytest.ini
+│   │       ├── google_maps.py            # Google Maps Places API (New) client
+│   │       ├── google_calendar.py        # RFC-5545 .ics & web intent generator
+│   │       └── google_sheets.py          # Formula-driven workbook generator
+│   ├── tests/                            # 31 automated pytest tests
+│   └── requirements.txt
 ├── frontend/
 │   ├── src/
 │   │   ├── app/                          # Next.js 15 App Router
-│   │   │   ├── layout.tsx                # Obsidian & electric violet theme header
-│   │   │   ├── page.tsx                  # Unified dashboard with fallback handling
-│   │   │   └── globals.css               # Glassmorphism & custom utility styles
+│   │   │   ├── layout.tsx                # Dynamic status strip & theme header
+│   │   │   ├── page.tsx                  # Main interactive dashboard
+│   │   │   └── globals.css
 │   │   ├── components/
-│   │   │   ├── MoodboardUploader.tsx     # One-click demo presets & image uploader
-│   │   │   ├── BoqTable.tsx              # Itemized procurement matrix (3 tiers)
-│   │   │   ├── ContingencyControls.tsx   # What-If crisis simulation toolbar
-│   │   │   ├── DiffVisualizer.tsx        # Side-by-side cost delta & Gemini rationale
-│   │   │   ├── ScheduleTimeline.tsx      # Chronological run-of-show with outdoor flags
-│   │   │   ├── VendorFinder.tsx          # Google Maps verified vendor search
-│   │   │   └── ExportActions.tsx         # Sheets Drive link & Calendar chips
+│   │   │   ├── MoodboardUploader.tsx     # Intake form with date, city, budget, presets
+│   │   │   ├── BoqTable.tsx              # 3-tier itemized procurement table
+│   │   │   ├── ScheduleTimeline.tsx      # Backwards milestone timeline & run-of-show
+│   │   │   ├── AICopilotBar.tsx          # Multi-turn co-pilot chat & diff dispatcher
+│   │   │   ├── ContingencyControls.tsx   # Instant crisis scenario simulation toolbar
+│   │   │   ├── DiffVisualizer.tsx        # Cost delta & rationales (+Added, ~Modified, -Removed)
+│   │   │   ├── VendorFinder.tsx          # Places API grounding & attribution links
+│   │   │   └── ExportActions.tsx         # RFC-5545 .ics download & Google Calendar intents
 │   │   └── lib/
-│   │       └── api.ts                    # Strongly typed API client & offline fallback
-│   ├── next.config.ts                    # Dynamic backend proxy configuration
-│   ├── tailwind.config.ts
-│   ├── tsconfig.json
-│   └── package.json
+│   │       └── api.ts                    # Typed API client
+│   ├── package.json
+│   └── tsconfig.json
 ├── docs/
 │   └── submission/
 │       ├── TECHNICAL_BLOG.md             # In-depth architectural article
 │       ├── LINKEDIN_POST.md              # Build-in-public social announcement
 │       └── SUBMISSION_METADATA.json      # Structured competition metadata
-├── deployment/
-│   ├── Dockerfile                        # Production Cloud Run container definition
-│   ├── deploy_cloud_run.sh               # Automated deployment script
-│   └── firebase.json                     # Firebase App Hosting & CDN configuration
-└── README.md                             # Production documentation & judge guide
+└── README.md
 ```
 
 ---
 
-## 🏆 8. Hack2Skill Google PromptWars Submission Pack
+## 🏆 7. Hack2Skill Google PromptWars Submission Pack
 
 * **Technical Blog**: [`docs/submission/TECHNICAL_BLOG.md`](docs/submission/TECHNICAL_BLOG.md)
-* **LinkedIn Build-in-Public Post**: [`docs/submission/LINKEDIN_POST.md`](docs/submission/LINKEDIN_POST.md)
+* **LinkedIn Post**: [`docs/submission/LINKEDIN_POST.md`](docs/submission/LINKEDIN_POST.md)
 * **Submission Metadata**: [`docs/submission/SUBMISSION_METADATA.json`](docs/submission/SUBMISSION_METADATA.json)
-* **Implementation Report**: [`AuraPulse_Implementation_Report.md`](file:///Users/nikhil/.gemini/antigravity/brain/b1dc3cc1-5af6-47d7-91db-bedc961dd696/AuraPulse_Implementation_Report.md)
 
 ---
 
-*Crafted with Google Antigravity & Powered by Google Gemini 2.5.*
+*Crafted for Hack2Skill Google PromptWars (Challenge 5) | Powered by Google Gemini 2.5 Flash & Google Places API.*

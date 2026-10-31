@@ -2,22 +2,25 @@
 
 import React, { useState } from "react";
 import { Sparkles, Send, Loader2, Lightbulb, CheckCircle2, MessageSquare, ArrowRight, RefreshCw } from "lucide-react";
-import { MasterEventPlan, chatCopilot, CopilotResponse } from "../lib/api";
+import { MasterEventPlan, chatCopilot, CopilotResponse, ContingencyDiff } from "../lib/api";
 
 interface AICopilotBarProps {
   plan: MasterEventPlan;
   onPlanUpdate: (updatedPlan: MasterEventPlan) => void;
+  onDiffGenerated?: (diff: ContingencyDiff) => void;
 }
 
-export default function AICopilotBar({ plan, onPlanUpdate }: AICopilotBarProps) {
+export default function AICopilotBar({ plan, onPlanUpdate, onDiffGenerated }: AICopilotBarProps) {
   const [prompt, setPrompt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [lastResponse, setLastResponse] = useState<CopilotResponse | null>(null);
+  const [history, setHistory] = useState<Array<{ role: string; content: string }>>([]);
 
   const quickPrompts = [
+    { label: "📉 Cut Budget by 20%", query: "Cut budget by 20% across non-critical items" },
     { label: "🍽️ Authentic Puneri Cuisine", query: "Switch catering to authentic Puneri Maharashtrian cuisine with Puran Poli and Modaks" },
     { label: "🎷 Cut Florals 20% & Add Sax", query: "Cut floral decor by 20% and add a live solo saxophonist for the sunset hour" },
-    { label: "🎁 Eco Return Gifts < ₹200", query: "Suggest eco-friendly sustainable return gifts under ₹200 and add to BOQ" },
+    { label: "🌿 मेनू शाकाहारी करा", query: "मेनू पूर्णपणे शाकाहारी करा आणि पुरणपोळी जोडा" },
     { label: "🎮 5 Interactive Party Games", query: "Suggest 5 high-energy interactive games and add a Game Master coordinator" },
     { label: "🪔 Sakhar Puda & Pre-Ceremony Rituals", query: "Add Sakhar Puda pre-ceremony rituals and pooja samagri audit to timeline" },
   ];
@@ -27,11 +30,18 @@ export default function AICopilotBar({ plan, onPlanUpdate }: AICopilotBarProps) 
     if (!textToSend.trim() || isLoading) return;
 
     setIsLoading(true);
+    const updatedHistory = [...history, { role: "user", content: textToSend }].slice(-6);
     try {
-      const res = await chatCopilot(plan, textToSend);
+      const res = await chatCopilot(plan, textToSend, updatedHistory);
       setLastResponse(res);
+      if (res.copilot_reply) {
+        setHistory([...updatedHistory, { role: "model", content: res.copilot_reply }].slice(-6));
+      }
       if (res.updated_plan) {
         onPlanUpdate(res.updated_plan);
+      }
+      if (res.diff && onDiffGenerated) {
+        onDiffGenerated(res.diff);
       }
       setPrompt("");
     } catch (err) {

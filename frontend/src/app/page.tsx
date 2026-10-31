@@ -16,13 +16,20 @@ export default function Dashboard() {
   const [currentPlan, setCurrentPlan] = useState<MasterEventPlan>(FALLBACK_PRESET_1);
   const [baselinePlan, setBaselinePlan] = useState<MasterEventPlan>(FALLBACK_PRESET_1);
   const [activeDiff, setActiveDiff] = useState<ContingencyDiff | null>(null);
+  const [eventDate, setEventDate] = useState<string>("2026-11-15");
+  const [healthStatus, setHealthStatus] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
   const [isOfflineFallback, setIsOfflineFallback] = useState(false);
   const [activeTab, setActiveTab] = useState<"boq" | "schedule" | "vendors" | "export">("boq");
 
-  // Initial load: deconstruct baseline with 3s timeout
+  // Initial load: deconstruct baseline and fetch health check
   useEffect(() => {
+    fetch("/api/health")
+      .then((r) => r.json())
+      .then((data) => setHealthStatus(data))
+      .catch((err) => console.warn("Health check error:", err));
+
     const init = async () => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 3000);
@@ -66,6 +73,9 @@ export default function Dashboard() {
   const handlePlanLoaded = (plan: MasterEventPlan) => {
     setCurrentPlan(plan);
     setBaselinePlan(plan);
+    if (plan.event_date) {
+      setEventDate(plan.event_date);
+    }
     setActiveDiff(null); // Reset active diff on new baseline
   };
 
@@ -93,28 +103,39 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8 pb-16">
-      {/* Top Banner / System Status Ribbon */}
+      {/* Clean Dynamic System Status Strip based on GET /api/health (CR-18) */}
       <div className="glass-card rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 border border-slate-800">
         <div className="flex items-center gap-3">
-          <div className="h-3 w-3 rounded-full bg-emerald-400 animate-ping"></div>
+          <div className="h-2.5 w-2.5 rounded-full bg-emerald-400"></div>
           <span className="text-xs font-mono font-semibold text-white">
-            System Topology: 5 Architectural Layers Active
+            System Status: Operational
           </span>
-          <span className="text-xs text-slate-400 hidden sm:inline">•</span>
-          <span className="text-xs text-slate-400 hidden sm:inline">
-            Vertex AI / Google GenAI SDK Cluster Connected
+          <span className="text-xs text-slate-500 hidden sm:inline">•</span>
+          <span className="text-xs text-slate-400 font-mono hidden sm:inline">
+            Version: {healthStatus?.version || "v2.1.0"}
           </span>
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-mono">
-          <span className="px-2 py-0.5 rounded bg-purple-950 border border-purple-800/60 text-purple-300">
-            Gemini 2.5 Flash
+        <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
+          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-950/60 border border-purple-800/60 text-purple-300">
+            <span className="h-1.5 w-1.5 rounded-full bg-purple-400"></span>
+            Gemini 2.5 Flash: Ready
           </span>
-          <span className="px-2 py-0.5 rounded bg-indigo-950 border border-indigo-800/60 text-indigo-300">
-            Gemini 2.5 Pro Reasoner
+
+          <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border ${
+            healthStatus?.google_apis?.places_maps
+              ? "bg-cyan-950/60 border-cyan-800/60 text-cyan-300"
+              : "bg-slate-900 border-slate-800 text-slate-400"
+          }`}>
+            <span className={`h-1.5 w-1.5 rounded-full ${
+              healthStatus?.google_apis?.places_maps ? "bg-cyan-400" : "bg-slate-500"
+            }`}></span>
+            Places Grounding: {healthStatus?.google_apis?.places_maps ? "Ready" : "Inactive"}
           </span>
-          <span className="px-2 py-0.5 rounded bg-cyan-950 border border-cyan-800/60 text-cyan-300">
-            Places & Sheets Fabric
+
+          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-950/60 border border-emerald-800/60 text-emerald-300">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+            RFC-5545 Calendar: Ready
           </span>
         </div>
       </div>
@@ -150,6 +171,7 @@ export default function Dashboard() {
           <AICopilotBar
             plan={currentPlan}
             onPlanUpdate={handlePlanLoaded}
+            onDiffGenerated={handleDiffGenerated}
           />
         </section>
       )}
@@ -226,6 +248,11 @@ export default function Dashboard() {
                 schedule={currentPlan.schedule}
                 milestones={currentPlan.planning_milestones}
                 onMilestoneToggle={handleMilestoneToggle}
+                eventDate={eventDate}
+                onEventDateChange={(d) => {
+                  setEventDate(d);
+                  setCurrentPlan((prev) => ({ ...prev, event_date: d }));
+                }}
               />
             )}
             {activeTab === "vendors" && (

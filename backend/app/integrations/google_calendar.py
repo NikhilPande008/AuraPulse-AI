@@ -1,13 +1,150 @@
-import os
+from datetime import datetime, date, timedelta, timezone
 from typing import List, Dict, Any, Optional
-from ..config import settings
+from ..schemas import MasterEventPlan
 
-try:
-    from googleapiclient.discovery import build
-    from google.oauth2 import service_account
-except ImportError:
-    build = None
-    service_account = None
+
+def generate_calendar_ics(plan: MasterEventPlan) -> str:
+    """
+    RFC-5545 Calendar Export (CR-14):
+    Generates standard RFC-5545 .ics calendar content:
+    - Planning milestones as all-day events on their calculated due_date.
+    - Day-of schedule blocks on event_date with TZID=Asia/Kolkata.
+    Uses standard CRLF (\\r\\n) line endings.
+    """
+    now_utc = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    event_date = plan.event_date or "2026-11-15"
+    clean_city = plan.location_city or "India"
+
+    lines = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//AuraPulse AI//Event Planning Engine//EN",
+        "CALSCALE:GREGORIAN",
+        "METHOD:PUBLISH",
+        f"X-WR-CALNAME:{plan.title.replace(',', '')}",
+        "X-WR-TIMEZONE:Asia/Kolkata",
+        "BEGIN:VTIMEZONE",
+        "TZID:Asia/Kolkata",
+        "X-LIC-LOCATION:Asia/Kolkata",
+        "BEGIN:STANDARD",
+        "TZOFFSETFROM:+0530",
+        "TZOFFSETTO:+0530",
+        "TZNAME:IST",
+        "DTSTART:19700101T000000",
+        "END:STANDARD",
+        "END:VTIMEZONE",
+    ]
+
+    # 1. Backwards Planning Milestones as All-Day Events
+    for ms in plan.planning_milestones or []:
+        due_str = ms.due_date.replace("-", "")
+        # End date for all-day is next day in RFC-5545
+        try:
+            d_obj = datetime.strptime(ms.due_date, "%Y-%m-%d").date()
+            next_day_str = (d_obj + timedelta(days=1)).strftime("%Y%m%d")
+        except Exception:
+            next_day_str = due_str
+
+        summary = f"[{ms.phase}] {ms.title}"
+        desc = (
+            f"AuraPulse Milestone\\n"
+            f"Category: {ms.category}\\n"
+            f"Deliverable: {ms.description}\\n"
+            f"Phase: {ms.phase}"
+        )
+
+        lines.extend([
+            "BEGIN:VEVENT",
+            f"UID:ms_{ms.id}@aurapulse.ai",
+            f"DTSTAMP:{now_utc}",
+            f"DTSTART;VALUE=DATE:{due_str}",
+            f"DTEND;VALUE=DATE:{next_day_str}",
+            f"SUMMARY:{summary}",
+            f"DESCRIPTION:{desc}",
+            f"LOCATION:{clean_city}",
+            "STATUS:CONFIRMED",
+            "END:VEVENT",
+        ])
+
+    # 2. Day-of Run-of-Show Schedule Blocks (TZID=Asia/Kolkata)
+    clean_date = event_date.replace("-", "")
+
+    for block in plan.schedule or []:
+        start_raw = block.start_time_iso
+        end_raw = block.end_time_iso
+
+        if "T" in start_raw:
+            try:
+                dt_s = datetime.fromisoformat(start_raw)
+                start_fmt = dt_s.strftime("%Y%m%dT%H%M%S")
+            except Exception:
+                start_fmt = f"{clean_date}T100000"
+        else:
+            parts = start_raw.split(":")
+            hh = parts[0].zfill(2)
+            mm = parts[1].zfill(2) if len(parts) > 1 else "00"
+            start_fmt = f"{clean_date}T{hh}{mm}00"
+
+        if "T" in end_raw:
+            try:
+                dt_e = datetime.fromisoformat(end_raw)
+                end_fmt = dt_e.strftime("%Y%m%dT%H%M%S")
+            except Exception:
+                end_fmt = f"{clean_date}T110000"
+        else:
+            parts = end_raw.split(":")
+            hh = parts[0].zfill(2)
+            mm = parts[1].zfill(2) if len(parts) > 1 else "00"
+            end_fmt = f"{clean_date}T{hh}{mm}00"
+
+        outdoor_tag = " [OUTDOOR ZONE - WEATHER WATCH]" if block.is_outdoor else " [INDOOR / COVERED]"
+        summary = f"[{block.phase}] {block.activity}{outdoor_tag}"
+        desc = (
+            f"AuraPulse Run-of-Show\\n"
+            f"Phase: {block.phase}\\n"
+            f"Responsible Party: {block.responsible_party}\\n"
+            f"Zone: {'Outdoor Zone (Weather Alert)' if block.is_outdoor else 'Covered / Indoor Zone'}\\n"
+            f"Block ID: {block.block_id}"
+        )
+
+        lines.extend([
+            "BEGIN:VEVENT",
+            f"UID:block_{block.block_id}@aurapulse.ai",
+            f"DTSTAMP:{now_utc}",
+            f"DTSTART;TZID=Asia/Kolkata:{start_fmt}",
+            f"DTEND;TZID=Asia/Kolkata:{end_fmt}",
+            f"SUMMARY:{summary}",
+            f"DESCRIPTION:{desc}",
+            f"LOCATION:{clean_city}",
+            "STATUS:CONFIRMED",
+            "END:VEVENT",
+        ])
+
+    lines.append("END:VCALENDAR")
+    return "\r\n".join(lines) + "\r\n"
+
+
+def generate_google_calendar_web_intent(
+    title: str,
+    start_iso: str,
+    end_iso: str,
+    details: str,
+    location: str = "India"
+) -> str:
+    """
+    Generates standard zero-permission Google Calendar web intent link (CR-14):
+    https://calendar.google.com/calendar/render?action=TEMPLATE&text={title}&dates={start}/{end}&details={details}&ctz=Asia/Kolkata
+    """
+    import urllib.parse
+    params = {
+        "action": "TEMPLATE",
+        "text": title,
+        "dates": f"{start_iso}/{end_iso}",
+        "details": details,
+        "location": location,
+        "ctz": "Asia/Kolkata",
+    }
+    return f"https://calendar.google.com/calendar/render?{urllib.parse.urlencode(params)}"
 
 
 def sync_schedule_to_google_calendar(
@@ -17,85 +154,36 @@ def sync_schedule_to_google_calendar(
     event_date_prefix: str = "2026-11-15"
 ) -> Dict[str, Any]:
     """
-    Syncs run-of-show schedule blocks into Google Calendar API v3.
-    Includes outdoor tags, responsible party, and automated reminders.
+    Public schedule exporter for run-of-show blocks.
+    Replaced silent service-account write with zero-permission client intent links.
     """
     synced_events = []
-    creds_file = settings.GOOGLE_APPLICATION_CREDENTIALS
-    service = None
-
-    if creds_file and os.path.exists(creds_file) and build and service_account:
-        try:
-            creds = service_account.Credentials.from_service_account_file(
-                creds_file,
-                scopes=["https://www.googleapis.com/auth/calendar"]
-            )
-            service = build("calendar", "v3", credentials=creds)
-        except Exception:
-            service = None
-
     for block in schedule_blocks:
-        start_time = block.get("start_time_iso", "10:00")
-        end_time = block.get("end_time_iso", "11:00")
-        activity = block.get("activity", "Event Activity")
-        responsible = block.get("responsible_party", "Lead Coordinator")
-        is_outdoor = block.get("is_outdoor", False)
-        phase = block.get("phase", "General")
+        st = block.get("start_time_iso", "10:00")
+        et = block.get("end_time_iso", "11:00")
+        clean_date = event_date_prefix.replace("-", "")
+        st_parts = st.split(":")
+        et_parts = et.split(":")
+        s_iso = f"{clean_date}T{st_parts[0].zfill(2)}{st_parts[1].zfill(2) if len(st_parts) > 1 else '00'}00"
+        e_iso = f"{clean_date}T{et_parts[0].zfill(2)}{et_parts[1].zfill(2) if len(et_parts) > 1 else '00'}00"
 
-        outdoor_badge = "[OUTDOOR ZONE - WEATHER WATCH]" if is_outdoor else "[INDOOR / COVERED]"
-        summary = f"[{phase}] {activity} {outdoor_badge}"
-        description = (
-            f"AuraPulse Run-of-Show Protocol\n"
-            f"Phase: {phase}\n"
-            f"Responsible Vendor: {responsible}\n"
-            f"Location Safety: {'Outdoor Zone (Contingency Flagged)' if is_outdoor else 'Covered / Indoor Zone'}\n"
-            f"Block ID: {block.get('block_id')}"
+        intent = generate_google_calendar_web_intent(
+            title=f"{event_title}: {block.get('activity', 'Activity')}",
+            start_iso=s_iso,
+            end_iso=e_iso,
+            details=f"Phase: {block.get('phase', 'Phase')} | Responsible: {block.get('responsible_party', 'Lead')}",
         )
-
-        # Standard RFC3339 time formatting
-        if "T" in start_time:
-            start_rfc = start_time
-            end_rfc = end_time
-        else:
-            start_rfc = f"{event_date_prefix}T{start_time}:00+05:30"
-            end_rfc = f"{event_date_prefix}T{end_time}:00+05:30"
-
-        event_payload = {
-            "summary": summary,
-            "description": description,
-            "start": {"dateTime": start_rfc, "timeZone": "Asia/Kolkata"},
-            "end": {"dateTime": end_rfc, "timeZone": "Asia/Kolkata"},
-            "colorId": "11" if is_outdoor else "9",  # Red for outdoor contingency, bold blue for standard
-        }
-
-        cal_event_id = f"gcal_{block.get('block_id')}"
-        html_link = f"https://calendar.google.com/calendar/event?eid={cal_event_id}"
-
-        if service:
-            try:
-                created = service.events().insert(calendarId=calendar_id, body=event_payload).execute()
-                cal_event_id = created.get("id", cal_event_id)
-                html_link = created.get("htmlLink", html_link)
-            except Exception:
-                pass
-
         synced_events.append({
             "block_id": block.get("block_id"),
-            "activity": activity,
-            "start_time": start_rfc,
-            "end_time": end_rfc,
-            "responsible_party": responsible,
-            "is_outdoor": is_outdoor,
-            "google_calendar_event_id": cal_event_id,
-            "calendar_link": html_link,
-            "status": "CONFIRMED"
+            "activity": block.get("activity"),
+            "calendar_link": intent,
+            "status": "READY"
         })
 
     return {
-        "calendar_id": calendar_id,
         "event_title": event_title,
         "total_blocks_synced": len(synced_events),
         "synced_events": synced_events,
         "status": "SUCCESS",
-        "api_target": "Google Calendar API v3"
+        "export_mode": "RFC-5545 / Web Intent"
     }

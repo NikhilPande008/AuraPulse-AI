@@ -1,142 +1,128 @@
-# Building AuraPulse AI: Multimodal Vision-to-BOQ Deconstruction & Real-Time Crisis Rebalancing with Google Gemini & Workspace APIs
+# Building AuraPulse AI: Multimodal Event Planning, Dynamic Milestones & Crisis Rebalancing with Google Gemini 2.5 Flash
 
 **System Classification**: Autonomous Multimodal Event Planning & Reactive Contingency Engine  
-**Platform Paradigm**: Agentic Development via Google Antigravity  
-**Hackathon Target**: Hack2Skill Google PromptWars  
-**Architecture Version**: `2.0.0-PROD`
+**Platform**: Google Antigravity  
+**Hackathon Target**: Hack2Skill Google PromptWars (Challenge 5: GenAI-Powered Planning Assistant)  
+**Architecture Version**: `v2.1.0-PROD`
 
 ---
 
 ## 1. The Problem: The Fragility of Modern Event Planning
 
-Events—whether high-stakes destination weddings, tech conferences, or vibrant community festivals—are multi-variable operational minefields. Traditional event planning suffers from three systemic vulnerabilities:
+Events—whether destination weddings, milestone birthdays, or vibrant community festivals—are multi-variable operational challenges. Traditional event planning suffers from three systemic vulnerabilities:
 
-1. **The Visual-to-Procurement Translation Gap**: Clients communicate aesthetic dreams through Pinterest boards, Instagram reels, and mood boards. Planners spend dozens of manual hours translating "warm meadow sunset vibes" into rigid procurement line items: 2,000 feet of warm Edison festoon lighting, IP65 waterproof audio line arrays, or fire-retardant structural pergolas.
-2. **Pricing Opacity & Budget Bleed**: Discretionary aesthetics (exotic imported orchids, cold spark fountains, custom LED neon) frequently balloon costs without transparency, leaving zero financial buffer when emergency infrastructure is required.
-3. **Contingency Paralysis**: When a real-time crisis hits—such as sudden torrential downpour, an unexpected 20% budget reduction, a 1-hour delay in the arrival procession, or an abrupt caterer cancellation—human organizers panic. They lack deterministic mathematical models to rebalance budgets, shift temporal run-of-shows, and source verified local replacements in minutes.
+1. **The Visual-to-Procurement Translation Gap**: Clients communicate aesthetic dreams through mood boards and photos. Planners spend hours translating "warm sunset meadow" into procurement line items: aluminium box trusses, 2,000 feet of warm Edison festoons, or waterproof audio line arrays.
+2. **Timeline Disconnect**: Milestones set without temporal reference to the event date lead to missed booking windows. Deadlines set in the past or scheduled haphazardly create operational bottlenecks.
+3. **Contingency Paralysis**: When a real-time crisis hits—such as sudden torrential downpour, an unexpected 20% budget cut, or supplier cancellations—organizers lack deterministic mathematical models to rebalance budgets, shift timelines, and source verified local replacements in minutes.
 
-**AuraPulse AI** solves this by unifying **Multimodal Gemini Vision**, **Deterministic Graph Solving with Gemini 2.5 Pro Reasoning**, and the **Google Services Tool Fabric (Maps, Sheets, Calendar)** into a resilient, autonomous event operating system.
+**AuraPulse AI** solves this by unifying **Multimodal Gemini 2.5 Flash Vision & Generation**, a **Dynamic Backwards Planning Timeline**, **Function-Calling Conversational Replanning**, and **Google Services (Places API New, RFC-5545 iCal & Google Calendar Web Intents)** into a resilient, production-grade event operating system.
 
 ---
 
-## 2. Architectural Deep Dive: The Five-Layer Symphony
+## 2. Architectural Deep Dive: 3 Core Layers
 
-AuraPulse AI coordinates five decoupled architectural layers using an ephemeral, reactive client-state model backed by FastAPI Pydantic v2 validation contracts:
+AuraPulse AI coordinates 3 decoupled, production-grade layers using strictly typed Pydantic v2 data contracts:
 
 ```
 +-----------------------------------------------------------------------------------+
 |                              1. CLIENT SURFACE                                    |
 |   Next.js 15 (App Router) + Tailwind CSS + Lucide Icons + React Reactive Diff     |
-|   Hosted on: Firebase App Hosting / Cloud CDN                                     |
+|   • Reactive Diff Visualizer (+Added, ~Modified, -Removed)                        |
+|   • Dynamic Backwards Timeline with "Do Immediately" near-term compression        |
+|   • Multi-Turn AI Co-Pilot Chat Drawer & Responsive Procurement Matrix            |
 +------------------------------------------+----------------------------------------+
-                                           | HTTPS / Ephemeral Reactive State Calls
+                                           | HTTPS / REST API
                                            v
 +-----------------------------------------------------------------------------------+
 |                        2. API GATEWAY & SESSION MANAGER                           |
-|   FastAPI (Python 3.12) / Cloud Run (Serverless, Autoscaling 0 -> 3)              |
-|   • Ephemeral Reactive Client-State Model & Pydantic v2 Strict Contracts          |
-|   • Optional Developer Telemetry Hook (/api/v1/pulse/events/stream)               |
+|   FastAPI (Python 3.12) with Pydantic v2 Strict Data Contracts                    |
+|   • MasterEventPlan, BOQItem, PlanningMilestone, ContingencyDiff                  |
+|   • Deterministic Cost Recalculation (quantity * rate) & Budget Cap Validation   |
+|   • Honest Health & Readiness Monitor (/api/health)                               |
 +---------------------+--------------------+----------------------------------------+
                       |                    |
         +-------------+                    +-------------+
-        | Reasoning Cluster Dispatch                     | Structured Integration Calls
+        | Asynchronous Generation & Tool Calling         | Grounded Tool Fabric & Exports
         v                                                v
 +------------------------------------+   +------------------------------------------+
-|  3. GEMINI REASONING CLUSTER       |   |  4. GOOGLE TOOL FABRIC & INTEGRATIONS    |
-|  (Vertex AI / Google GenAI SDK)    |   |                                          |
-|                                    |   |  • Google Maps Places API (Grounding)   |
-|  A. Aura Deconstruct Agent        |   |    Nearby venue, caterer, decor search   |
-|     (Gemini 2.5 Flash Multimodal)  |   |                                          |
-|     Visual parsing -> BOQ mapping  |   |  • Google Sheets API v4                  |
-|                                    |   |    Dynamic formulas, budgeting sheets    |
-|  B. Pulse Dynamic Engine          |   |                                          |
-|     (Gemini 2.5 Pro Reasoner)      |   |  • Google Calendar API v3                |
-|     Multi-constraint graph solver  |   |    Run-of-show dispatch & rescheduling   |
+|  3. GEMINI 2.5 FLASH ENGINE        |   |  GOOGLE SERVICES & EXPORTS               |
 |                                    |   |                                          |
-|  C. Generative Studio              |   |  • Google Cloud Storage                  |
-|     (Imagen 3 Endpoint)            |   |    Raw mood board assets & renders       |
-|     Decor visual alternatives      |   |                                          |
+|  A. Aura Vision & Generation       |   |  • Google Maps Places API (New)          |
+|     (Gemini 2.5 Flash Multimodal)  |   |    Text search with FieldMasks           |
+|     Schema-guided JSON extraction  |   |    Authentic rating & phone grounding     |
+|                                    |   |                                          |
+|  B. Function-Calling Co-Pilot      |   |  • RFC-5545 .ics Calendar Export         |
+|     Multi-turn tool execution      |   |    Milestone due dates & day-of blocks   |
+|     (scale_budget, add_item, etc.) |   |                                          |
+|                                    |   |  • Google Calendar Web Intent Links      |
+|  C. Pulse Contingency Solver       |   |    Zero-permission direct calendar sync   |
+|     Deterministic tier locking     |   |                                          |
 +------------------------------------+   +------------------------------------------+
 ```
 
-### 2.1 Aura Vision-to-BOQ Engine (Gemini 2.5 Flash)
-Visual intake is handled by **Gemini 2.5 Flash Multimodal**. Rather than outputting conversational summaries, the engine enforces strict structural typings via `google-genai` and Pydantic (`strict=True`). 
-The agent analyzes pixels to identify:
-* **Structural Rigging**: Aluminium box trusses, clear-span timber pergolas, and stage decks.
-* **Lighting Density**: Moving beam fixtures, PAR ambiences, festoon light runs.
-* **Botanical Hierarchy**: Fresh seasonal vs. imported blooms, floral archways, ceiling clouds.
-* **Guest Comfort**: Seating ratios (VIP sofas vs. Chiavari/benches), audio coverage line arrays.
+### 2.1 Schema-Guided Generation with Gemini 2.5 Flash
+Visual intake and plan generation are powered by **Gemini 2.5 Flash** using the modern `google-genai` SDK (`from google import genai`). Rather than relying on loose natural language prompts, the system guides generation using strict Pydantic schemas:
+* **Strict Type Safety**: The schema requires complete `BOQItem` entries specifying `item_id`, `category`, `name`, `specification`, `quantity`, `unit`, `rate`, `total_cost`, and `priority_tier` (`Critical`, `Operational`, `Discretionary`).
+* **Deterministic Server-Side Verification**: Line totals are calculated deterministically on the server (`total_cost = round(quantity * rate, 2)`). The engine verifies that the sum of line items strictly respects the user's provided budget ceiling.
+* **Regional & Cultural Authenticity**: System instructions mandate regional cultural grounding (e.g., Maharashtrian wedding rituals like Sakhar Puda, specific catering traditions, and community permit logistics).
 
-Every line item is categorized into a deterministic three-tier hierarchy:
-* **Tier-1 (Critical)**: Non-negotiable infrastructure, safety licenses, primary electrical feeds, and baseline catering.
-* **Tier-2 (Operational)**: Key functional elements (audio arrays, stage lighting, guest dining seating).
-* **Tier-3 (Discretionary)**: Discretionary aesthetic embellishments (imported orchids, cold spark jets, 360 photo booths).
+### 2.2 Dynamic Backwards Planning Timeline
+Event planning requires counting backwards from the target event date. AuraPulse AI implements dynamic timeline arithmetic:
+* **Target Relative Offsets**: Milestones are computed relative to `event_date` (e.g., `T-90d`, `T-60d`, `T-30d`, `T-14d`, `T-7d`, `T-1d`, `T-0d`).
+* **Zero Past Dates & Short-Horizon Compression**: If an event date is close (e.g., 2 weeks away), tasks that would mathematically land in the past are dynamically compressed into high-priority `"Do Immediately"` milestones, ensuring organizers are never presented with impossible deadlines.
 
-### 2.2 Pulse Dynamic Contingency Engine (Gemini 2.5 Pro Reasoner)
-When a crisis occurs, the **Pulse Dynamic Engine** executes a multi-constraint optimization pass:
-1. **Locks Tier-1 Items**: Guarantees that guest safety, electrical earthing, food safety, and sound permits can never be compromised.
-2. **Evaluates Tier-2 Substitutions**: Searches Google Maps Places API for verified local alternates if supply chains break.
-3. **Trims or Downscales Tier-3 Items**: Dynamically extracts savings from discretionary aesthetic lines to fund emergency mitigation assets (e.g., all-weather German Pagoda marquees during rainstorms).
-4. **Cascades Schedule Blocks**: Timeline graph solver shifts ceremony and reception milestones while respecting banquet holding temperatures and sound curfew constraints.
-5. **Generates State Diff Graph**: Emits an atomic `ContingencyDiff` with `+ ADDED`, `~ MODIFIED`, and `- REMOVED` records alongside a comprehensive Gemini 2.5 Pro reasoning narrative.
+### 2.3 Function-Calling AI Co-Pilot
+Instead of fragile keyword matching or hardcoded regex, the conversational Co-Pilot utilizes Gemini function/tool calling with schema-backed tool declarations:
+* `scale_budget(percentage, preserve_tier1)`: Surgically trims discretionary lines while preserving critical safety, food, and power lines.
+* `add_item(category, name, quantity, unit, rate, priority_tier)`: Injects custom vendor lines into the procurement table.
+* `remove_item(item_id, item_name)`: Removes specified line items.
+* `set_event_date(new_date)`: Recomputes the entire backwards timeline.
+* `decline_off_topic()`: Politely deflects non-event-planning questions.
+The Co-Pilot maintains multi-turn history (last 6 turns) and supports Hindi and Marathi conversational nuances.
+
+### 2.4 Deterministic Reactive Contingency Solver
+When crises occur (e.g., unexpected rainstorms or sudden budget slashes), the contingency engine executes mathematical rebalancing:
+1. **Tier-1 (Critical) Locking**: Fire safety, sound permits, primary electrical generators, and food safety lines are strictly immutable.
+2. **Emergency Asset Injection**: On rain alert, an all-weather German Pagoda marquee is injected into the BOQ.
+3. **Discretionary Trimming**: Cost increases are offset by systematically trimming Tier-3 Discretionary embellishments (e.g., luxury floral arches, imported blooms).
+4. **State Diff Generation**: Emits an atomic `ContingencyDiff` with `+ ADDED`, `~ MODIFIED`, and `- REMOVED` records alongside a clear reasoning narrative.
 
 ---
 
-## 3. Google Tech Stack & API Fabric Highlights
+## 3. Google Tech Stack & Integrations
 
-### Structured Pydantic Outputs with Gemini 2.5
-In production, loose LLM JSON outputs cause downstream frontend hydration failures. AuraPulse AI enforces strict type safety:
-```python
-class BOQItem(BaseModel):
-    model_config = ConfigDict(strict=True)
+### Google Maps Places API (New)
+The vendor discovery module queries the modern Places API (New) (`https://places.googleapis.com/v1/places:searchText`) using explicit field masks:
+* Requested fields: `places.id`, `places.displayName`, `places.formattedAddress`, `places.rating`, `places.userRatingCount`, `places.nationalPhoneNumber`, `places.googleMapsUri`.
+* **Honest Fallback**: When an API key is unconfigured or invalid, the system returns `status: "SIMULATED"` with clear UI indicators, ensuring zero fabricated phone numbers or synthetic vendor listings.
 
-    item_id: str
-    category: str
-    name: str
-    specification: str
-    quantity: float
-    unit: str
-    estimated_rate_inr: float
-    total_cost_inr: float
-    priority: PriorityTier
-    status: str = Field(default="ACTIVE")
-```
-Every response returned by Gemini 2.5 Flash and Pro is validated against Pydantic models before reaching the client surface.
-
-### Formula-Driven Google Sheets API v4 Integration
-Instead of exporting static text tables, AuraPulse AI generates living, calculation-ready Google Spreadsheets using the official Google Client Library:
-* **Dynamic Grand Total**: Populates `=SUM(H2:H{n})` directly into the sheet summary.
-* **Priority Breakdown Analytics**: Injects dynamic `=SUMIF(I2:I{n}, "Critical", H2:H{n})` and `=SUMIF(I2:I{n}, "Discretionary", H2:H{n})` formulas so event directors can edit line items live in Google Drive and watch category totals update automatically.
-
-### Real-Time Grounding via Google Maps Places API
-When an emergency vendor failure occurs (e.g., caterer truck breakdown 4 hours before guest arrival), AuraPulse AI queries the Google Maps Places API for verified vendors in the event's target city (e.g., Pune, Mumbai, Jaipur). Only vendors with confirmed high Google ratings (`>= 4.0`), operational phone numbers, and physical addresses are selected for automated hot-swapping.
-
-### Google Calendar API v3 Temporal Synchronization
-Run-of-show schedule blocks are formatted as RFC3339 timestamps and synced directly to Google Calendar. Outdoor blocks vulnerable to precipitation triggers receive high-visibility contingency tags and microclimate warning flags.
+### RFC-5545 Calendar Export & Web Intents
+AuraPulse AI provides two frictionless calendar export pathways:
+* **Standard RFC-5545 `.ics` Export**: Generates a standard calendar file with milestone due dates as all-day events and day-of schedule blocks configured with `TZID=Asia/Kolkata`.
+* **Zero-OAuth Web Intent Links**: Generates standard Google Calendar template links (`https://calendar.google.com/calendar/render?action=TEMPLATE&...`) that open directly in the user's Google Calendar without requiring complex OAuth tokens or cloud permissions.
 
 ---
 
 ## 4. What Google Antigravity Enabled
 
-Building AuraPulse AI in **Google Antigravity** fundamentally shifted our development paradigm:
+Building AuraPulse AI with **Google Antigravity** provided rapid agentic development velocity:
 
-1. **Agent-First Full-Stack Scaffolding**: Antigravity autonomously orchestrated the entire monorepo—provisioning FastAPI, Next.js 15, Tailwind CSS, and unit tests simultaneously.
-2. **Deterministic Rules Enforcement**: Using `.antigravity/rules.md`, Antigravity prevented common developer pitfalls: it enforced strict Pydantic mode (`strict=True`), prohibited fragile mock endpoints in favor of authentic Google Client SDKs, and ensured clean separation of concerns between API gateway and reasoning cores.
-3. **Continuous Background Verification**: Antigravity's autonomous skills (`test-gemini-schemas.yaml` and `verify-google-apis.yaml`) continuously executed automated pytest test suites and headless Chrome browser validation runs, capturing live UI screenshots and confirming zero rendering errors before final submission.
+1. **Full-Stack Monorepo Cohesion**: Synchronously developed FastAPI endpoints, Next.js 15 UI components, and TypeScript API clients.
+2. **Strict Verification Culture**: Continuous headless test runs and validation passes caught subtle schema mismatches and API payload edge cases before final delivery.
+3. **Transparent Architectural Evolution**: Transitioned smoothly from early experimental mocks to a hardened, authentic v2.1-PROD architecture backed by 31 passing unit and integration tests.
 
 ---
 
 ## 5. Lessons Learned & Production Roadmap
 
 ### Key Learnings
-* **Tiered Prioritization is Crucial**: Prompting LLMs to "cut budget" without strict tier definitions leads to erratic hallucinations (e.g., cutting sound systems or dinner entirely). Enforcing Tier-1 (Critical) locks programmatically provides the boundary conditions the reasoner needs.
-* **Hybrid Deterministic + LLM Architecture**: Pure LLMs struggle with exact arithmetic across 50 line items. By letting deterministic Python algorithms calculate exact currency deltas and assigning Gemini 2.5 Pro to multi-variable constraint reasoning, we achieved 100% mathematical precision with human-like contextual adaptability.
+* **Tiered Prioritization Eliminates Hallucinations**: Prompting LLMs to reduce budgets without explicit priority tiers leads to erratic choices (like eliminating electricity or guest meals). Explicit tier definitions give the model clear operational boundaries.
+* **Hybrid Deterministic + LLM Synergy**: Combining strict deterministic arithmetic (Python calculations) with LLM contextual reasoning (Gemini Flash) guarantees mathematical accuracy while preserving natural language flexibility.
 
-### Future Roadmap
-* **WhatsApp / SMS Crisis Dispatch**: Instant broadcast of updated run-of-show schedules to vendor crews via Twilio/WhatsApp Business.
-* **Live Weather Radar Webhooks**: Auto-triggering the Pulse Engine 3 hours prior to an event based on real-time Doppler radar rainfall predictions.
-* **Imagen 3 Augmented Reality (AR) Previews**: Allowing clients to view generative staging alternatives in 3D AR on mobile devices.
+### Roadmap
+* **Automated Weather Radar Alerts**: Triggering the contingency engine automatically via real-time meteorological API webhooks.
+* **Vendor Contract Dispatch**: Auto-generating PDF purchase orders from finalized BOQ tables for instant vendor signing.
 
 ---
 
-*Submitted to Hack2Skill Google PromptWars | Powered by Google Gemini 2.5 & Google Antigravity.*
+*Submitted to Hack2Skill Google PromptWars (Challenge 5) | Powered by Google Gemini 2.5 Flash & Google Places API.*

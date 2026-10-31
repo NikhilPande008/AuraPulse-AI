@@ -73,13 +73,14 @@ def test_simulate_contingency_endpoint():
 
 
 def test_vendor_discovery_endpoint():
-    """Verify GET /api/v1/integrations/vendors queries grounded places."""
+    """Verify GET /api/v1/integrations/vendors returns valid schema and honest status."""
     response = client.get("/api/v1/integrations/vendors?query=floral&city=Pune&min_rating=4.0")
     assert response.status_code == 200
     data = response.json()
     assert data["city"] == "Pune"
-    assert len(data["vendors"]) > 0
-    assert "rating" in data["vendors"][0]
+    assert "vendors" in data
+    assert "is_configured" in data
+    assert "status" in data
 
 
 def test_sheets_export_endpoint():

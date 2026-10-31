@@ -8,15 +8,20 @@ interface ScheduleTimelineProps {
   schedule: ScheduleBlock[];
   milestones?: PlanningMilestone[];
   onMilestoneToggle?: (milestoneId: string) => void;
+  eventDate?: string;
+  onEventDateChange?: (newDate: string) => void;
 }
 
 export default function ScheduleTimeline({
   schedule,
   milestones = [],
   onMilestoneToggle,
+  eventDate: eventDateProp,
+  onEventDateChange,
 }: ScheduleTimelineProps) {
   const [activeTab, setActiveTab] = useState<"milestones" | "run_of_show">("milestones");
-  const [eventDate, setEventDate] = useState<string>("2026-11-15");
+  const [internalEventDate, setInternalEventDate] = useState<string>("2026-11-15");
+  const eventDate = eventDateProp || internalEventDate;
   const [localMilestones, setLocalMilestones] = useState<PlanningMilestone[]>(milestones);
 
   // Sync prop changes
@@ -26,8 +31,18 @@ export default function ScheduleTimeline({
     }
   }, [milestones]);
 
+  const handleDateChange = (newDate: string) => {
+    setInternalEventDate(newDate);
+    if (onEventDateChange) {
+      onEventDateChange(newDate);
+    }
+  };
+
   // Recalculate due dates backwards whenever user changes eventDate
   const computedMilestones = useMemo(() => {
+    const todayStr = new Date().toISOString().split("T")[0];
+    const todayTime = new Date().setHours(0, 0, 0, 0);
+
     return localMilestones.map((ms) => {
       let daysBefore = 0;
       if (ms.phase === "T-6 Months") daysBefore = 180;
@@ -42,6 +57,10 @@ export default function ScheduleTimeline({
         if (!isNaN(d.getTime())) {
           d.setDate(d.getDate() - daysBefore);
           const computedStr = d.toISOString().split("T")[0];
+          // Compress past milestones into "Do Immediately"
+          if (d.getTime() < todayTime && ms.phase !== "Day-Of") {
+            return { ...ms, phase: "Do Immediately" as const, due_date: todayStr };
+          }
           return { ...ms, due_date: computedStr };
         }
       } catch (e) {
@@ -63,8 +82,8 @@ export default function ScheduleTimeline({
   const completedCount = computedMilestones.filter((m) => m.completed).length;
   const progressPercent = computedMilestones.length > 0 ? Math.round((completedCount / computedMilestones.length) * 100) : 0;
 
-  // Group milestones by phase
-  const phases = ["T-6 Months", "T-3 Months", "T-1 Month", "T-2 Weeks", "T-1 Week", "Day-Of"];
+  // Group milestones by phase (including dynamic compressed 'Do Immediately')
+  const phases = ["Do Immediately", "T-6 Months", "T-3 Months", "T-1 Month", "T-2 Weeks", "T-1 Week", "Day-Of"];
 
   const getCategoryBadge = (category: string) => {
     const colors: Record<string, string> = {
@@ -142,7 +161,7 @@ export default function ScheduleTimeline({
               <input
                 type="date"
                 value={eventDate}
-                onChange={(e) => setEventDate(e.target.value)}
+                onChange={(e) => handleDateChange(e.target.value)}
                 className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
               />
             </div>

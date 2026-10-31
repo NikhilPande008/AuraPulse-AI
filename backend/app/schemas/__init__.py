@@ -8,6 +8,9 @@ from .event_plan import (
     PlanningMilestone,
     VendorStatus,
     VendorChecklistItem,
+    EventIdea,
+    PlanRequest,
+    DeconstructRequest,
 )
 from .contingency import (
     CrisisTriggerType,
@@ -29,6 +32,9 @@ __all__ = [
     "PlanningMilestone",
     "VendorStatus",
     "VendorChecklistItem",
+    "EventIdea",
+    "PlanRequest",
+    "DeconstructRequest",
     "CrisisTriggerType",
     "CrisisTrigger",
     "DiffAction",

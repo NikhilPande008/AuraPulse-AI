@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Upload, Sparkles, Sliders, MapPin, Users, IndianRupee, Image as ImageIcon, Zap, CheckCircle2, Camera, X, ExternalLink, Loader2 } from "lucide-react";
+import { Upload, Sparkles, Sliders, MapPin, Users, IndianRupee, Image as ImageIcon, Zap, CheckCircle2, Camera, X, ExternalLink, Loader2, Calendar, Globe, Palette } from "lucide-react";
 import { deconstructMoodboard, MasterEventPlan, renderStudioAlternative } from "../lib/api";
 
 interface MoodboardUploaderProps {
@@ -50,11 +50,15 @@ export const DEMO_PRESETS = [
 ];
 
 export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoading }: MoodboardUploaderProps) {
+  const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split("T")[0];
   const [selectedPreset, setSelectedPreset] = useState(DEMO_PRESETS[0]);
   const [headcount, setHeadcount] = useState(DEMO_PRESETS[0].headcount);
   const [locality, setLocality] = useState(DEMO_PRESETS[0].city);
   const [budget, setBudget] = useState(DEMO_PRESETS[0].budget);
   const [eventType, setEventType] = useState(DEMO_PRESETS[0].type);
+  const [eventDate, setEventDate] = useState("2026-11-15");
+  const [cultureRegion, setCultureRegion] = useState("Maharashtrian / Contemporary");
+  const [theme, setTheme] = useState("Pastel Peach & Sage");
   const [customImageBase64, setCustomImageBase64] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [isRenderingStudio, setIsRenderingStudio] = useState(false);
@@ -78,21 +82,34 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
     }
   };
 
-  const triggerHydration = async (presetId: string, hCount: number, loc: string, bLimit: number, eType: string, imgB64?: string) => {
+  const triggerHydration = async (
+    presetId: string,
+    hCount: number,
+    loc: string,
+    bLimit: number,
+    eType: string,
+    imgB64?: string,
+    eDate?: string,
+    cRegion?: string,
+    eTheme?: string
+  ) => {
     setIsLoading(true);
     try {
       const plan = await deconstructMoodboard({
         image_base64: imgB64 || undefined,
-        moodboard_preset: presetId,
+        moodboard_preset: presetId !== "custom" ? presetId : undefined,
         headcount: hCount,
-        locality: loc,
-        budget_ceiling: bLimit,
+        city: loc,
+        budget: bLimit,
         event_type: eType,
+        event_date: eDate || eventDate,
+        culture_region: cRegion || cultureRegion,
+        theme: eTheme || theme,
       });
       onPlanLoaded(plan);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("Failed to deconstruct moodboard. Check backend server.");
+      alert(err?.message || "Failed to deconstruct moodboard. Check backend server.");
     } finally {
       setIsLoading(false);
     }
@@ -106,7 +123,7 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
     setEventType(preset.type);
     setCustomImageBase64(null);
     // Instant One-Click Hydration for Competition Evaluation
-    await triggerHydration(preset.id, preset.headcount, preset.city, preset.budget, preset.type, undefined);
+    await triggerHydration(preset.id, preset.headcount, preset.city, preset.budget, preset.type, undefined, eventDate, cultureRegion, theme);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -116,7 +133,7 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
       reader.onloadend = () => {
         const result = reader.result as string;
         setCustomImageBase64(result);
-        triggerHydration("custom", headcount, locality, budget, eventType, result);
+        triggerHydration("custom", headcount, locality, budget, eventType, result, eventDate, cultureRegion, theme);
       };
       reader.readAsDataURL(file);
     }
@@ -129,7 +146,10 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
       locality,
       budget,
       eventType,
-      customImageBase64 || undefined
+      customImageBase64 || undefined,
+      eventDate,
+      cultureRegion,
+      theme
     );
   };
 
@@ -290,10 +310,25 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
         <div className="lg:col-span-5 bg-slate-900/60 rounded-xl p-4 border border-slate-800/80 space-y-3.5">
           <label className="text-xs font-mono font-medium text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
             <Sliders className="w-3.5 h-3.5 text-cyan-400" />
-            Budget & Locality Parameters
+            Budget & Intake Parameters
           </label>
 
+          {/* Event Date & Locality */}
           <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label htmlFor="event-date-input" className="text-[11px] text-slate-400 flex items-center gap-1 mb-1 font-mono cursor-pointer">
+                <Calendar className="w-3 h-3 text-cyan-400" /> Event Date
+              </label>
+              <input
+                id="event-date-input"
+                type="date"
+                min={tomorrowStr}
+                value={eventDate}
+                onChange={(e) => setEventDate(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:border-purple-500 focus:outline-none font-mono"
+              />
+            </div>
+
             <div>
               <label htmlFor="locality-input" className="text-[11px] text-slate-400 flex items-center gap-1 mb-1 font-mono cursor-pointer">
                 <MapPin className="w-3 h-3 text-cyan-400" /> Locality / City
@@ -306,44 +341,86 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
                 className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:border-purple-500 focus:outline-none font-mono"
               />
             </div>
+          </div>
 
+          {/* Culture / Region & Aesthetic Theme */}
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="headcount-input" className="text-[11px] text-slate-400 flex items-center gap-1 mb-1 font-mono cursor-pointer">
-                <Users className="w-3 h-3 text-cyan-400" /> Headcount (Pax)
+              <label htmlFor="culture-input" className="text-[11px] text-slate-400 flex items-center gap-1 mb-1 font-mono cursor-pointer">
+                <Globe className="w-3 h-3 text-indigo-400" /> Culture / Region
               </label>
               <input
-                id="headcount-input"
-                type="number"
-                value={headcount}
-                onChange={(e) => setHeadcount(Number(e.target.value))}
+                id="culture-input"
+                type="text"
+                placeholder="e.g. Maharashtrian"
+                value={cultureRegion}
+                onChange={(e) => setCultureRegion(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:border-purple-500 focus:outline-none font-mono"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="theme-input" className="text-[11px] text-slate-400 flex items-center gap-1 mb-1 font-mono cursor-pointer">
+                <Palette className="w-3 h-3 text-indigo-400" /> Theme / Aesthetic
+              </label>
+              <input
+                id="theme-input"
+                type="text"
+                placeholder="e.g. Pastel Meadow"
+                value={theme}
+                onChange={(e) => setTheme(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:border-purple-500 focus:outline-none font-mono"
               />
             </div>
           </div>
 
+          {/* Headcount */}
+          <div>
+            <label htmlFor="headcount-input" className="text-[11px] text-slate-400 flex items-center gap-1 mb-1 font-mono cursor-pointer">
+              <Users className="w-3 h-3 text-cyan-400" /> Headcount (Pax: 1 to 10,000)
+            </label>
+            <input
+              id="headcount-input"
+              type="number"
+              min="1"
+              max="10000"
+              value={headcount}
+              onChange={(e) => setHeadcount(Number(e.target.value))}
+              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:border-purple-500 focus:outline-none font-mono"
+            />
+          </div>
+
+          {/* Budget Ceiling Input & Slider (₹20,000 to ₹5,00,00,000) */}
           <div>
             <div className="flex justify-between items-center mb-1">
-              <label htmlFor="budget-slider" className="text-[11px] text-slate-400 flex items-center gap-1 font-mono cursor-pointer">
+              <label htmlFor="budget-input" className="text-[11px] text-slate-400 flex items-center gap-1 font-mono cursor-pointer">
                 <IndianRupee className="w-3 h-3 text-cyan-400" /> Budget Ceiling (INR)
               </label>
-              <span className="text-xs font-mono font-bold text-purple-300">
-                ₹{budget.toLocaleString("en-IN")}
-              </span>
+              <input
+                id="budget-input"
+                type="number"
+                min="20000"
+                max="50000000"
+                step="5000"
+                value={budget}
+                onChange={(e) => setBudget(Math.max(0, Number(e.target.value)))}
+                className="w-32 bg-slate-950 border border-slate-800 rounded px-2 py-0.5 text-right text-xs font-mono font-bold text-purple-300 focus:border-purple-500 focus:outline-none"
+              />
             </div>
             <input
               id="budget-slider"
               type="range"
               min="20000"
-              max="5000000"
-              step="5000"
-              value={budget}
+              max="50000000"
+              step="25000"
+              value={Math.min(budget, 50000000)}
               onChange={(e) => setBudget(Number(e.target.value))}
               className="w-full accent-purple-500 cursor-pointer"
             />
             <div className="flex justify-between text-[10px] text-slate-500 font-mono">
               <span>₹20 Thousand</span>
-              <span>₹25 Lakhs</span>
-              <span>₹50 Lakhs</span>
+              <span>₹2.5 Crores</span>
+              <span>₹5 Crores</span>
             </div>
           </div>
 

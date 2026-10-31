@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     PROJECT_NAME: str = "AuraPulse AI"
-    VERSION: str = "2.0.0-PROD"
+    VERSION: str = "2.1.0"
     API_V1_STR: str = "/api/v1"
     
     # Gemini / GenAI Keys

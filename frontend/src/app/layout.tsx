@@ -27,12 +27,8 @@ export default function RootLayout({
               <div>
                 <div className="flex items-center space-x-2">
                   <span className="text-base font-bold tracking-tight text-white">AuraPulse AI</span>
-                  <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">
-                    v2.0.0-PROD
-                  </span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Antigravity Agentic Bus
+                  <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20 font-semibold">
+                    v2.1.0
                   </span>
                 </div>
                 <p className="text-xs text-slate-400">

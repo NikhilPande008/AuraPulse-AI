@@ -2,10 +2,10 @@ import os
 import json
 import asyncio
 import logging
-from typing import Optional, List
-from fastapi import FastAPI, HTTPException, Request, Query
+from typing import Optional, List, Dict
+from fastapi import FastAPI, HTTPException, Request, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger("aurapulse")
@@ -16,6 +16,8 @@ from .schemas import (
     CrisisTrigger,
     ContingencyDiff,
     SimulationRequest,
+    PlanRequest,
+    DeconstructRequest,
 )
 from .agents import (
     deconstruct_moodboard,
@@ -27,6 +29,7 @@ from .integrations import (
     fetch_verified_vendors,
     export_event_to_google_sheets,
     sync_schedule_to_google_calendar,
+    generate_calendar_ics,
 )
 
 app = FastAPI(
@@ -53,13 +56,12 @@ app.add_middleware(
 )
 
 
-class DeconstructRequest(BaseModel):
-    image_base64: Optional[str] = None
-    moodboard_preset: Optional[str] = "royal_palace"
-    headcount: int = 450
-    locality: str = "Jaipur"
-    budget_ceiling: float = 3500000.0
-    event_type: str = "wedding"
+@app.exception_handler(HTTPException)
+async def custom_http_exception_handler(request: Request, exc: HTTPException):
+    """Preserves structured error payloads like {"code": "GENERATION_FAILED", "message": ...}"""
+    if isinstance(exc.detail, dict) and "code" in exc.detail:
+        return JSONResponse(status_code=exc.status_code, content=exc.detail)
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
 
 
 class SheetsExportRequest(BaseModel):
@@ -82,6 +84,7 @@ class VisualAlternativeRequest(BaseModel):
 class CopilotRequest(BaseModel):
     event_plan: MasterEventPlan
     user_prompt: str
+    history: Optional[List[Dict[str, str]]] = Field(default_factory=list)
 
 
 @app.get("/")
@@ -95,10 +98,9 @@ def root():
             "health": "/api/health",
             "deconstruct": "/api/v1/aura/deconstruct",
             "simulate": "/api/v1/pulse/simulate",
-            "stream": "/api/v1/pulse/events/stream",
             "vendors": "/api/v1/integrations/vendors",
             "sheets_export": "/api/v1/integrations/sheets/export",
-            "calendar_sync": "/api/v1/integrations/calendar/sync"
+            "calendar_ics": "/api/v1/export/calendar-ics",
         }
     }
 
@@ -130,11 +132,20 @@ async def api_deconstruct_moodboard(payload: DeconstructRequest):
             image_base64=payload.image_base64,
             moodboard_preset=payload.moodboard_preset,
             headcount=payload.headcount,
-            locality=payload.locality,
-            budget_ceiling=payload.budget_ceiling,
-            event_type=payload.event_type
+            locality=payload.city,
+            city=payload.city,
+            budget_ceiling=payload.budget,
+            budget=payload.budget,
+            event_type=payload.event_type,
+            event_date=payload.event_date,
+            culture_region=payload.culture_region,
+            theme=payload.theme,
+            dietary=payload.dietary,
+            language=payload.language,
         )
         return plan
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Aura Vision deconstruction failed: {str(e)}")
 
@@ -147,7 +158,11 @@ async def api_chat_copilot(payload: CopilotRequest):
     and returns advisory responses, updated MasterEventPlan, and actionable suggestions.
     """
     try:
-        res = await chat_copilot(event_plan=payload.event_plan, user_prompt=payload.user_prompt)
+        res = await chat_copilot(
+            event_plan=payload.event_plan,
+            user_prompt=payload.user_prompt,
+            history=payload.history
+        )
         return res
     except Exception as e:
         logger.error(f"Chat Co-Pilot failed: {e}", exc_info=True)
@@ -168,24 +183,10 @@ async def api_simulate_contingency(request: SimulationRequest):
         raise HTTPException(status_code=500, detail=f"Pulse Engine evaluation failed: {str(e)}")
 
 
-@app.get("/api/v1/pulse/events/stream")
-async def api_stream_contingency_events():
-    """
-    Server-Sent Events (SSE) telemetry stream:
-    Emits real-time state solver heartbeats and crisis simulation transitions.
-    """
-    async def event_generator():
-        steps = [
-            {"step": "INTAKE", "msg": "AuraPulse event bus initialized. Listening for real-time risk triggers..."},
-            {"step": "WEATHER_MONITOR", "msg": "Microclimate telemetry nominal. Rain probability 12% at target coordinates."},
-            {"step": "SOLVER_READY", "msg": "Deterministic constraint graph loaded: 3 Tier-1 Critical lines locked."},
-            {"step": "FABRIC_READY", "msg": "Google Maps Places and Sheets API endpoints hot-standby."}
-        ]
-        for s in steps:
-            yield f"data: {json.dumps(s)}\n\n"
-            await asyncio.sleep(1.0)
-
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+# Telemetry loop purged per CR-18 (honest indicators only; no fabricated telemetry loops)
+# @app.get("/api/v1/pulse/events/stream")
+# async def api_stream_contingency_events():
+#     ...
 
 
 @app.get("/api/v1/integrations/vendors")
@@ -195,19 +196,47 @@ async def api_get_vendors(
     min_rating: float = Query(4.0, description="Minimum Google rating")
 ):
     """
-    Vendor Discovery via Google Maps Places API:
+    Vendor Discovery via Google Maps Places API (New) (CR-13):
     Queries verified local suppliers with live ratings and reviews.
     """
     try:
-        results = await fetch_verified_vendors(query=query, city=city, min_rating=min_rating)
+        data = await fetch_verified_vendors(query=query, city=city, min_rating=min_rating)
+        vendors = data.get("vendors", []) if isinstance(data, dict) else data
+        is_cfg = data.get("is_configured", False) if isinstance(data, dict) else bool(settings.GOOGLE_MAPS_API_KEY)
+        status = data.get("status", "ACTIVE" if is_cfg else "SIMULATED") if isinstance(data, dict) else ("ACTIVE" if is_cfg else "SIMULATED")
         return {
             "city": city,
             "query": query,
-            "count": len(results),
-            "vendors": results
+            "count": len(vendors),
+            "vendors": vendors,
+            "is_configured": is_cfg,
+            "status": status,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Vendor query failed: {str(e)}")
+
+
+@app.post("/api/v1/export/calendar-ics")
+async def api_export_calendar_ics(plan: MasterEventPlan):
+    """
+    RFC-5545 Calendar Export Endpoint (CR-14):
+    Generates standard .ics calendar file containing:
+    - Backwards planning milestones as all-day events on their calculated due_date.
+    - Day-of schedule blocks on event_date with TZID=Asia/Kolkata.
+    Zero-permission direct export for judges and end users.
+    """
+    try:
+        ics_text = generate_calendar_ics(plan)
+        filename = f"{plan.event_id or 'event'}_schedule.ics"
+        return Response(
+            content=ics_text,
+            media_type="text/calendar; charset=utf-8",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"'
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"ICS calendar export failed: {str(e)}")
 
 
 @app.post("/api/v1/integrations/sheets/export")

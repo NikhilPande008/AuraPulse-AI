@@ -69,6 +69,7 @@ export default function VendorFinder({
   const [localChecklist, setLocalChecklist] = useState<VendorChecklistItem[]>(checklist);
   const [query, setQuery] = useState("floral and sound rental");
   const [vendors, setVendors] = useState<any[]>([]);
+  const [isConfigured, setIsConfigured] = useState(true);
   const [loading, setLoading] = useState(false);
   const [addedNotice, setAddedNotice] = useState<string | null>(null);
 
@@ -83,8 +84,11 @@ export default function VendorFinder({
     try {
       const data = await fetchVendors(searchQuery, targetCity, 4.0);
       setVendors(data.vendors || []);
+      setIsConfigured(data.is_configured ?? ((data.vendors && data.vendors.length > 0) || false));
     } catch (err) {
       console.error(err);
+      setVendors([]);
+      setIsConfigured(false);
     } finally {
       setLoading(false);
     }
@@ -302,6 +306,21 @@ export default function VendorFinder({
             </span>
           </div>
 
+          {/* Transparent Honest Inactive Banner if key is missing or unconfigured */}
+          {(!isConfigured || vendors.length === 0) && !loading && (
+            <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3 text-xs text-amber-300 font-mono">
+              <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="font-semibold text-amber-200">
+                  Live Google Maps Places grounding inactive (API key not configured). Add custom vendors manually or provide a Maps API key.
+                </p>
+                <p className="text-[11px] text-amber-300/80">
+                  Places API (New) endpoint: <code className="text-white">places.googleapis.com/v1/places:searchText</code>. Unverified mock businesses and phone numbers are strictly prohibited.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {vendors.map((v, i) => (
               <div
@@ -311,14 +330,16 @@ export default function VendorFinder({
                 <div>
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <h4 className="text-sm font-bold text-white leading-tight">{v.name}</h4>
-                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-mono font-bold shrink-0">
-                      <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                      {v.rating}
-                    </div>
+                    {v.rating > 0 && (
+                      <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-mono font-bold shrink-0">
+                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                        {v.rating}
+                      </div>
+                    )}
                   </div>
 
                   <span className="text-[10px] font-mono text-cyan-400 px-2 py-0.5 rounded bg-cyan-950/60 border border-cyan-800/40 inline-block mb-2">
-                    {v.category || "Verified Event Supplier"}
+                    {v.category || "Verified Local Supplier"}
                   </span>
 
                   <p className="text-xs text-slate-400 flex items-start gap-1.5 mb-2">
@@ -326,11 +347,23 @@ export default function VendorFinder({
                     <span className="line-clamp-2">{v.address}</span>
                   </p>
 
-                  {v.specialty && (
-                    <p className="text-[11px] text-slate-300 bg-slate-950/60 p-2 rounded-lg border border-slate-800/60 mb-2">
-                      <span className="text-slate-400 font-mono">Specialty: </span>
-                      {v.specialty}
+                  {v.phone && (
+                    <p className="text-xs text-slate-400 flex items-center gap-1.5 mb-2 font-mono">
+                      <Phone className="w-3 h-3 text-emerald-400 shrink-0" />
+                      <span>{v.phone}</span>
                     </p>
+                  )}
+
+                  {v.google_maps_uri && (
+                    <a
+                      href={v.google_maps_uri}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[11px] font-mono text-cyan-400 hover:text-cyan-300 hover:underline mb-2"
+                    >
+                      <span>View on Google Maps</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
                   )}
                 </div>
 

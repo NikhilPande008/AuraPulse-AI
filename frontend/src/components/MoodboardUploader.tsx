@@ -1,7 +1,23 @@
 "use client";
 
 import React, { useState } from "react";
-import { Upload, Sparkles, Sliders, MapPin, Users, IndianRupee, Image as ImageIcon, Zap, CheckCircle2, Camera, X, ExternalLink, Loader2, Calendar, Globe, Palette } from "lucide-react";
+import {
+  Upload,
+  Sparkles,
+  Sliders,
+  MapPin,
+  Users,
+  IndianRupee,
+  Zap,
+  CheckCircle2,
+  Camera,
+  X,
+  Loader2,
+  Calendar,
+  Globe,
+  Palette,
+  AlertCircle,
+} from "lucide-react";
 import { deconstructMoodboard, MasterEventPlan, renderStudioAlternative } from "../lib/api";
 
 interface MoodboardUploaderProps {
@@ -18,7 +34,7 @@ export const DEMO_PRESETS = [
     city: "Pune",
     headcount: 300,
     budget: 1500000,
-    badge: "Preset 1 • Wedding",
+    badge: "Sample Plan • Wedding",
     thumbnail: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80",
     description: "Pastel peach & sage palette, pampas grass arch, 2,000 ft Edison festoons, farm-to-table banquet.",
     tags: ["Pune Meadow", "300 Pax", "₹15 Lakhs", "Pastel Peach & Sage"]
@@ -30,7 +46,7 @@ export const DEMO_PRESETS = [
     city: "Mumbai",
     headcount: 60,
     budget: 250000,
-    badge: "Preset 2 • Birthday",
+    badge: "Sample Plan • Birthday",
     thumbnail: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=600&q=80",
     description: "Violet & electric cyan wash, wireless Astera tubes, DJ synthwave rig, molecular tapas bar.",
     tags: ["Mumbai Rooftop", "60 Pax", "₹2.5 Lakhs", "Violet & Electric Cyan"]
@@ -42,7 +58,7 @@ export const DEMO_PRESETS = [
     city: "Pune",
     headcount: 800,
     budget: 500000,
-    badge: "Preset 3 • Community",
+    badge: "Sample Plan • Community",
     thumbnail: "https://images.unsplash.com/photo-1605649487212-47bdab064df7?auto=format&fit=crop&w=600&q=80",
     description: "Marigold yellow & clay tones, zero-plastic food stalls, solar festoons, authentic Dhol Tasha troupe.",
     tags: ["Pune Courtyard", "800 Pax", "₹5 Lakhs", "Zero Plastic Mela"]
@@ -51,6 +67,7 @@ export const DEMO_PRESETS = [
 
 export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoading }: MoodboardUploaderProps) {
   const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split("T")[0];
+  const [activePresetId, setActivePresetId] = useState<string | null>(DEMO_PRESETS[0].id);
   const [selectedPreset, setSelectedPreset] = useState(DEMO_PRESETS[0]);
   const [headcount, setHeadcount] = useState(DEMO_PRESETS[0].headcount);
   const [locality, setLocality] = useState(DEMO_PRESETS[0].city);
@@ -63,10 +80,29 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
   const [dragActive, setDragActive] = useState(false);
   const [isRenderingStudio, setIsRenderingStudio] = useState(false);
   const [studioModalOpen, setStudioModalOpen] = useState(false);
-  const [studioResult, setStudioResult] = useState<{ image_url: string; prompt: string; model: string } | null>(null);
+  const [studioResult, setStudioResult] = useState<{
+    image_url: string;
+    prompt: string;
+    model: string | null;
+    status?: string;
+    is_generated?: boolean;
+    source?: string;
+    error?: string | null;
+  } | null>(null);
+
+  const [generationError, setGenerationError] = useState<{
+    code?: string;
+    message: string;
+  } | null>(null);
+
+  const clearPresetHighlight = () => {
+    setActivePresetId(null);
+    setGenerationError(null);
+  };
 
   const handleGenerateVisualConcept = async () => {
     setIsRenderingStudio(true);
+    setGenerationError(null);
     try {
       const res = await renderStudioAlternative(
         `${selectedPreset.name} featuring ${selectedPreset.description}`,
@@ -74,34 +110,38 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
       );
       setStudioResult(res);
       setStudioModalOpen(true);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("Generative studio rendering encountered an issue.");
+      setGenerationError({
+        code: "STUDIO_FAILED",
+        message: "Generative studio rendering encountered an issue.",
+      });
     } finally {
       setIsRenderingStudio(false);
     }
   };
 
   const triggerHydration = async (
-    presetId: string,
-    hCount: number,
-    loc: string,
-    bLimit: number,
-    eType: string,
+    presetId?: string,
+    hCount?: number,
+    loc?: string,
+    bLimit?: number,
+    eType?: string,
     imgB64?: string,
     eDate?: string,
     cRegion?: string,
     eTheme?: string
   ) => {
     setIsLoading(true);
+    setGenerationError(null);
     try {
       const plan = await deconstructMoodboard({
         image_base64: imgB64 || undefined,
-        moodboard_preset: presetId !== "custom" ? presetId : undefined,
-        headcount: hCount,
-        city: loc,
-        budget: bLimit,
-        event_type: eType,
+        moodboard_preset: presetId,
+        headcount: hCount ?? headcount,
+        city: loc ?? locality,
+        budget: bLimit ?? budget,
+        event_type: eType ?? eventType,
         event_date: eDate || eventDate,
         culture_region: cRegion || cultureRegion,
         theme: eTheme || theme,
@@ -109,21 +149,36 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
       onPlanLoaded(plan);
     } catch (err: any) {
       console.error(err);
-      alert(err?.message || "Failed to deconstruct moodboard. Check backend server.");
+      setGenerationError({
+        code: err?.code || (err?.message?.includes("503") ? "GENERATION_FAILED" : undefined),
+        message: err?.message || "Failed to generate event plan via Gemini. Please retry or choose a preset.",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   const handlePresetSelect = async (preset: typeof DEMO_PRESETS[0]) => {
+    setActivePresetId(preset.id);
     setSelectedPreset(preset);
     setHeadcount(preset.headcount);
     setLocality(preset.city);
     setBudget(preset.budget);
     setEventType(preset.type);
     setCustomImageBase64(null);
+    setGenerationError(null);
     // Instant One-Click Hydration for Competition Evaluation
-    await triggerHydration(preset.id, preset.headcount, preset.city, preset.budget, preset.type, undefined, eventDate, cultureRegion, theme);
+    await triggerHydration(
+      preset.id,
+      preset.headcount,
+      preset.city,
+      preset.budget,
+      preset.type,
+      undefined,
+      eventDate,
+      cultureRegion,
+      theme
+    );
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -133,15 +188,18 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
       reader.onloadend = () => {
         const result = reader.result as string;
         setCustomImageBase64(result);
-        triggerHydration("custom", headcount, locality, budget, eventType, result, eventDate, cultureRegion, theme);
+        clearPresetHighlight();
+        triggerHydration(undefined, headcount, locality, budget, eventType, result, eventDate, cultureRegion, theme);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleManualDeconstruct = () => {
-    triggerHydration(
-      customImageBase64 ? "custom" : selectedPreset.id,
+  const handleManualDeconstruct = async () => {
+    // The main button ALWAYS routes to Gemini with moodboard_preset undefined
+    clearPresetHighlight();
+    await triggerHydration(
+      undefined,
       headcount,
       locality,
       budget,
@@ -154,18 +212,18 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
   };
 
   return (
-    <div className="glass-panel rounded-2xl p-6 shadow-xl border border-slate-800">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6 pb-5 border-b border-slate-800">
+    <div className="glass-panel rounded-2xl p-6 shadow-xl border border-slate-800 space-y-6">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-800">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide bg-purple-500/10 text-purple-400 border border-purple-500/20 uppercase font-mono">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide bg-purple-500/10 text-purple-400 border border-purple-500/20 uppercase font-mono">
               Agent 3.A • Multimodal Intake
             </span>
             <span className="text-xs text-slate-400 font-mono">Gemini 2.5 Flash Vision</span>
           </div>
           <h2 className="text-xl font-bold text-white mt-1">Aura Vision-to-BOQ Engine</h2>
-          <p className="text-sm text-slate-400">
-            Click any instant demo preset below or drop a custom board. The engine instantly extracts structural trusses, lighting specs, and hydrates the 3-tier Bill of Quantities.
+          <p className="text-xs text-slate-400">
+            Click any instant demo preset below or customize fields to generate live with Gemini 2.5 Flash.
           </p>
         </div>
 
@@ -174,43 +232,73 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
             type="button"
             onClick={handleGenerateVisualConcept}
             disabled={isRenderingStudio}
-            className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-indigo-300 hover:text-white border border-indigo-500/40 text-xs font-semibold shadow-md transition-all disabled:opacity-50 cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-indigo-300 hover:text-white border border-indigo-500/40 text-xs font-semibold shadow-md transition-all disabled:opacity-50 cursor-pointer focus-visible:ring-2 focus-visible:ring-indigo-400"
           >
             {isRenderingStudio ? (
-              <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
+              <Loader2 className="w-4 h-4 animate-spin text-indigo-400" aria-hidden="true" />
             ) : (
-              <Camera className="w-4 h-4 text-indigo-400" />
+              <Camera className="w-4 h-4 text-indigo-400" aria-hidden="true" />
             )}
             <span>{isRenderingStudio ? "Rendering Scene..." : "✨ Imagen 3 Studio"}</span>
           </button>
 
           <button
+            type="button"
             onClick={handleManualDeconstruct}
             disabled={isLoading}
-            className="relative inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 text-white font-semibold text-sm shadow-lg shadow-purple-600/30 hover:shadow-purple-600/50 hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shrink-0"
+            className="relative inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 text-white font-semibold text-xs shadow-lg shadow-purple-600/30 hover:shadow-purple-600/50 hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shrink-0 focus-visible:ring-2 focus-visible:ring-purple-400"
           >
-            <Sparkles className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
-            {isLoading ? "Deconstructing Pixels..." : "Re-Calculate Vision BOQ"}
+            <Sparkles className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} aria-hidden="true" />
+            <span>{isLoading ? "Generating plan…" : "Generate plan with Gemini ✨"}</span>
           </button>
         </div>
       </div>
+
+      {/* Inline Alert / Error Notice */}
+      {generationError && (
+        <div
+          role="alert"
+          className="p-4 rounded-xl bg-rose-950/70 border border-rose-500/50 text-rose-200 text-xs space-y-2 animate-fadeIn"
+        >
+          <div className="flex items-center gap-2 font-semibold">
+            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" aria-hidden="true" />
+            <span>{generationError.message}</span>
+          </div>
+          <div className="flex items-center gap-3 pt-1">
+            <button
+              type="button"
+              onClick={handleManualDeconstruct}
+              className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-medium text-xs transition-colors focus-visible:ring-2 focus-visible:ring-white cursor-pointer"
+            >
+              Try again
+            </button>
+            <button
+              type="button"
+              onClick={() => handlePresetSelect(DEMO_PRESETS[0])}
+              className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-200 font-medium text-xs border border-slate-700 transition-colors focus-visible:ring-2 focus-visible:ring-white cursor-pointer"
+            >
+              Load sample plan ({DEMO_PRESETS[0].name})
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Instant One-Click Demo Presets */}
         <div className="lg:col-span-7 space-y-4">
           <div className="flex items-center justify-between">
             <label className="text-xs font-mono font-medium text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-              <Zap className="w-3.5 h-3.5 text-amber-400" />
-              One-Click Judge Presets (Instant Hydration)
+              <Zap className="w-3.5 h-3.5 text-amber-400" aria-hidden="true" />
+              One-Click Presets (Pre-calibrated Sample Plans)
             </label>
-            <span className="text-[10px] text-emerald-400 font-mono bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/60">
-              ⚡ Instant Auto-Hydrate
+            <span className="text-xs text-emerald-400 font-mono bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/60">
+              ⚡ Instant Sample Plan
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {DEMO_PRESETS.map((preset) => {
-              const isSelected = selectedPreset.id === preset.id && !customImageBase64;
+              const isSelected = activePresetId === preset.id;
               return (
                 <div
                   key={preset.id}
@@ -228,7 +316,7 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute top-2 left-2">
-                      <span className="text-[9px] font-mono uppercase px-2 py-0.5 rounded-full bg-slate-950/90 text-cyan-300 font-bold border border-cyan-800/60 shadow">
+                      <span className="text-xs font-mono uppercase px-2 py-0.5 rounded-full bg-slate-950/90 text-cyan-300 font-bold border border-cyan-800/60 shadow">
                         {preset.badge}
                       </span>
                     </div>
@@ -239,12 +327,12 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
                       <p className="text-xs font-bold text-white leading-tight group-hover:text-purple-300 transition-colors">
                         {preset.name}
                       </p>
-                      <p className="text-[10px] text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                      <p className="text-xs text-slate-400 mt-1 line-clamp-2 leading-relaxed">
                         {preset.description}
                       </p>
                     </div>
 
-                    <div className="mt-2.5 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] font-mono">
+                    <div className="mt-2.5 pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs font-mono">
                       <span className="text-purple-300 font-bold">₹{(preset.budget / 100000).toFixed(1)}L</span>
                       <span className="text-slate-400">{preset.headcount} Pax</span>
                       <span className="text-cyan-400 font-medium">{preset.city}</span>
@@ -255,7 +343,7 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
             })}
           </div>
 
-          {/* Custom Upload Dropzone */}
+          {/* Multimodal File Drop Zone */}
           <div
             onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
             onDragLeave={() => setDragActive(false)}
@@ -268,12 +356,13 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
                 reader.onloadend = () => {
                   const result = reader.result as string;
                   setCustomImageBase64(result);
-                  triggerHydration("custom", headcount, locality, budget, eventType, result);
+                  clearPresetHighlight();
+                  triggerHydration(undefined, headcount, locality, budget, eventType, result, eventDate, cultureRegion, theme);
                 };
                 reader.readAsDataURL(file);
               }
             }}
-            className={`relative rounded-xl border-2 border-dashed p-3.5 text-center transition-all ${
+            className={`relative rounded-xl border-2 border-dashed p-4 text-center transition-all ${
               dragActive ? "border-purple-400 bg-purple-950/20" : "border-slate-800 hover:border-slate-700 bg-slate-900/40"
             }`}
           >
@@ -283,24 +372,42 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
                   <img src={customImageBase64} alt="Custom upload" className="h-10 w-14 object-cover rounded-lg border border-purple-500/50" />
                   <div className="text-left">
                     <p className="text-xs font-semibold text-emerald-400 flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Custom Mood Board Parsed
+                      <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" /> Custom Mood Board Parsed
                     </p>
-                    <p className="text-[10px] text-slate-400 font-mono">Multimodal Vision buffer ingested by Gemini 2.5 Flash</p>
+                    <p className="text-xs text-slate-400 font-mono">Multimodal Vision buffer ingested by Gemini 2.5 Flash</p>
                   </div>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setCustomImageBase64(null)}
-                  className="text-xs text-rose-400 hover:underline px-2 py-1"
+                  className="text-xs text-rose-400 hover:underline px-2 py-1 cursor-pointer"
                 >
                   Reset
                 </button>
               </div>
             ) : (
-              <label className="cursor-pointer block">
-                <Upload className="w-4 h-4 mx-auto text-slate-400 mb-1" />
-                <span className="text-xs text-slate-300 font-medium">Or upload custom mood board (JPG/PNG)</span>
-                <span className="block text-[10px] text-slate-500 font-mono mt-0.5">Extracts custom lighting, floristry, and spatial scale</span>
-                <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+              <label
+                htmlFor="moodboard-file-input"
+                tabIndex={0}
+                role="button"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    document.getElementById("moodboard-file-input")?.click();
+                  }
+                }}
+                className="cursor-pointer block focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg p-2"
+              >
+                <Upload className="w-5 h-5 mx-auto text-slate-400 mb-1" aria-hidden="true" />
+                <span className="text-xs text-slate-300 font-medium">Or upload custom mood board (JPG/PNG/WebP)</span>
+                <span className="block text-xs text-slate-400 font-mono mt-0.5">Extracts lighting, floristry, and scale</span>
+                <input
+                  id="moodboard-file-input"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleFileUpload}
+                  className="sr-only"
+                />
               </label>
             )}
           </div>
@@ -309,35 +416,44 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
         {/* Constraints & Parameters */}
         <div className="lg:col-span-5 bg-slate-900/60 rounded-xl p-4 border border-slate-800/80 space-y-3.5">
           <label className="text-xs font-mono font-medium text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-            <Sliders className="w-3.5 h-3.5 text-cyan-400" />
+            <Sliders className="w-3.5 h-3.5 text-cyan-400" aria-hidden="true" />
             Budget & Intake Parameters
           </label>
+          <p className={`text-xs font-mono px-2 py-1 rounded border ${
+            activePresetId
+              ? "text-amber-300 bg-amber-950/40 border-amber-800/60"
+              : "text-emerald-300 bg-emerald-950/40 border-emerald-800/60"
+          }`}>
+            {activePresetId
+              ? `Sample preset active: ${selectedPreset.name}. Edit any field to generate live via Gemini.`
+              : "Custom parameters active: click 'Generate plan with Gemini' to generate."}
+          </p>
 
           {/* Event Date & Locality */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="event-date-input" className="text-[11px] text-slate-400 flex items-center gap-1 mb-1 font-mono cursor-pointer">
-                <Calendar className="w-3 h-3 text-cyan-400" /> Event Date
+              <label htmlFor="event-date-input" className="text-xs text-slate-400 flex items-center gap-1 mb-1 font-mono cursor-pointer">
+                <Calendar className="w-3 h-3 text-cyan-400" aria-hidden="true" /> Event Date
               </label>
               <input
                 id="event-date-input"
                 type="date"
                 min={tomorrowStr}
                 value={eventDate}
-                onChange={(e) => setEventDate(e.target.value)}
+                onChange={(e) => { setEventDate(e.target.value); clearPresetHighlight(); }}
                 className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:border-purple-500 focus:outline-none font-mono"
               />
             </div>
 
             <div>
-              <label htmlFor="locality-input" className="text-[11px] text-slate-400 flex items-center gap-1 mb-1 font-mono cursor-pointer">
-                <MapPin className="w-3 h-3 text-cyan-400" /> Locality / City
+              <label htmlFor="locality-input" className="text-xs text-slate-400 flex items-center gap-1 mb-1 font-mono cursor-pointer">
+                <MapPin className="w-3 h-3 text-cyan-400" aria-hidden="true" /> Locality / City
               </label>
               <input
                 id="locality-input"
                 type="text"
                 value={locality}
-                onChange={(e) => setLocality(e.target.value)}
+                onChange={(e) => { setLocality(e.target.value); clearPresetHighlight(); }}
                 className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:border-purple-500 focus:outline-none font-mono"
               />
             </div>
@@ -346,29 +462,29 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
           {/* Culture / Region & Aesthetic Theme */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="culture-input" className="text-[11px] text-slate-400 flex items-center gap-1 mb-1 font-mono cursor-pointer">
-                <Globe className="w-3 h-3 text-indigo-400" /> Culture / Region
+              <label htmlFor="culture-input" className="text-xs text-slate-400 flex items-center gap-1 mb-1 font-mono cursor-pointer">
+                <Globe className="w-3 h-3 text-indigo-400" aria-hidden="true" /> Culture / Region
               </label>
               <input
                 id="culture-input"
                 type="text"
                 placeholder="e.g. Maharashtrian"
                 value={cultureRegion}
-                onChange={(e) => setCultureRegion(e.target.value)}
+                onChange={(e) => { setCultureRegion(e.target.value); clearPresetHighlight(); }}
                 className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:border-purple-500 focus:outline-none font-mono"
               />
             </div>
 
             <div>
-              <label htmlFor="theme-input" className="text-[11px] text-slate-400 flex items-center gap-1 mb-1 font-mono cursor-pointer">
-                <Palette className="w-3 h-3 text-indigo-400" /> Theme / Aesthetic
+              <label htmlFor="theme-input" className="text-xs text-slate-400 flex items-center gap-1 mb-1 font-mono cursor-pointer">
+                <Palette className="w-3 h-3 text-indigo-400" aria-hidden="true" /> Theme / Aesthetic
               </label>
               <input
                 id="theme-input"
                 type="text"
                 placeholder="e.g. Pastel Meadow"
                 value={theme}
-                onChange={(e) => setTheme(e.target.value)}
+                onChange={(e) => { setTheme(e.target.value); clearPresetHighlight(); }}
                 className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:border-purple-500 focus:outline-none font-mono"
               />
             </div>
@@ -376,8 +492,8 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
 
           {/* Headcount */}
           <div>
-            <label htmlFor="headcount-input" className="text-[11px] text-slate-400 flex items-center gap-1 mb-1 font-mono cursor-pointer">
-              <Users className="w-3 h-3 text-cyan-400" /> Headcount (Pax: 1 to 10,000)
+            <label htmlFor="headcount-input" className="text-xs text-slate-400 flex items-center gap-1 mb-1 font-mono cursor-pointer">
+              <Users className="w-3 h-3 text-cyan-400" aria-hidden="true" /> Headcount (Pax: 1 to 10,000)
             </label>
             <input
               id="headcount-input"
@@ -385,7 +501,7 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
               min="1"
               max="10000"
               value={headcount}
-              onChange={(e) => setHeadcount(Number(e.target.value))}
+              onChange={(e) => { setHeadcount(Number(e.target.value)); clearPresetHighlight(); }}
               className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:border-purple-500 focus:outline-none font-mono"
             />
           </div>
@@ -393,8 +509,8 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
           {/* Budget Ceiling Input & Slider (₹20,000 to ₹5,00,00,000) */}
           <div>
             <div className="flex justify-between items-center mb-1">
-              <label htmlFor="budget-input" className="text-[11px] text-slate-400 flex items-center gap-1 font-mono cursor-pointer">
-                <IndianRupee className="w-3 h-3 text-cyan-400" /> Budget Ceiling (INR)
+              <label htmlFor="budget-input" className="text-xs text-slate-400 flex items-center gap-1 font-mono cursor-pointer">
+                <IndianRupee className="w-3 h-3 text-cyan-400" aria-hidden="true" /> Budget Ceiling (INR)
               </label>
               <input
                 id="budget-input"
@@ -403,7 +519,7 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
                 max="50000000"
                 step="5000"
                 value={budget}
-                onChange={(e) => setBudget(Math.max(0, Number(e.target.value)))}
+                onChange={(e) => { setBudget(Math.max(0, Number(e.target.value))); clearPresetHighlight(); }}
                 className="w-32 bg-slate-950 border border-slate-800 rounded px-2 py-0.5 text-right text-xs font-mono font-bold text-purple-300 focus:border-purple-500 focus:outline-none"
               />
             </div>
@@ -414,10 +530,10 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
               max="50000000"
               step="25000"
               value={Math.min(budget, 50000000)}
-              onChange={(e) => setBudget(Number(e.target.value))}
+              onChange={(e) => { setBudget(Number(e.target.value)); clearPresetHighlight(); }}
               className="w-full accent-purple-500 cursor-pointer"
             />
-            <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+            <div className="flex justify-between text-xs text-slate-400 font-mono">
               <span>₹20 Thousand</span>
               <span>₹2.5 Crores</span>
               <span>₹5 Crores</span>
@@ -425,14 +541,14 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
           </div>
 
           <div className="pt-2 border-t border-slate-800/80">
-            <span className="text-[11px] text-slate-400 font-mono block mb-1">Event Typology</span>
+            <span className="text-xs text-slate-400 font-mono block mb-1">Event Typology</span>
             <div className="grid grid-cols-3 gap-2">
               {["wedding", "birthday", "community_festival"].map((type) => (
                 <button
                   key={type}
                   type="button"
-                  onClick={() => setEventType(type)}
-                  className={`text-[11px] py-1 px-2 rounded capitalize font-medium transition-all ${
+                  onClick={() => { setEventType(type); clearPresetHighlight(); }}
+                  className={`text-xs py-1 px-2 rounded capitalize font-medium transition-all cursor-pointer ${
                     eventType === type
                       ? "bg-purple-600 text-white font-semibold"
                       : "bg-slate-950 text-slate-400 hover:text-slate-200 border border-slate-800"
@@ -453,18 +569,24 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
             <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-950/60">
               <div className="flex items-center gap-2">
                 <span className="p-1.5 rounded-lg bg-indigo-500/20 text-indigo-400">
-                  <Camera className="w-4 h-4" />
+                  <Camera className="w-4 h-4" aria-hidden="true" />
                 </span>
                 <div>
                   <h3 className="text-sm font-bold text-white">Generative Visual Concept</h3>
-                  <p className="text-[10px] font-mono text-indigo-300">Google Imagen 3 (imagen-3.0-generate-002)</p>
+                  <p className="text-xs font-mono text-indigo-300">
+                    {studioResult.is_generated
+                      ? `Google Imagen 3 (${studioResult.model})`
+                      : "Sample preview — stock reference photo (not AI-generated)"}
+                  </p>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setStudioModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                aria-label="Close modal"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
 
@@ -478,25 +600,29 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
               </div>
 
               <div className="p-3 rounded-lg bg-slate-950/60 border border-slate-800/80">
-                <span className="text-[10px] font-mono uppercase text-slate-400 block mb-1">
-                  Synthesized Architectural Prompt:
+                <span className="text-xs font-mono uppercase text-slate-400 block mb-1">
+                  Concept Prompt:
                 </span>
                 <p className="text-xs text-slate-200 font-sans leading-relaxed">
                   "{studioResult.prompt}"
                 </p>
               </div>
 
-              <div className="flex items-center justify-between pt-2">
-                <span className="text-[11px] font-mono text-emerald-400 flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> 8K Photorealistic Architectural Render Ready
-                </span>
-                <button
-                  onClick={() => setStudioModalOpen(false)}
-                  className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium transition-colors"
-                >
-                  Close Preview
-                </button>
-              </div>
+              {studioResult.error && (
+                <p className="text-xs font-mono text-amber-400/90 bg-amber-950/30 px-3 py-1.5 rounded border border-amber-900/50">
+                  ℹ {studioResult.error}
+                </p>
+              )}
+            </div>
+
+            <div className="p-4 border-t border-slate-800 bg-slate-950/60 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setStudioModalOpen(false)}
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Done
+              </button>
             </div>
           </div>
         </div>

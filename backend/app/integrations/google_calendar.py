@@ -1,27 +1,70 @@
+import uuid
 from datetime import datetime, date, timedelta, timezone
 from typing import List, Dict, Any, Optional
 from ..schemas import MasterEventPlan
 
 
+def _escape_text(text: str) -> str:
+    """Escapes RFC 5545 TEXT values: \\ -> \\\\, ; -> \\;, , -> \\,, \\n -> \\n."""
+    if not text:
+        return ""
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    text = text.replace("\\", "\\\\")
+    text = text.replace(";", "\\;").replace(",", "\\,")
+    text = text.replace("\n", "\\n")
+    return text
+
+
+def _fold_line(line: str) -> str:
+    """
+    Folds an RFC 5545 line so no physical line exceeds 75 octets in UTF-8.
+    Continuation lines begin with a single ASCII space.
+    """
+    encoded = line.encode("utf-8")
+    if len(encoded) <= 75:
+        return line
+
+    chunks: List[str] = []
+    current_bytes = bytearray()
+    max_len = 75
+
+    for char in line:
+        char_bytes = char.encode("utf-8")
+        if len(current_bytes) + len(char_bytes) > max_len:
+            chunks.append(current_bytes.decode("utf-8"))
+            current_bytes = bytearray(b" " + char_bytes)
+            max_len = 75
+        else:
+            current_bytes.extend(char_bytes)
+
+    if current_bytes:
+        chunks.append(current_bytes.decode("utf-8"))
+
+    return "\r\n".join(chunks)
+
+
 def generate_calendar_ics(plan: MasterEventPlan) -> str:
     """
-    RFC-5545 Calendar Export (CR-14):
-    Generates standard RFC-5545 .ics calendar content:
-    - Planning milestones as all-day events on their calculated due_date.
+    RFC-5545 Calendar Export (CR-14 / K23):
+    Generates standard RFC-5545 .ics calendar content with:
+    - Escaped text values (\\, ;, ,, \\n)
+    - 75-octet line folding
+    - Planning milestones as all-day events on calculated due_date.
     - Day-of schedule blocks on event_date with TZID=Asia/Kolkata.
-    Uses standard CRLF (\\r\\n) line endings.
+    - Standard CRLF (\\r\\n) line endings.
     """
     now_utc = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    event_date = plan.event_date or "2026-11-15"
-    clean_city = plan.location_city or "India"
+    event_date = plan.event_date or (date.today() + timedelta(days=90)).strftime("%Y-%m-%d")
+    clean_city = _escape_text(plan.location_city or "India")
+    cal_name = _escape_text(plan.title or "AuraPulse Event")
 
-    lines = [
+    raw_lines = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
         "PRODID:-//AuraPulse AI//Event Planning Engine//EN",
         "CALSCALE:GREGORIAN",
         "METHOD:PUBLISH",
-        f"X-WR-CALNAME:{plan.title.replace(',', '')}",
+        f"X-WR-CALNAME:{cal_name}",
         "X-WR-TIMEZONE:Asia/Kolkata",
         "BEGIN:VTIMEZONE",
         "TZID:Asia/Kolkata",
@@ -38,24 +81,23 @@ def generate_calendar_ics(plan: MasterEventPlan) -> str:
     # 1. Backwards Planning Milestones as All-Day Events
     for ms in plan.planning_milestones or []:
         due_str = ms.due_date.replace("-", "")
-        # End date for all-day is next day in RFC-5545
         try:
             d_obj = datetime.strptime(ms.due_date, "%Y-%m-%d").date()
             next_day_str = (d_obj + timedelta(days=1)).strftime("%Y%m%d")
         except Exception:
             next_day_str = due_str
 
-        summary = f"[{ms.phase}] {ms.title}"
-        desc = (
-            f"AuraPulse Milestone\\n"
-            f"Category: {ms.category}\\n"
-            f"Deliverable: {ms.description}\\n"
+        summary = _escape_text(f"[{ms.phase}] {ms.title}")
+        desc = _escape_text(
+            f"AuraPulse Milestone\n"
+            f"Category: {ms.category}\n"
+            f"Deliverable: {ms.description}\n"
             f"Phase: {ms.phase}"
         )
 
-        lines.extend([
+        raw_lines.extend([
             "BEGIN:VEVENT",
-            f"UID:ms_{ms.id}@aurapulse.ai",
+            f"UID:ms_{ms.id}_{uuid.uuid4().hex[:8]}@aurapulse.ai",
             f"DTSTAMP:{now_utc}",
             f"DTSTART;VALUE=DATE:{due_str}",
             f"DTEND;VALUE=DATE:{next_day_str}",
@@ -98,18 +140,18 @@ def generate_calendar_ics(plan: MasterEventPlan) -> str:
             end_fmt = f"{clean_date}T{hh}{mm}00"
 
         outdoor_tag = " [OUTDOOR ZONE - WEATHER WATCH]" if block.is_outdoor else " [INDOOR / COVERED]"
-        summary = f"[{block.phase}] {block.activity}{outdoor_tag}"
-        desc = (
-            f"AuraPulse Run-of-Show\\n"
-            f"Phase: {block.phase}\\n"
-            f"Responsible Party: {block.responsible_party}\\n"
-            f"Zone: {'Outdoor Zone (Weather Alert)' if block.is_outdoor else 'Covered / Indoor Zone'}\\n"
+        summary = _escape_text(f"[{block.phase}] {block.activity}{outdoor_tag}")
+        desc = _escape_text(
+            f"AuraPulse Run-of-Show\n"
+            f"Phase: {block.phase}\n"
+            f"Responsible Party: {block.responsible_party}\n"
+            f"Zone: {'Outdoor Zone (Weather Alert)' if block.is_outdoor else 'Covered / Indoor Zone'}\n"
             f"Block ID: {block.block_id}"
         )
 
-        lines.extend([
+        raw_lines.extend([
             "BEGIN:VEVENT",
-            f"UID:block_{block.block_id}@aurapulse.ai",
+            f"UID:block_{block.block_id}_{uuid.uuid4().hex[:8]}@aurapulse.ai",
             f"DTSTAMP:{now_utc}",
             f"DTSTART;TZID=Asia/Kolkata:{start_fmt}",
             f"DTEND;TZID=Asia/Kolkata:{end_fmt}",
@@ -120,8 +162,11 @@ def generate_calendar_ics(plan: MasterEventPlan) -> str:
             "END:VEVENT",
         ])
 
-    lines.append("END:VCALENDAR")
-    return "\r\n".join(lines) + "\r\n"
+    raw_lines.append("END:VCALENDAR")
+
+    # Apply 75-octet line folding
+    folded_blocks = [_fold_line(line) for line in raw_lines]
+    return "\r\n".join(folded_blocks) + "\r\n"
 
 
 def generate_google_calendar_web_intent(

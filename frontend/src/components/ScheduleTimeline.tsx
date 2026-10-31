@@ -12,6 +12,16 @@ interface ScheduleTimelineProps {
   onEventDateChange?: (newDate: string) => void;
 }
 
+function parseLocalDate(dateStr: string): Date {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(y, (m || 1) - 1, d || 1);
+}
+
+function formatLocalDate(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 export default function ScheduleTimeline({
   schedule,
   milestones = [],
@@ -20,7 +30,12 @@ export default function ScheduleTimeline({
   onEventDateChange,
 }: ScheduleTimelineProps) {
   const [activeTab, setActiveTab] = useState<"milestones" | "run_of_show">("milestones");
-  const [internalEventDate, setInternalEventDate] = useState<string>("2026-11-15");
+  const defaultDate = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 90);
+    return formatLocalDate(d);
+  }, []);
+  const [internalEventDate, setInternalEventDate] = useState<string>(defaultDate);
   const eventDate = eventDateProp || internalEventDate;
   const [localMilestones, setLocalMilestones] = useState<PlanningMilestone[]>(milestones);
 
@@ -40,8 +55,9 @@ export default function ScheduleTimeline({
 
   // Recalculate due dates backwards whenever user changes eventDate
   const computedMilestones = useMemo(() => {
-    const todayStr = new Date().toISOString().split("T")[0];
-    const todayTime = new Date().setHours(0, 0, 0, 0);
+    const now = new Date();
+    const todayStr = formatLocalDate(now);
+    const todayTime = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
 
     return localMilestones.map((ms) => {
       let daysBefore = 0;
@@ -53,10 +69,10 @@ export default function ScheduleTimeline({
       else if (ms.phase === "Day-Of") daysBefore = 0;
 
       try {
-        const d = new Date(eventDate);
+        const d = parseLocalDate(eventDate);
         if (!isNaN(d.getTime())) {
           d.setDate(d.getDate() - daysBefore);
-          const computedStr = d.toISOString().split("T")[0];
+          const computedStr = formatLocalDate(d);
           // Compress past milestones into "Do Immediately"
           if (d.getTime() < todayTime && ms.phase !== "Day-Of") {
             return { ...ms, phase: "Do Immediately" as const, due_date: todayStr };
@@ -120,8 +136,16 @@ export default function ScheduleTimeline({
         </div>
 
         {/* View Mode Toggle Buttons */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900 border border-slate-800 self-start md:self-auto">
+        <div
+          role="tablist"
+          aria-label="Timeline views"
+          className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900 border border-slate-800 self-start md:self-auto"
+        >
           <button
+            role="tab"
+            id="tab-timeline-milestones"
+            aria-controls="panel-timeline-milestones"
+            aria-selected={activeTab === "milestones"}
             type="button"
             onClick={() => setActiveTab("milestones")}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold font-mono flex items-center gap-1.5 transition-all cursor-pointer ${
@@ -134,6 +158,10 @@ export default function ScheduleTimeline({
             Backwards Milestones ({completedCount}/{computedMilestones.length})
           </button>
           <button
+            role="tab"
+            id="tab-timeline-run-of-show"
+            aria-controls="panel-timeline-run-of-show"
+            aria-selected={activeTab === "run_of_show"}
             type="button"
             onClick={() => setActiveTab("run_of_show")}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold font-mono flex items-center gap-1.5 transition-all cursor-pointer ${
@@ -150,7 +178,12 @@ export default function ScheduleTimeline({
 
       {/* VIEW 1: BACKWARDS PLANNING MILESTONES ROADMAP */}
       {activeTab === "milestones" && (
-        <div className="space-y-6">
+        <div
+          id="panel-timeline-milestones"
+          role="tabpanel"
+          aria-labelledby="tab-timeline-milestones"
+          className="space-y-6"
+        >
           {/* Milestone Controls & Progress Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-slate-900/60 border border-slate-800">
             <div className="flex items-center gap-3">
@@ -254,7 +287,12 @@ export default function ScheduleTimeline({
 
       {/* VIEW 2: DAY-OF RUN-OF-SHOW TIMELINE */}
       {activeTab === "run_of_show" && (
-        <div className="relative border-l border-slate-800 ml-4 space-y-6">
+        <div
+          id="panel-timeline-run-of-show"
+          role="tabpanel"
+          aria-labelledby="tab-timeline-run-of-show"
+          className="relative border-l border-slate-800 ml-4 space-y-6"
+        >
           {schedule.map((block, index) => {
             return (
               <div key={block.block_id || index} className="relative pl-6 group">

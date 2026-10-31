@@ -129,14 +129,28 @@ def test_google_calendar_web_intent():
 
 
 def test_google_sheets_export_formulas():
+    """Without credentials, Sheets export raises instead of returning a fake SUCCESS link."""
+    import pytest
+    from backend.app.integrations.google_sheets import SheetsNotConfiguredError
     plan = create_baseline_wedding_plan()
     boq_dicts = [item.model_dump() for item in plan.boq]
-    result = export_event_to_google_sheets(
-        spreadsheet_title="Test Royal Wedding",
-        boq_items=boq_dicts
-    )
-    assert result["status"] == "SUCCESS"
-    assert result["items_exported"] == len(boq_dicts)
-    assert "=SUM(" in result["grand_total_formula"]
-    assert "priority_formulas" in result
-    assert "=SUMIF(" in result["priority_formulas"]["Critical Tier Formula"]
+    with pytest.raises(SheetsNotConfiguredError):
+        export_event_to_google_sheets(
+            spreadsheet_title="Test Royal Wedding",
+            boq_items=boq_dicts
+        )
+
+
+def test_ics_escaping_folding_and_crlf():
+    """Verify RFC-5545 escaping of special characters, 75-octet line folding, and CRLF."""
+    plan = create_baseline_wedding_plan()
+    plan.title = "Grand Wedding, Reception; Dinner & Dance \\ Celebration with an exceptionally long description exceeding seventy-five characters on a single line"
+    ics_text = generate_calendar_ics(plan)
+
+    # 1. Ends with CRLF
+    assert ics_text.endswith("\r\n")
+    # 2. Every line ends with CRLF
+    for line in ics_text.split("\r\n"):
+        assert len(line.encode("utf-8")) <= 75
+    # 3. Escaped characters present
+    assert "\\," in ics_text or "\\;" in ics_text or "\\\\" in ics_text

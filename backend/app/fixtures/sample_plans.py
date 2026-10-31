@@ -19,8 +19,8 @@ def get_backwards_date(base_date_str: str, days_before: int) -> str:
         dt = datetime.strptime(base_date_str, "%Y-%m-%d")
         target = dt - timedelta(days=days_before)
         return target.strftime("%Y-%m-%d")
-    except Exception:
-        return "2026-11-01"
+    except Exception as e:
+        raise ValueError(f"Invalid date string '{base_date_str}'; expected YYYY-MM-DD") from e
 
 
 def create_preset_meadow_wedding(event_date: str = "2026-11-15") -> MasterEventPlan:
@@ -263,7 +263,7 @@ def create_preset_meadow_wedding(event_date: str = "2026-11-15") -> MasterEventP
                 estimated_cost=450000.0,
                 status=VendorStatus.BOOKED,
                 notes="Deposit paid (30%). Woodfired ovens mobilization confirmed for 07:00 AM.",
-                google_maps_place_id="ChIJ_pune_artisan_cater"
+                google_maps_place_id=None
             ),
             VendorChecklistItem(
                 id="vc_m02",
@@ -272,7 +272,7 @@ def create_preset_meadow_wedding(event_date: str = "2026-11-15") -> MasterEventP
                 estimated_cost=160000.0,
                 status=VendorStatus.QUOTED,
                 notes="Revised quote for dried palms and local marigold garland substitution submitted.",
-                google_maps_place_id="ChIJ_pune_bloom_craft"
+                google_maps_place_id=None
             ),
             VendorChecklistItem(
                 id="vc_m03",
@@ -281,7 +281,7 @@ def create_preset_meadow_wedding(event_date: str = "2026-11-15") -> MasterEventP
                 estimated_cost=295000.0,
                 status=VendorStatus.BOOKED,
                 notes="Includes 2,000 ft festoons and waterproof column array audio system.",
-                google_maps_place_id="ChIJ_pune_lumenglow"
+                google_maps_place_id=None
             ),
             VendorChecklistItem(
                 id="vc_m04",
@@ -290,7 +290,7 @@ def create_preset_meadow_wedding(event_date: str = "2026-11-15") -> MasterEventP
                 estimated_cost=85000.0,
                 status=VendorStatus.TO_CONTACT,
                 notes="Need to verify local municipal earthing certificate for hillside lawn.",
-                google_maps_place_id="ChIJ_pune_powergrid"
+                google_maps_place_id=None
             ),
             VendorChecklistItem(
                 id="vc_m05",
@@ -299,7 +299,7 @@ def create_preset_meadow_wedding(event_date: str = "2026-11-15") -> MasterEventP
                 estimated_cost=85000.0,
                 status=VendorStatus.PAID,
                 notes="100% advance paid. 2 cinematographers and 1 drone pilot confirmed.",
-                google_maps_place_id="ChIJ_pune_goldenhour"
+                google_maps_place_id=None
             )
         ]
     )
@@ -494,7 +494,7 @@ def create_preset_cyberpunk_birthday(event_date: str = "2026-11-15") -> MasterEv
                 estimated_cost=84000.0,
                 status=VendorStatus.BOOKED,
                 notes="Molecular bar equipment and dry ice coolers included.",
-                google_maps_place_id="ChIJ_mumbai_smoke_mirrors"
+                google_maps_place_id=None
             ),
             VendorChecklistItem(
                 id="vc_c02",
@@ -503,7 +503,7 @@ def create_preset_cyberpunk_birthday(event_date: str = "2026-11-15") -> MasterEv
                 estimated_cost=38000.0,
                 status=VendorStatus.BOOKED,
                 notes="Dual 18-inch subwoofers + sound engineer on-site.",
-                google_maps_place_id="ChIJ_mumbai_subbass"
+                google_maps_place_id=None
             ),
             VendorChecklistItem(
                 id="vc_c03",
@@ -512,7 +512,7 @@ def create_preset_cyberpunk_birthday(event_date: str = "2026-11-15") -> MasterEv
                 estimated_cost=35000.0,
                 status=VendorStatus.QUOTED,
                 notes="Awaiting final delivery quote for custom acrylic neon crest.",
-                google_maps_place_id="ChIJ_mumbai_neonflux"
+                google_maps_place_id=None
             ),
             VendorChecklistItem(
                 id="vc_c04",
@@ -521,7 +521,7 @@ def create_preset_cyberpunk_birthday(event_date: str = "2026-11-15") -> MasterEv
                 estimated_cost=30000.0,
                 status=VendorStatus.PAID,
                 notes="Track list approved. 100% advance cleared.",
-                google_maps_place_id="ChIJ_mumbai_dj_kinetix"
+                google_maps_place_id=None
             ),
         ]
     )
@@ -746,7 +746,7 @@ def create_preset_diwali_mela(event_date: str = "2026-11-15") -> MasterEventPlan
                 estimated_cost=20000.0,
                 status=VendorStatus.PAID,
                 notes="15 drummers booked for 16:00 grand entrance. Full payment cleared.",
-                google_maps_place_id="ChIJ_pune_swargandhar"
+                google_maps_place_id=None
             ),
             VendorChecklistItem(
                 id="vc_dm02",
@@ -755,7 +755,7 @@ def create_preset_diwali_mela(event_date: str = "2026-11-15") -> MasterEventPlan
                 estimated_cost=60000.0,
                 status=VendorStatus.BOOKED,
                 notes="Includes 10 dual-bin stations and 4 dedicated segregation marshals.",
-                google_maps_place_id="ChIJ_pune_greenearth"
+                google_maps_place_id=None
             ),
             VendorChecklistItem(
                 id="vc_dm03",
@@ -764,7 +764,7 @@ def create_preset_diwali_mela(event_date: str = "2026-11-15") -> MasterEventPlan
                 estimated_cost=95000.0,
                 status=VendorStatus.QUOTED,
                 notes="25 bamboo kiosk structures with fire-retardant cloth canopies.",
-                google_maps_place_id="ChIJ_pune_sanskriti"
+                google_maps_place_id=None
             ),
             VendorChecklistItem(
                 id="vc_dm04",
@@ -773,7 +773,7 @@ def create_preset_diwali_mela(event_date: str = "2026-11-15") -> MasterEventPlan
                 estimated_cost=70000.0,
                 status=VendorStatus.BOOKED,
                 notes="100 kVA silent DG with cabling to all 25 artisan stalls.",
-                google_maps_place_id="ChIJ_pune_reliable_dg"
+                google_maps_place_id=None
             ),
             VendorChecklistItem(
                 id="vc_dm05",
@@ -782,7 +782,7 @@ def create_preset_diwali_mela(event_date: str = "2026-11-15") -> MasterEventPlan
                 estimated_cost=45000.0,
                 status=VendorStatus.BOOKED,
                 notes="On-site paramedic booth with basic trauma and burn kit.",
-                google_maps_place_id="ChIJ_pune_lifeline"
+                google_maps_place_id=None
             ),
         ]
     )

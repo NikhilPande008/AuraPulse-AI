@@ -12,22 +12,23 @@ def get_backwards_date(base_date_str: str, days_before: int) -> str:
     """
     Helper to calculate milestone due dates backwards from event date.
     Preserves exact calendar arithmetic including leap years.
+    Raises ValueError on malformed date input (CR-16).
     """
     try:
         dt = datetime.strptime(base_date_str, "%Y-%m-%d").date()
-        target = dt - timedelta(days=days_before)
-        return target.strftime("%Y-%m-%d")
-    except Exception:
-        return "2026-11-01"
+    except Exception as e:
+        raise ValueError(f"Invalid date string '{base_date_str}'; expected YYYY-MM-DD") from e
+    target = dt - timedelta(days=days_before)
+    return target.strftime("%Y-%m-%d")
 
 
 def build_milestones(
-    event_date: str,
+    event_date: Optional[str] = None,
     event_type: str = "wedding",
     culture_region: Optional[str] = None
 ) -> List[PlanningMilestone]:
     """
-    Dynamic Backwards Planning Timeline (CR-10):
+    Dynamic Backwards Planning Timeline:
     Calculates target dates dynamically backwards from event_date:
     - T-6 Months (-180 days)
     - T-3 Months (-90 days)
@@ -36,16 +37,19 @@ def build_milestones(
     - T-1 Week (-7 days)
     - Day-Of (0 days)
 
-    If scheduled in a short horizon (e.g. 3 weeks away), automatically
-    compresses earlier milestones into "Do Immediately" phase with today's date
-    so no past dates are emitted.
+    If scheduled in a short horizon, automatically compresses earlier milestones
+    into 'Do Immediately' phase with today's date so no past dates are emitted.
+    Default event_date = today + 90 days if omitted.
     """
     today = date.today()
-    try:
-        ev_dt = datetime.strptime(event_date, "%Y-%m-%d").date()
-    except Exception:
+    if not event_date:
         ev_dt = today + timedelta(days=90)
         event_date = ev_dt.strftime("%Y-%m-%d")
+    else:
+        try:
+            ev_dt = datetime.strptime(event_date, "%Y-%m-%d").date()
+        except Exception as e:
+            raise ValueError(f"Invalid event_date '{event_date}'; expected YYYY-MM-DD") from e
 
     culture_lower = (culture_region or "").lower()
     is_marathi = any(k in culture_lower for k in ["marathi", "maharashtrian", "pune", "mumbai", "nashik"])
@@ -131,7 +135,7 @@ def build_milestones(
                 cat = MilestoneCategory.ATTIRE_INVITES
             elif days == 7:
                 title = "Game Master Briefing & Playlist Lock"
-                desc = "Finalize 5 interactive group games, scorecards, and entry music cues."
+                desc = "Finalize interactive group games, scorecards, and entry music cues."
                 cat = MilestoneCategory.LOGISTICS
             else:
                 title = "Party Execution & Cake Cutting"

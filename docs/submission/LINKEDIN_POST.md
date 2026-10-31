@@ -45,7 +45,7 @@ Events are living, breathing, high-stakes operational systems. We built AuraPuls
 
 ### 🤖 Built with Google Antigravity
 
-This entire full-stack system—FastAPI backend (Python 3.12), Next.js 15 frontend, strict Pydantic models, and 31 automated pytest tests (100% green)—was developed agentically using **Google Antigravity**.
+This entire full-stack system—FastAPI backend (Python 3.12), Next.js 15 frontend, strict Pydantic models, and 40 automated pytest tests (100% green)—was developed agentically using **Google Antigravity**.
 
 Check out the interactive demo presets in the app:
 * 🌸 *Boho Sunset Meadow Wedding* (Pune | 300 Pax | ₹15 Lakhs)

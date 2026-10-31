@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { MapPin, Star, Phone, Search, ExternalLink, ShieldCheck, RefreshCw, CheckCircle2, ListChecks, Plus, ArrowRight } from "lucide-react";
+import { MapPin, Star, Phone, Search, ExternalLink, ShieldCheck, RefreshCw, CheckCircle2, ListChecks, Plus } from "lucide-react";
 import { fetchVendors, VendorChecklistItem } from "../lib/api";
 
 interface VendorFinderProps {
@@ -18,7 +18,6 @@ const DEFAULT_CHECKLIST: VendorChecklistItem[] = [
     estimated_cost: 450000,
     status: "Booked",
     notes: "30% deposit cleared. Live pizza station confirmed.",
-    google_maps_place_id: "ChIJ_pune_artisan_cater"
   },
   {
     id: "vc_def_02",
@@ -27,7 +26,6 @@ const DEFAULT_CHECKLIST: VendorChecklistItem[] = [
     estimated_cost: 160000,
     status: "Quoted",
     notes: "Negotiating marigold and local flora substitution.",
-    google_maps_place_id: "ChIJ_pune_bloom_craft"
   },
   {
     id: "vc_def_03",
@@ -36,7 +34,6 @@ const DEFAULT_CHECKLIST: VendorChecklistItem[] = [
     estimated_cost: 295000,
     status: "Booked",
     notes: "2,000 ft festoons + column array audio.",
-    google_maps_place_id: "ChIJ_pune_lumenglow"
   },
   {
     id: "vc_def_04",
@@ -45,7 +42,6 @@ const DEFAULT_CHECKLIST: VendorChecklistItem[] = [
     estimated_cost: 85000,
     status: "To Contact",
     notes: "Need municipal safety inspection certificate.",
-    google_maps_place_id: "ChIJ_pune_powergrid"
   },
   {
     id: "vc_def_05",
@@ -54,11 +50,8 @@ const DEFAULT_CHECKLIST: VendorChecklistItem[] = [
     estimated_cost: 85000,
     status: "Paid",
     notes: "100% advance paid. 2 cinematographers booked.",
-    google_maps_place_id: "ChIJ_pune_goldenhour"
   }
 ];
-
-const STATUS_CYCLE: VendorChecklistItem["status"][] = ["To Contact", "Quoted", "Booked", "Paid"];
 
 export default function VendorFinder({
   city,
@@ -103,11 +96,10 @@ export default function VendorFinder({
     loadVendors(query, city);
   };
 
-  const handleCycleStatus = (id: string) => {
+  const handleStatusChange = (id: string, newStatus: VendorChecklistItem["status"]) => {
     const updated = localChecklist.map((item) => {
       if (item.id === id) {
-        const nextIdx = (STATUS_CYCLE.indexOf(item.status) + 1) % STATUS_CYCLE.length;
-        return { ...item, status: STATUS_CYCLE[nextIdx] };
+        return { ...item, status: newStatus };
       }
       return item;
     });
@@ -170,8 +162,16 @@ export default function VendorFinder({
         </div>
 
         {/* Tab Toggle */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900 border border-slate-800 self-start md:self-auto">
+        <div
+          role="tablist"
+          aria-label="Vendor views"
+          className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900 border border-slate-800 self-start md:self-auto"
+        >
           <button
+            role="tab"
+            id="tab-vendor-checklist"
+            aria-controls="panel-vendor-checklist"
+            aria-selected={activeTab === "checklist"}
             type="button"
             onClick={() => setActiveTab("checklist")}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold font-mono flex items-center gap-1.5 transition-all cursor-pointer ${
@@ -184,6 +184,10 @@ export default function VendorFinder({
             Vendor Checklist ({localChecklist.length})
           </button>
           <button
+            role="tab"
+            id="tab-vendor-maps"
+            aria-controls="panel-vendor-maps"
+            aria-selected={activeTab === "maps"}
             type="button"
             onClick={() => setActiveTab("maps")}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold font-mono flex items-center gap-1.5 transition-all cursor-pointer ${
@@ -207,7 +211,12 @@ export default function VendorFinder({
 
       {/* VIEW 1: VENDOR ACTION CHECKLIST TABLE */}
       {activeTab === "checklist" && (
-        <div className="space-y-4">
+        <div
+          id="panel-vendor-checklist"
+          role="tabpanel"
+          aria-labelledby="tab-vendor-checklist"
+          className="space-y-4"
+        >
           {/* Summary Strip */}
           <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 text-xs font-mono">
             <div className="flex items-center gap-4">
@@ -231,7 +240,7 @@ export default function VendorFinder({
                   <th className="py-3 px-4">Category</th>
                   <th className="py-3 px-4">Vendor & Specification</th>
                   <th className="py-3 px-4 text-right">Estimated (INR)</th>
-                  <th className="py-3 px-4 text-center">Status (Click to Advance)</th>
+                  <th className="py-3 px-4 text-center">Status</th>
                   <th className="py-3 px-4">Operational Notes</th>
                 </tr>
               </thead>
@@ -255,19 +264,26 @@ export default function VendorFinder({
                       ₹{item.estimated_cost.toLocaleString("en-IN")}
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <button
-                        type="button"
-                        onClick={() => handleCycleStatus(item.id)}
-                        className={`px-3 py-1 rounded-full text-[11px] font-mono font-bold border transition-all cursor-pointer inline-flex items-center gap-1 ${getStatusBadge(
+                      <label htmlFor={`vendor-status-${item.id}`} className="sr-only">
+                        Status for {item.vendor_name}
+                      </label>
+                      <select
+                        id={`vendor-status-${item.id}`}
+                        value={item.status}
+                        onChange={(e) =>
+                          handleStatusChange(item.id, e.target.value as VendorChecklistItem["status"])
+                        }
+                        className={`px-2.5 py-1 rounded-lg text-xs font-mono font-semibold border transition-all cursor-pointer bg-slate-900 ${getStatusBadge(
                           item.status
                         )}`}
-                        title="Click to advance status"
                       >
-                        {item.status}
-                        <ArrowRight className="w-3 h-3 opacity-60" />
-                      </button>
+                        <option value="To Contact">To Contact</option>
+                        <option value="Quoted">Quoted</option>
+                        <option value="Booked">Booked</option>
+                        <option value="Paid">Paid</option>
+                      </select>
                     </td>
-                    <td className="py-3 px-4 text-slate-400 text-[11px] max-w-xs leading-relaxed">
+                    <td className="py-3 px-4 text-slate-400 text-xs max-w-xs leading-relaxed">
                       {item.notes}
                     </td>
                   </tr>
@@ -280,12 +296,21 @@ export default function VendorFinder({
 
       {/* VIEW 2: GOOGLE MAPS VENDOR GROUNDING */}
       {activeTab === "maps" && (
-        <div className="space-y-4">
+        <div
+          id="panel-vendor-maps"
+          role="tabpanel"
+          aria-labelledby="tab-vendor-maps"
+          className="space-y-4"
+        >
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <form onSubmit={handleSearch} className="flex items-center gap-2 w-full sm:w-auto">
+              <label htmlFor="vendor-search-input" className="sr-only">
+                Search vendors
+              </label>
               <div className="relative flex-1 sm:w-72">
                 <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
                 <input
+                  id="vendor-search-input"
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}

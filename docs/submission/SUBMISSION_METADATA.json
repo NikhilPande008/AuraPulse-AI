@@ -15,7 +15,7 @@
     "Google Calendar Web Intents",
     "Google Cloud Run"
   ],
-  "test_suite": "31/31 Pytest automated tests passing",
+  "test_suite": "40/40 Pytest automated tests passing",
   "frontend_framework": "Next.js 15 App Router with Tailwind CSS",
   "backend_framework": "FastAPI with Python 3.12 and Pydantic v2",
   "key_features": [

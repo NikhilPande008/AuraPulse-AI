@@ -103,7 +103,8 @@ def test_sheets_export_endpoint():
         ]
     }
     response = client.post("/api/v1/integrations/sheets/export", json=payload)
-    assert response.status_code == 200
+    # Without service-account credentials the API must NOT fabricate a docs.google.com link.
+    assert response.status_code == 503
     res_data = response.json()
-    assert res_data["status"] == "SUCCESS"
-    assert "=SUM(" in res_data["grand_total_formula"]
+    assert res_data["code"] == "SHEETS_NOT_CONFIGURED"
+    assert "spreadsheet_url" not in res_data

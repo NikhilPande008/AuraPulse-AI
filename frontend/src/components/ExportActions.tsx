@@ -13,15 +13,74 @@ export default function ExportActions({ plan }: ExportActionsProps) {
   const [exportingIcs, setExportingIcs] = useState(false);
   const [sheetResult, setSheetResult] = useState<any | null>(null);
   const [icsDownloaded, setIcsDownloaded] = useState(false);
+  const [icsError, setIcsError] = useState<string | null>(null);
+  const [sheetError, setSheetError] = useState<string | null>(null);
+  const [csvDownloaded, setCsvDownloaded] = useState(false);
+
+  const csvEscape = (value: unknown): string => {
+    const str = value === null || value === undefined ? "" : String(value);
+    return /[",\r\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+  };
+
+  const handleDownloadCsv = () => {
+    const header = ["Item ID", "Category", "Name", "Specification", "Quantity", "Unit", "Rate (INR)", "Total (INR)", "Priority Tier", "Status"];
+    const rows: (string | number)[][] = plan.boq.map((it) => [
+      it.item_id,
+      it.category,
+      it.name,
+      it.specification,
+      it.quantity,
+      it.unit,
+      it.estimated_rate_inr,
+      it.status === "DROPPED" ? 0 : it.total_cost_inr,
+      it.priority,
+      it.status,
+    ]);
+    const criticalTotal = plan.boq
+      .filter((it) => it.status !== "DROPPED" && it.priority === "Critical")
+      .reduce((sum, it) => sum + (it.total_cost_inr || 0), 0);
+    const operationalTotal = plan.boq
+      .filter((it) => it.status !== "DROPPED" && it.priority === "Operational")
+      .reduce((sum, it) => sum + (it.total_cost_inr || 0), 0);
+    const discretionaryTotal = plan.boq
+      .filter((it) => it.status !== "DROPPED" && it.priority === "Discretionary")
+      .reduce((sum, it) => sum + (it.total_cost_inr || 0), 0);
+    const activeTotal = plan.boq
+      .filter((it) => it.status !== "DROPPED")
+      .reduce((sum, it) => sum + (it.total_cost_inr || 0), 0);
+
+    rows.push(["", "", "SUBTOTAL: Critical (Tier 1)", "", "", "", "", Math.round(criticalTotal * 100) / 100, "Critical", ""]);
+    rows.push(["", "", "SUBTOTAL: Operational (Tier 2)", "", "", "", "", Math.round(operationalTotal * 100) / 100, "Operational", ""]);
+    rows.push(["", "", "SUBTOTAL: Discretionary (Tier 3)", "", "", "", "", Math.round(discretionaryTotal * 100) / 100, "Discretionary", ""]);
+    rows.push(["", "", "GRAND TOTAL (Active Items)", "", "", "", "", Math.round(activeTotal * 100) / 100, "", ""]);
+    rows.push(["", "", "Budget Ceiling", "", "", "", "", plan.total_budget_limit, "", ""]);
+
+    const csv = [header, ...rows].map((r) => r.map(csvEscape).join(",")).join("\r\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${(plan.title || "event").toLowerCase().replace(/[^a-z0-9]/g, "_")}_boq.csv`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    setCsvDownloaded(true);
+  };
 
   const handleExportSheets = async () => {
     setExportingSheets(true);
+    setSheetError(null);
     try {
       const res = await exportToSheets(plan.title, plan.boq);
       setSheetResult(res);
-    } catch (err) {
+      if (res.status === "NOT_CONFIGURED") {
+        setSheetError(res.message || "Google Sheets export not configured.");
+      }
+    } catch (err: any) {
       console.error(err);
-      alert("Sheets export failed.");
+      setSheetResult(null);
+      setSheetError(err?.message || "Google Sheets export failed.");
     } finally {
       setExportingSheets(false);
     }
@@ -29,6 +88,7 @@ export default function ExportActions({ plan }: ExportActionsProps) {
 
   const handleDownloadIcs = async () => {
     setExportingIcs(true);
+    setIcsError(null);
     try {
       const blob = await exportCalendarIcs(plan);
       const url = window.URL.createObjectURL(blob);
@@ -40,16 +100,17 @@ export default function ExportActions({ plan }: ExportActionsProps) {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       setIcsDownloaded(true);
-    } catch (err) {
+    } catch (err: any) {
       console.error("ICS download error:", err);
-      alert("Failed to export RFC-5545 .ics calendar.");
+      setIcsError("Failed to export RFC-5545 .ics calendar. Please try again.");
     } finally {
       setExportingIcs(false);
     }
   };
 
   const getGoogleCalendarWebIntentUrl = () => {
-    const evDate = plan.event_date || "2026-11-15";
+    const todayPlus90 = new Date(Date.now() + 90 * 86400000).toISOString().split("T")[0];
+    const evDate = plan.event_date || todayPlus90;
     const cleanDate = evDate.replace(/-/g, "");
     const startTime = "090000";
     const endTime = "220000";
@@ -95,12 +156,20 @@ export default function ExportActions({ plan }: ExportActionsProps) {
 
         <div className="flex flex-wrap items-center gap-3">
           <button
+            onClick={handleDownloadCsv}
+            className="px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-semibold text-xs flex items-center gap-2 shadow-lg shadow-teal-600/20 transition-all cursor-pointer"
+          >
+            <Download className="w-4 h-4" />
+            Download CSV
+          </button>
+
+          <button
             onClick={handleExportSheets}
             disabled={exportingSheets}
             className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-2 shadow-lg shadow-emerald-600/20 transition-all cursor-pointer disabled:opacity-50"
           >
             {exportingSheets ? <RefreshCw className="w-4 h-4 animate-spin" /> : <FileSpreadsheet className="w-4 h-4" />}
-            Export Formula Sheets
+            Export to Google Sheets
           </button>
 
           <button
@@ -133,19 +202,23 @@ export default function ExportActions({ plan }: ExportActionsProps) {
               <span className="text-xs font-mono font-bold text-emerald-400 flex items-center gap-1.5">
                 <FileSpreadsheet className="w-4 h-4" /> Google Sheets API v4
               </span>
-              {sheetResult ? (
+              {sheetResult && sheetResult.spreadsheet_url ? (
                 <span className="text-[10px] font-mono text-emerald-300 bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-500/40 flex items-center gap-1 font-bold">
                   <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Exported ({sheetResult.items_exported} Rows)
                 </span>
+              ) : sheetError || (sheetResult && sheetResult.status === "NOT_CONFIGURED") ? (
+                <span className="text-[10px] font-mono text-amber-300 bg-amber-950/60 px-2.5 py-0.5 rounded-full border border-amber-700/50">
+                  Not Configured
+                </span>
               ) : (
-                <span className="text-[10px] font-mono text-slate-500">Awaiting Export Trigger</span>
+                <span className="text-[10px] font-mono text-slate-500">Requires service-account credentials</span>
               )}
             </div>
             <p className="text-xs text-slate-300">
               Generates multi-tab workbook with automated <code className="text-cyan-300 font-mono">=SUM(H2:H11)</code> grand total and <code className="text-amber-300 font-mono">=SUMIF(...)</code> priority analytics.
             </p>
 
-            {sheetResult && (
+            {sheetResult && sheetResult.spreadsheet_url && (
               <div className="mt-3 p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono space-y-1.5 text-slate-400">
                 <p><span className="text-slate-500">Workbook Title:</span> <span className="text-slate-200 font-medium">{sheetResult.spreadsheet_title}</span></p>
                 <p><span className="text-slate-500">Grand Total Formula:</span> <span className="text-cyan-400 font-bold">{sheetResult.grand_total_formula}</span></p>
@@ -153,9 +226,15 @@ export default function ExportActions({ plan }: ExportActionsProps) {
                 <p><span className="text-slate-500">Total Lines:</span> <span className="text-emerald-400 font-bold">{sheetResult.total_rows_created} formatted rows</span></p>
               </div>
             )}
+            {sheetResult && sheetResult.status === "NOT_CONFIGURED" && (
+              <div className="mt-3 p-3 rounded-lg bg-amber-950/30 border border-amber-800/50 text-xs font-mono text-amber-300">
+                <p className="font-semibold">Google Sheets export inactive</p>
+                <p className="text-[11px] text-amber-300/80 mt-1">{sheetResult.message || "Backend service-account credentials are not configured."}</p>
+              </div>
+            )}
           </div>
 
-          {sheetResult ? (
+          {sheetResult && sheetResult.spreadsheet_url ? (
             <a
               href={sheetResult.spreadsheet_url}
               target="_blank"
@@ -167,8 +246,12 @@ export default function ExportActions({ plan }: ExportActionsProps) {
               <ArrowUpRight className="w-4 h-4" />
             </a>
           ) : (
-            <div className="mt-3 pt-3 border-t border-slate-800/80 text-[11px] text-slate-500 font-mono">
-              Click &quot;Export Formula Sheets&quot; to build dynamic Drive document.
+            <div className="mt-3 pt-3 border-t border-slate-800/80 text-[11px] font-mono space-y-1">
+              {sheetError && <p className="text-amber-300">{sheetError}</p>}
+              <p className="text-slate-500">
+                No credentials? Use &quot;Download CSV&quot; and import into Google Sheets (File → Import).
+                {csvDownloaded && <span className="text-teal-300"> CSV downloaded ✓</span>}
+              </p>
             </div>
           )}
         </div>
@@ -231,6 +314,11 @@ export default function ExportActions({ plan }: ExportActionsProps) {
               <ExternalLink className="w-3 h-3" />
             </a>
           </div>
+          {icsError && (
+            <p className="mt-2 text-[11px] font-mono text-rose-300" role="alert">
+              {icsError}
+            </p>
+          )}
         </div>
       </div>
     </div>

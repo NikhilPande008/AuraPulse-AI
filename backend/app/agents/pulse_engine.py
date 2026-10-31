@@ -1,8 +1,10 @@
+import os
 import copy
 import uuid
 import json
+import asyncio
 from datetime import datetime
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 
 from ..schemas import (
     MasterEventPlan,
@@ -18,6 +20,8 @@ from ..schemas import (
 )
 from ..config import settings
 from ..integrations.google_maps import fetch_verified_vendors
+from ..services.budget import recompute_totals, rebalance_to_ceiling
+from ..llm.client import generate, get_genai_client
 
 try:
     from google import genai
@@ -27,18 +31,21 @@ except ImportError:
     types = None
 
 
-def shift_time_str(time_str: str, minutes_to_add: int) -> str:
-    """Helper to shift HH:MM time strings by specified minutes."""
+def shift_time_str(time_str: str, minutes_to_add: int) -> Tuple[str, bool]:
+    """
+    Helper to shift HH:MM time strings by minutes.
+    Returns (new_time_str, next_day_flag) without silent midnight wrap-around.
+    """
     try:
         parts = time_str.split(":")
         h = int(parts[0])
         m = int(parts[1])
-        total_m = (h * 60 + m + minutes_to_add) % (24 * 60)
-        new_h = total_m // 60
-        new_m = total_m % 60
-        return f"{new_h:02d}:{new_m:02d}"
+        total_m = h * 60 + m + minutes_to_add
+        next_day = total_m >= 24 * 60
+        wrapped_m = total_m % (24 * 60)
+        return f"{wrapped_m // 60:02d}:{wrapped_m % 60:02d}", next_day
     except Exception:
-        return time_str
+        return time_str, False
 
 
 async def evaluate_contingency(
@@ -47,15 +54,16 @@ async def evaluate_contingency(
 ) -> ContingencyDiff:
     """
     Pulse Dynamic Engine:
-    Combines deterministic constraint satisfaction algorithms with Gemini 2.5 Pro reasoning.
-    Protects Tier-1 (Critical) items, negotiates Tier-2 (Operational),
+    Deterministic rebalancer with optional Gemini narrative.
+    Protects Tier-1 (Critical) safety & banquet lines, negotiates Tier-2 (Operational, 50% floor),
     and trims Tier-3 (Discretionary) items to generate a precise ContingencyDiff.
     """
     diff_id = f"diff_{uuid.uuid4().hex[:8]}"
     timestamp = datetime.now().isoformat()
     original_total = plan.current_estimated_total
-    
-    updated_plan = copy.deepcopy(plan)
+
+    updated_plan = plan.model_copy(deep=True)
+    recompute_totals(updated_plan)
     boq_diffs: List[BOQDiffItem] = []
     schedule_diffs: List[ScheduleDiffItem] = []
     mitigations: List[str] = []
@@ -67,12 +75,6 @@ async def evaluate_contingency(
     if trigger.trigger_type == CrisisTriggerType.WEATHER_RISK:
         condition = trigger.weather_condition or "Severe Rainstorm & High Wind"
         mitigations.append(f"Deploy weather contingency protocol for {condition}")
-        narrative_paragraphs.append(
-            f"WEATHER PROTOCOL ACTIVATED: High probability of {condition} detected. "
-            "Deterministic solver locked all Tier-1 infrastructure. To safeguard attendees and expensive A/V electronics, "
-            "an all-weather German Pagoda Marquee is injected into the BOQ. "
-            "To fund this safety asset without exceeding budget ceiling, Discretionary (Tier-3) luxury florals and photo booths are scaled down."
-        )
 
         # 1. Add Emergency Canopy (Critical / Active)
         canopy_item = BOQItem(
@@ -85,43 +87,42 @@ async def evaluate_contingency(
             estimated_rate_inr=185000.0,
             total_cost_inr=185000.0,
             priority=PriorityTier.CRITICAL,
+            priority_tier=PriorityTier.CRITICAL,
             status="ACTIVE"
         )
         updated_plan.boq.append(canopy_item)
+        recompute_totals(updated_plan)
+
         boq_diffs.append(BOQDiffItem(
             item_id=canopy_item.item_id,
             action=DiffAction.ADDED,
             original_item=None,
             updated_item=canopy_item,
-            reason="Added emergency weatherproofing marquee to protect outdoor guests and sensitive electrical rigging."
+            reason="Added emergency weatherproofing marquee (INR 185,000) to protect guests and sensitive electronics."
         ))
 
-        # 2. Offset budget by trimming Tier-3 Discretionary
-        for item in updated_plan.boq:
-            if item.priority == PriorityTier.DISCRETIONARY and item.category == "Floral Art":
-                orig_item = copy.deepcopy(item)
-                item.specification += " [Downsized to hardy local marigold & carnation garland accents]"
-                item.estimated_rate_inr *= 0.60
-                item.total_cost_inr = item.quantity * item.estimated_rate_inr
-                item.status = "MODIFIED"
-                boq_diffs.append(BOQDiffItem(
-                    item_id=item.item_id,
-                    action=DiffAction.MODIFIED,
-                    original_item=orig_item,
-                    updated_item=item,
-                    reason="Downsized fragile imported florals to durable domestic blooms to release INR 192,000 for weather marquee."
-                ))
-            elif item.priority == PriorityTier.DISCRETIONARY and "Photobooth" in item.name:
-                orig_item = copy.deepcopy(item)
-                item.status = "DROPPED"
-                item.total_cost_inr = 0.0
-                boq_diffs.append(BOQDiffItem(
-                    item_id=item.item_id,
-                    action=DiffAction.REMOVED,
-                    original_item=orig_item,
-                    updated_item=item,
-                    reason="Removed outdoor 360 photo booth due to water damage risk and to offset structural sheltering costs."
-                ))
+        # 2. Offset budget using shared deterministic rebalancer
+        updated_plan, shortfall, rebal_diffs = rebalance_to_ceiling(updated_plan, updated_plan.total_budget_limit)
+        boq_diffs.extend(rebal_diffs)
+
+        if shortfall > 0:
+            narrative_paragraphs.append(
+                f"WEATHER PROTOCOL ACTIVATED: High probability of {condition} detected. "
+                "German Pagoda Marquee (INR 185,000) injected into the BOQ. "
+                f"Total spend exceeds ceiling by INR {shortfall:,.2f} because Tier-1 Critical core lines cannot be reduced: "
+                "approve the extra spend or cut further."
+            )
+            mitigations.append(
+                f"WARNING: Budget ceiling exceeded by INR {shortfall:,.2f} even after trimming Discretionary and Operational tiers. "
+                "Approve additional funds or reduce scope manually."
+            )
+        else:
+            narrative_paragraphs.append(
+                f"WEATHER PROTOCOL ACTIVATED: High probability of {condition} detected. "
+                "German Pagoda Marquee injected into the BOQ. "
+                f"Discretionary and Operational items were rebalanced, staying within the INR {updated_plan.total_budget_limit:,.2f} ceiling."
+            )
+            mitigations.append(f"Weather marquee funded within the INR {updated_plan.total_budget_limit:,.2f} budget ceiling.")
 
         # 3. Update Schedule blocks that are outdoor
         for block in updated_plan.schedule:
@@ -139,56 +140,37 @@ async def evaluate_contingency(
                 ))
 
         mitigations.append("Ground-supported electrical GFCI disconnects installed at all wet perimeter points.")
-        mitigations.append("Confirmed Google Maps verified marquee rental vendor with 2-hour mobilization SLA.")
+        mitigations.append("Shortlist marquee rental vendors (use Vendor Finder) and confirm mobilization time before committing.")
 
     # -------------------------------------------------------------
     # CASE 2: BUDGET_COMPRESSION (Cut 5% to 40%)
     # -------------------------------------------------------------
     elif trigger.trigger_type == CrisisTriggerType.BUDGET_COMPRESSION:
         cut_pct = trigger.budget_cut_percent or 20.0
-        target_savings = original_total * (cut_pct / 100.0)
+        target_savings = round(original_total * (cut_pct / 100.0), 2)
+        target_limit = round(original_total - target_savings, 2)
+        updated_plan.total_budget_limit = target_limit
+
+        updated_plan, shortfall, rebal_diffs = rebalance_to_ceiling(updated_plan, target_limit)
+        boq_diffs.extend(rebal_diffs)
+        saved = round(original_total - updated_plan.current_estimated_total, 2)
+
         mitigations.append(f"Execute {cut_pct:.1f}% budget compression target (INR {target_savings:,.2f})")
-        narrative_paragraphs.append(
-            f"BUDGET COMPRESSION PROTOCOL: Client requested a {cut_pct:.1f}% expenditure compression. "
-            "AuraPulse deterministic rule protects all Tier-1 Critical safety, food, and power lines. "
-            "All savings are surgically harvested from Tier-3 Discretionary and optimized Tier-2 Operational lines."
-        )
+        mitigations.append(f"Saved INR {saved:,.2f} of INR {target_savings:,.2f} target.")
 
-        accumulated_savings = 0.0
-        # Phase A: Trim Tier-3 items
-        for item in updated_plan.boq:
-            if item.priority == PriorityTier.DISCRETIONARY and item.status == "ACTIVE":
-                orig_item = copy.deepcopy(item)
-                if accumulated_savings < target_savings:
-                    savings = item.total_cost_inr * 0.50
-                    item.estimated_rate_inr *= 0.50
-                    item.total_cost_inr -= savings
-                    item.status = "MODIFIED"
-                    accumulated_savings += savings
-                    boq_diffs.append(BOQDiffItem(
-                        item_id=item.item_id,
-                        action=DiffAction.MODIFIED,
-                        original_item=orig_item,
-                        updated_item=item,
-                        reason=f"Trimmed luxury discretionary expenditure by 50% to absorb mandatory {cut_pct}% budget compression."
-                    ))
-
-        # Phase B: If more savings needed, drop lowest Tier-3 item
-        for item in updated_plan.boq:
-            if accumulated_savings < target_savings and item.priority == PriorityTier.DISCRETIONARY and item.status != "DROPPED":
-                orig_item = copy.deepcopy(item)
-                accumulated_savings += item.total_cost_inr
-                item.total_cost_inr = 0.0
-                item.status = "DROPPED"
-                boq_diffs.append(BOQDiffItem(
-                    item_id=item.item_id,
-                    action=DiffAction.REMOVED,
-                    original_item=orig_item,
-                    updated_item=item,
-                    reason="Dropped discretionary line item completely to satisfy strict budget ceiling limit."
-                ))
-
-        mitigations.append(f"Achieved net savings of INR {accumulated_savings:,.2f} without compromising Tier-1 guest safety or catering quality.")
+        if shortfall > 0:
+            shortfall_msg = f"Shortfall of INR {shortfall:,.2f} remains: cannot reach target savings without cutting Tier-1 Critical items."
+            mitigations.append(f"WARNING: {shortfall_msg}")
+            narrative_paragraphs.append(
+                f"BUDGET COMPRESSION PROTOCOL: Client requested a {cut_pct:.1f}% expenditure compression. "
+                "Deterministic rule protects all Tier-1 Critical safety, food, and power lines. "
+                f"Saved INR {saved:,.2f} of INR {target_savings:,.2f} target. {shortfall_msg}"
+            )
+        else:
+            narrative_paragraphs.append(
+                f"BUDGET COMPRESSION PROTOCOL: Successfully achieved target savings of INR {saved:,.2f} "
+                f"within the INR {target_limit:,.2f} ceiling without compromising Tier-1 guest safety or catering quality."
+            )
 
     # -------------------------------------------------------------
     # CASE 3: TIMELINE_SLIPPAGE (Baraat / VIP / Flights Delayed)
@@ -197,30 +179,57 @@ async def evaluate_contingency(
         delay = trigger.delay_minutes or 60
         mitigations.append(f"Ripple-shift schedule by +{delay} minutes with catering freshness lock")
         narrative_paragraphs.append(
-            f"TIMELINE SLIPPAGE PROTOCOL: VIP/Baraat arrival delayed by {delay} minutes. "
-            "Graph dependency solver shifted subsequent procession and ceremony milestones forward, "
-            "while coordinating with catering head to maintain hot buffet holding temperature."
+            f"TIMELINE SLIPPAGE PROTOCOL: Event procession/VIP delayed by {delay} minutes. "
+            "Graph dependency solver shifted subsequent schedule blocks starting at or after the delay forward, "
+            "while coordinating with catering head to maintain holding temperature."
         )
 
-        for i, block in enumerate(updated_plan.schedule):
-            # If after the arrival phase, shift start and end times
-            if (
-                i >= 2
-                or any(keyword in block.phase for keyword in ["Procession", "Baraat", "Ceremony", "Dinner", "Banquet", "Party", "Afterparty", "Dance", "Feast"])
-            ):
+        delayed_start_min: Optional[int] = None
+        for block in updated_plan.schedule:
+            if any(keyword in block.phase.lower() or keyword in block.activity.lower() for keyword in ["procession", "baraat", "ceremony", "arrival", "dinner", "banquet", "party"]):
+                try:
+                    parts = block.start_time_iso.split(":")
+                    delayed_start_min = int(parts[0]) * 60 + int(parts[1])
+                    break
+                except Exception:
+                    pass
+
+        has_midnight_crossing = False
+        for block in updated_plan.schedule:
+            should_shift = False
+            if delayed_start_min is not None:
+                try:
+                    parts = block.start_time_iso.split(":")
+                    b_min = int(parts[0]) * 60 + int(parts[1])
+                    should_shift = b_min >= delayed_start_min
+                except Exception:
+                    should_shift = True
+            else:
+                should_shift = any(keyword in block.phase for keyword in ["Procession", "Baraat", "Ceremony", "Dinner", "Banquet", "Party", "Afterparty", "Dance", "Feast"])
+
+            if should_shift:
                 orig_block = copy.deepcopy(block)
-                block.start_time_iso = shift_time_str(block.start_time_iso, delay)
-                block.end_time_iso = shift_time_str(block.end_time_iso, delay)
+                new_start, start_next_day = shift_time_str(block.start_time_iso, delay)
+                new_end, end_next_day = shift_time_str(block.end_time_iso, delay)
+                block.start_time_iso = new_start
+                block.end_time_iso = new_end
+                if start_next_day or end_next_day:
+                    has_midnight_crossing = True
+                    if "(+1 day)" not in block.activity:
+                        block.activity += " (+1 day)"
                 schedule_diffs.append(ScheduleDiffItem(
                     block_id=block.block_id,
                     action=DiffAction.MODIFIED,
                     original_block=orig_block,
                     updated_block=block,
-                    reason=f"Cascaded schedule block by +{delay} min to accommodate procession delay."
+                    reason=f"Cascaded schedule block by +{delay} min to accommodate procession delay." + (" Crosses midnight (+1 day)." if (start_next_day or end_next_day) else "")
                 ))
 
+        if has_midnight_crossing:
+            mitigations.append("Schedule block crossed midnight: flagged as +1 day event wrap-around.")
+
         mitigations.append("Notified kitchen dispatch to adjust chafing dish firing times to prevent overcooking.")
-        mitigations.append("Dispatched updated run-of-show timestamps to Google Calendar.")
+        mitigations.append("Re-export the updated run-of-show via the iCal (.ics) / Google Calendar buttons.")
 
     # -------------------------------------------------------------
     # CASE 4: SUPPLY_FAILURE (Vendor Cancellation / Shortage)
@@ -233,52 +242,83 @@ async def evaluate_contingency(
             "AuraPulse immediately engaged Google Maps Places API to locate verified top-rated replacement vendors in the target locality."
         )
 
-        vendors = await fetch_verified_vendors(query=f"{cat} contractor", city=updated_plan.location_city, min_rating=4.5)
-        top_vendor = vendors[0] if vendors else None
+        vendors: List[Dict[str, Any]] = []
+        try:
+            result = await fetch_verified_vendors(
+                query=f"{cat} contractor", city=updated_plan.location_city, min_rating=4.0
+            )
+            vendor_list = result.get("vendors", []) if isinstance(result, dict) else (result or [])
+            top_vendor = vendor_list[0] if vendor_list else None
+        except Exception:
+            vendor_list = []
+            top_vendor = None
 
+        cat_lower = cat.lower()
+        matched_any = False
         for item in updated_plan.boq:
-            if item.category.lower() == cat.lower():
+            if item.status == "DROPPED":
+                continue
+            item_cat = item.category.lower()
+            if item_cat == cat_lower or cat_lower in item_cat or item_cat in cat_lower:
+                matched_any = True
                 orig_item = copy.deepcopy(item)
-                vendor_name = top_vendor['name'] if top_vendor else 'Verified Alternate Vendor'
-                item.name = f"{vendor_name} (Hot-Swapped)"
-                item.specification = f"Emergency replacement via Google Maps Places API ({top_vendor.get('address', 'Local')}, Rating: {top_vendor.get('rating', '4.8')}/5.0)"
-                item.estimated_rate_inr *= 1.05  # Slight emergency premium
-                item.total_cost_inr = item.quantity * item.estimated_rate_inr
+                if top_vendor:
+                    vendor_name = top_vendor.get("name") or "Google Maps listed vendor"
+                    rating = top_vendor.get("rating")
+                    rating_txt = f"{rating}/5.0" if rating is not None else "rating unavailable"
+                    item.name = f"{item.name} — replacement: {vendor_name}"
+                    item.specification = (
+                        f"Emergency replacement candidate via Google Maps Places API "
+                        f"({top_vendor.get('address', 'address unavailable')}, Rating: {rating_txt}). Confirm quote before booking."
+                    )
+                    reason = f"Substituted cancelled vendor with Google Maps listed candidate: {vendor_name} ({rating_txt})."
+                else:
+                    item.specification = "NEEDS REPLACEMENT: No verified vendor found via Maps. Search manually."
+                    reason = "Replacement needed: no verified vendor found."
+                item.estimated_rate_inr = round(item.estimated_rate_inr * 1.05, 2)  # Emergency premium
+                item.rate = item.estimated_rate_inr
+                item.total_cost_inr = round(item.quantity * item.estimated_rate_inr, 2)
+                item.total_cost = item.total_cost_inr
                 item.status = "MODIFIED"
                 boq_diffs.append(BOQDiffItem(
                     item_id=item.item_id,
                     action=DiffAction.MODIFIED,
                     original_item=orig_item,
                     updated_item=item,
-                    reason=f"Substituted cancelled vendor with verified Google Maps entity: {vendor_name} (Rating: {top_vendor.get('rating', 4.8)}★)"
+                    reason=reason,
                 ))
 
         if top_vendor:
-            mitigations.append(f"Initiated contact with {top_vendor['name']} (Phone: {top_vendor.get('phone', 'N/A')}).")
+            phone = top_vendor.get("phone") or top_vendor.get("nationalPhoneNumber") or "N/A"
+            mitigations.append(f"Contact {top_vendor.get('name', 'listed vendor')} (Phone: {phone}) to confirm availability and quote.")
+        else:
+            mitigations.append("No verified vendor found via Maps; search manually.")
+        if not matched_any:
+            mitigations.append(f"No BOQ line items matched category '{cat}'; no line items were modified.")
 
-    # Recalculate Master Plan Total Cost
-    new_total = sum(item.total_cost_inr for item in updated_plan.boq if item.status != "DROPPED")
-    updated_plan.current_estimated_total = new_total
-    budget_delta = new_total - original_total
+    recompute_totals(updated_plan)
+    new_total = updated_plan.current_estimated_total
+    budget_delta = round(new_total - original_total, 2)
 
-    # Optionally augment with Gemini 2.5 Pro reasoning if API key available
+    # Optional augmentation via Gemini Flash
     api_key = settings.GEMINI_API_KEY
     if api_key and genai:
         try:
-            client = genai.Client(api_key=api_key)
             prompt = f"""
-            You are Pulse Dynamic Engine (Gemini 2.5 Pro).
+            You are Pulse Dynamic Engine.
             Event: {plan.title} in {plan.location_city}.
             Crisis Trigger: {trigger.trigger_type} - {trigger.description}.
-            Original Cost: INR {original_total:,.2f}. New Cost: INR {new_total:,.2f}.
-            Explain your multi-constraint graph solving rationale, how Tier-1 items were locked,
-            why Tier-3 items were trimmed, and 2 strategic operational tips for the event director.
+            Original Cost: INR {original_total:,.2f}. New Cost: INR {new_total:,.2f}. Ceiling: INR {updated_plan.total_budget_limit:,.2f}.
+            Diff summary: {len(boq_diffs)} line item modifications, {len(schedule_diffs)} schedule adjustments.
+            Briefly (under 100 words) provide a reassuring executive operational summary for the event planner.
             """
-            gemini_res = client.models.generate_content(
-                model=settings.GEMINI_PRO_MODEL,
+            gemini_res = await generate(
+                model=settings.GEMINI_FLASH_MODEL,
                 contents=[prompt],
+                config=None,
+                timeout=10.0,
             )
-            if gemini_res.text:
+            if hasattr(gemini_res, "text") and gemini_res.text:
                 narrative_paragraphs.append(gemini_res.text.strip())
         except Exception:
             pass

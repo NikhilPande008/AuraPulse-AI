@@ -1,9 +1,11 @@
 import os
 import json
+import time
 import asyncio
 import logging
-from typing import Optional, List, Dict
-from fastapi import FastAPI, HTTPException, Request, Query, Response
+from collections import defaultdict
+from typing import Optional, List, Dict, Any
+from fastapi import FastAPI, HTTPException, Request, Query, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel, Field
@@ -31,6 +33,12 @@ from .integrations import (
     sync_schedule_to_google_calendar,
     generate_calendar_ics,
 )
+from .integrations.google_sheets import (
+    SheetsNotConfiguredError,
+    SheetsExportError,
+    is_sheets_configured,
+)
+from .llm.client import GeminiUnavailable, GeminiQuota, GeminiBadOutput
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -38,7 +46,84 @@ app = FastAPI(
     description="Autonomous Multimodal Event Planning & Reactive Contingency Engine",
 )
 
-# CORS configuration restricted to authorized frontend origins
+# 1. Body Size Limit Middleware (6MB limit)
+MAX_BODY_BYTES = 6 * 1024 * 1024  # 6 MB
+
+@app.middleware("http")
+async def limit_body_size_middleware(request: Request, call_next):
+    content_length = request.headers.get("content-length")
+    if content_length:
+        try:
+            if int(content_length) > MAX_BODY_BYTES:
+                return JSONResponse(
+                    status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                    content={
+                        "code": "PAYLOAD_TOO_LARGE",
+                        "message": "Request body exceeds the maximum permitted size of 6MB.",
+                    },
+                )
+        except ValueError:
+            pass
+
+    return await call_next(request)
+
+
+# 2. In-Memory Sliding-Window Rate Limiter
+class SlidingWindowLimiter:
+    def __init__(self, per_minute: int = 10, per_day: int = 100):
+        self.per_minute = per_minute
+        self.per_day = per_day
+        self._minute_buckets: Dict[str, List[float]] = defaultdict(list)
+        self._day_buckets: Dict[str, List[float]] = defaultdict(list)
+
+    def check_and_record(self, key: str) -> bool:
+        now = time.time()
+        # Clean minute window
+        min_cutoff = now - 60.0
+        self._minute_buckets[key] = [t for t in self._minute_buckets[key] if t > min_cutoff]
+        if len(self._minute_buckets[key]) >= self.per_minute:
+            return False
+
+        # Clean day window
+        day_cutoff = now - 86400.0
+        self._day_buckets[key] = [t for t in self._day_buckets[key] if t > day_cutoff]
+        if len(self._day_buckets[key]) >= self.per_day:
+            return False
+
+        self._minute_buckets[key].append(now)
+        self._day_buckets[key].append(now)
+        return True
+
+
+rate_limiter = SlidingWindowLimiter(per_minute=10, per_day=100)
+AI_RATE_LIMITED_PATHS = {
+    "/api/v1/aura/deconstruct",
+    "/api/v1/aura/chat-copilot",
+    "/api/v1/pulse/simulate",
+}
+
+@app.middleware("http")
+async def rate_limiting_middleware(request: Request, call_next):
+    if request.url.path in AI_RATE_LIMITED_PATHS and request.method == "POST":
+        # Allow disabling rate limiting in test suite if requested
+        if os.getenv("DISABLE_RATE_LIMIT", "false").lower() != "true":
+            client_ip = (
+                request.headers.get("x-forwarded-for", "").split(",")[0].strip()
+                or (request.client.host if request.client else "127.0.0.1")
+            )
+            if not rate_limiter.check_and_record(client_ip):
+                return JSONResponse(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    content={
+                        "code": "RATE_LIMITED",
+                        "message": "Too many requests. Please wait a moment before trying again.",
+                    },
+                )
+
+    return await call_next(request)
+
+
+# CORS configuration restricted to authorized origins
 allowed_origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
@@ -50,41 +135,73 @@ if custom_origin:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 
 @app.exception_handler(HTTPException)
 async def custom_http_exception_handler(request: Request, exc: HTTPException):
-    """Preserves structured error payloads like {"code": "GENERATION_FAILED", "message": ...}"""
+    """Preserves structured error payloads like {"code": "...", "message": ...}."""
     if isinstance(exc.detail, dict) and "code" in exc.detail:
         return JSONResponse(status_code=exc.status_code, content=exc.detail)
-    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"code": "HTTP_ERROR", "message": str(exc.detail)},
+    )
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Sanitizes unhandled exceptions to avoid leaking internals or stack traces."""
+    logger.error(f"Unhandled error handling {request.method} {request.url.path}: {exc}", exc_info=True)
+    if isinstance(exc, GeminiUnavailable):
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={"code": "GEMINI_UNAVAILABLE", "message": "Gemini service is currently unavailable. Try again shortly."},
+        )
+    if isinstance(exc, GeminiQuota):
+        return JSONResponse(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            content={"code": "GEMINI_QUOTA_EXCEEDED", "message": "Gemini API quota exceeded. Please wait a minute."},
+        )
+    if isinstance(exc, GeminiBadOutput):
+        return JSONResponse(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            content={"code": "GEMINI_BAD_OUTPUT", "message": "Gemini model produced an invalid response. Try again."},
+        )
+
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "code": "INTERNAL_ERROR",
+            "message": "An internal error occurred while processing your request. Please try again.",
+        },
+    )
 
 
 class SheetsExportRequest(BaseModel):
-    spreadsheet_title: str
-    boq_items: List[dict]
+    spreadsheet_title: str = Field(..., max_length=200)
+    boq_items: List[dict] = Field(..., max_length=500)
     currency: Optional[str] = "INR"
 
 
 class CalendarSyncRequest(BaseModel):
     calendar_id: Optional[str] = "primary"
-    event_title: str
-    schedule_blocks: List[dict]
+    event_title: str = Field(..., max_length=200)
+    schedule_blocks: List[dict] = Field(..., max_length=100)
 
 
 class VisualAlternativeRequest(BaseModel):
-    prompt_description: str
-    theme: Optional[str] = "Palace Royal Marquee"
+    prompt_description: str = Field(..., max_length=1000)
+    theme: Optional[str] = Field("Palace Royal Marquee", max_length=80)
 
 
 class CopilotRequest(BaseModel):
     event_plan: MasterEventPlan
-    user_prompt: str
-    history: Optional[List[Dict[str, str]]] = Field(default_factory=list)
+    user_prompt: str = Field(..., min_length=1, max_length=1000)
+    history: Optional[List[Dict[str, str]]] = Field(default_factory=list, max_length=12)
 
 
 @app.get("/")
@@ -112,10 +229,14 @@ def health_check():
         "version": settings.VERSION,
         "engine_flash": settings.GEMINI_FLASH_MODEL,
         "engine_pro": settings.GEMINI_PRO_MODEL,
+        "gemini_configured": bool(settings.GEMINI_API_KEY),
+        "places_configured": bool(settings.GOOGLE_MAPS_API_KEY),
+        "sheets_configured": is_sheets_configured(),
         "google_apis": {
+            "gemini": bool(settings.GEMINI_API_KEY),
             "places_maps": bool(settings.GOOGLE_MAPS_API_KEY),
-            "sheets_v4": bool(settings.GOOGLE_APPLICATION_CREDENTIALS),
-            "calendar_v3": bool(settings.GOOGLE_APPLICATION_CREDENTIALS)
+            "sheets_v4": is_sheets_configured(),
+            "calendar_ics": True,
         }
     }
 
@@ -147,7 +268,11 @@ async def api_deconstruct_moodboard(payload: DeconstructRequest):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Aura Vision deconstruction failed: {str(e)}")
+        logger.error(f"Aura Vision deconstruction failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail={"code": "GENERATION_FAILED", "message": "Failed to generate event plan from input."},
+        )
 
 
 @app.post("/api/v1/aura/chat-copilot")
@@ -164,23 +289,34 @@ async def api_chat_copilot(payload: CopilotRequest):
             history=payload.history
         )
         return res
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Chat Co-Pilot failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Chat Co-Pilot failed: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail={"code": "COPILOT_FAILED", "message": "Copilot encountered an error. Please try again."},
+        )
 
 
 @app.post("/api/v1/pulse/simulate", response_model=ContingencyDiff)
 async def api_simulate_contingency(request: SimulationRequest):
     """
     Pulse Dynamic Reactive Engine:
-    Applies deterministic tier locks and Gemini 2.5 Pro multi-constraint reasoning to
+    Applies deterministic tier locks and Gemini 2.5 Flash multi-constraint reasoning to
     generate an actionable ContingencyDiff with ADDED, MODIFIED, and DROPPED items.
     """
     try:
         diff = await evaluate_contingency(plan=request.plan, trigger=request.trigger)
         return diff
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Pulse Engine evaluation failed: {str(e)}")
+        logger.error(f"Pulse Engine evaluation failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail={"code": "SIMULATION_FAILED", "message": "Contingency simulation failed."},
+        )
 
 
 # Telemetry loop purged per CR-18 (honest indicators only; no fabricated telemetry loops)
@@ -212,8 +348,11 @@ async def api_get_vendors(
             "is_configured": is_cfg,
             "status": status,
         }
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Vendor query failed: {str(e)}")
+        logger.error(f"Vendor query failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail={"code": "VENDOR_QUERY_FAILED", "message": "Failed to fetch vendors."})
 
 
 @app.post("/api/v1/export/calendar-ics")
@@ -235,8 +374,11 @@ async def api_export_calendar_ics(plan: MasterEventPlan):
                 "Content-Disposition": f'attachment; filename="{filename}"'
             }
         )
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"ICS calendar export failed: {str(e)}")
+        logger.error(f"ICS calendar export failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail={"code": "ICS_EXPORT_FAILED", "message": "Failed to export calendar."})
 
 
 @app.post("/api/v1/integrations/sheets/export")
@@ -253,12 +395,22 @@ async def api_export_sheets(payload: SheetsExportRequest):
             currency=payload.currency or "INR"
         )
         return res
-    except Exception as e:
+    except SheetsNotConfiguredError:
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "SHEETS_NOT_CONFIGURED", "message": "Google Sheets API credentials not configured."},
+        )
+    except SheetsExportError as e:
         logger.error(f"Google Sheets export failed: {e}", exc_info=True)
         raise HTTPException(
-            status_code=503 if "auth" in str(e).lower() or "credentials" in str(e).lower() else 500,
-            detail=f"Google Sheets export failed: {str(e)}"
+            status_code=502,
+            detail={"code": "SHEETS_EXPORT_FAILED", "message": "Google Sheets export failed."},
         )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Google Sheets export failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail={"code": "SHEETS_ERROR", "message": "Google Sheets export failed."})
 
 
 @app.post("/api/v1/integrations/calendar/sync")
@@ -275,11 +427,13 @@ async def api_sync_calendar(payload: CalendarSyncRequest):
             schedule_blocks=payload.schedule_blocks
         )
         return res
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Google Calendar sync failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=503 if "auth" in str(e).lower() or "credentials" in str(e).lower() else 500,
-            detail=f"Google Calendar sync failed: {str(e)}"
+            detail={"code": "CALENDAR_SYNC_FAILED", "message": "Google Calendar sync failed."}
         )
 
 
@@ -295,5 +449,8 @@ async def api_render_alternative(payload: VisualAlternativeRequest):
             event_theme=payload.theme or "Palace Royal Marquee"
         )
         return res
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Generative Studio failed: {str(e)}")
+        logger.error(f"Generative Studio failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail={"code": "STUDIO_FAILED", "message": "Generative Studio rendering failed."})

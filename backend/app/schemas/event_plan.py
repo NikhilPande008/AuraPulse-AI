@@ -166,6 +166,7 @@ class MasterEventPlan(BaseModel):
     currency: str = Field(default="INR", description="Currency code")
     total_budget_limit: float = Field(description="Maximum authorized spending ceiling in currency")
     current_estimated_total: float = Field(description="Sum of all ACTIVE and MODIFIED line items")
+    headcount: Optional[int] = Field(default=None, description="Expected guest headcount (pax)")
     event_date: Optional[str] = Field(default=None, description="Event date (YYYY-MM-DD)")
     culture_region: Optional[str] = Field(default=None, description="Cultural context e.g. Maharashtrian, Marwari")
     theme: Optional[str] = Field(default=None, description="Aesthetic theme e.g. Royal Heritage, Cyberpunk")
@@ -176,18 +177,24 @@ class MasterEventPlan(BaseModel):
     vendor_checklist: List[VendorChecklistItem] = Field(default_factory=list, description="Interactive procurement & vendor status tracker")
 
 
+DietaryType = Literal["veg", "jain", "vegan", "non_veg", "halal", "no_onion_garlic"]
+AccessibilityType = Literal["wheelchair", "elderly", "hearing", "visual", "kids_safe"]
+
+
 class PlanRequest(BaseModel):
     event_type: Literal["wedding", "birthday", "community_event", "community_festival"] = "wedding"
     event_date: Optional[str] = None
     city: str = Field(min_length=2, max_length=80)
     headcount: int = Field(ge=1, le=10000)
     budget: float = Field(gt=0, le=50000000)
-    culture_region: Optional[str] = None
-    theme: Optional[str] = None
-    dietary: List[str] = Field(default_factory=list)
+    culture_region: Optional[str] = Field(default=None, max_length=80)
+    theme: Optional[str] = Field(default=None, max_length=80)
+    dietary: List[DietaryType] = Field(default_factory=list, max_length=6)
+    accessibility: List[AccessibilityType] = Field(default_factory=list, max_length=5)
+    notes: Optional[str] = Field(default=None, max_length=1000)
     language: Literal["en", "hi", "mr"] = "en"
-    image_base64: Optional[str] = None
-    moodboard_preset: Optional[str] = None
+    image_base64: Optional[str] = Field(default=None, max_length=6000000)
+    moodboard_preset: Optional[str] = Field(default=None, max_length=80)
 
     @field_validator("event_date")
     @classmethod

@@ -8,7 +8,7 @@
 [![Google Places API New](https://img.shields.io/badge/Google%20Maps-Places%20API%20(New)-34A853?style=for-the-badge&logo=googlemaps&logoColor=white)](https://developers.google.com/maps/documentation/places/web-service/op-overview)
 [![Next.js 15](https://img.shields.io/badge/Next.js-15%20App%20Router-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Python%203.12-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![Pytest 31/31 Passing](https://img.shields.io/badge/Pytest-31%2F31%20Passing%20(100%25)-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](#-5-automated-testing--verification)
+[![Pytest 40/40 Passing](https://img.shields.io/badge/Pytest-40%2F40%20Passing%20(100%25)-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](#-5-automated-testing--verification)
 
 ---
 
@@ -149,42 +149,51 @@ Open **[http://localhost:3000](http://localhost:3000)** in your browser. Next.js
 AuraPulse AI enforces comprehensive test coverage across data schemas, dynamic backwards timelines, Gemini generation, contingency solvers, Places API grounding, and RFC-5545 calendar exports:
 
 ```bash
-$ pytest backend/tests/ -v
+$ pytest backend/tests -v -p no:cacheprovider
 
 ============================= test session starts ==============================
-backend/tests/test_api_endpoints.py::test_health_endpoint PASSED         [  3%]
-backend/tests/test_api_endpoints.py::test_deconstruct_endpoint PASSED    [  6%]
-backend/tests/test_api_endpoints.py::test_simulate_contingency_endpoint PASSED [  9%]
-backend/tests/test_api_endpoints.py::test_vendor_discovery_endpoint PASSED [ 12%]
-backend/tests/test_api_endpoints.py::test_sheets_export_endpoint PASSED  [ 16%]
-backend/tests/test_batch2_features.py::test_timeline_milestones_generation PASSED [ 19%]
-backend/tests/test_batch2_features.py::test_timeline_short_horizon_do_immediately PASSED [ 22%]
-backend/tests/test_batch2_features.py::test_gemini_client_deterministic_totals PASSED [ 25%]
-backend/tests/test_batch2_features.py::test_copilot_tool_budget_scale PASSED [ 29%]
-backend/tests/test_batch2_features.py::test_copilot_tool_add_item PASSED [ 32%]
-backend/tests/test_batch2_features.py::test_copilot_tool_remove_item PASSED [ 35%]
-backend/tests/test_batch2_features.py::test_preset_isolation PASSED      [ 38%]
-backend/tests/test_batch2_features.py::test_invalid_preset_raises_503 PASSED [ 41%]
-backend/tests/test_batch2_features.py::test_calendar_ics_export_endpoint PASSED [ 45%]
-backend/tests/test_contingency.py::test_weather_risk_contingency PASSED  [ 48%]
-backend/tests/test_contingency.py::test_budget_compression_contingency PASSED [ 51%]
-backend/tests/test_contingency.py::test_timeline_slippage_contingency PASSED [ 54%]
-backend/tests/test_edge_cases.py::test_copilot_endpoint_cultural_cuisine_swap PASSED [ 58%]
-backend/tests/test_edge_cases.py::test_copilot_endpoint_floral_cut_and_sax PASSED [ 61%]
-backend/tests/test_edge_cases.py::test_copilot_party_games_birthday PASSED [ 64%]
+backend/tests/test_api_endpoints.py::test_health_endpoint PASSED         [  2%]
+backend/tests/test_api_endpoints.py::test_deconstruct_endpoint PASSED    [  5%]
+backend/tests/test_api_endpoints.py::test_simulate_contingency_endpoint PASSED [  7%]
+backend/tests/test_api_endpoints.py::test_vendor_discovery_endpoint PASSED [ 10%]
+backend/tests/test_api_endpoints.py::test_sheets_export_endpoint PASSED  [ 12%]
+backend/tests/test_batch2_features.py::test_timeline_backwards_calculation PASSED [ 15%]
+backend/tests/test_batch2_features.py::test_budget_scaling PASSED        [ 17%]
+backend/tests/test_batch2_features.py::test_validation_boundaries PASSED [ 20%]
+backend/tests/test_batch2_features.py::test_no_implicit_preset_fallback_and_503_error PASSED [ 22%]
+backend/tests/test_batch2_features.py::test_copilot_tool_budget_cut_endpoint PASSED [ 25%]
+backend/tests/test_batch2_features.py::test_copilot_language_awareness_marathi_hindi PASSED [ 27%]
+backend/tests/test_batch2_features.py::test_mocked_gemini_custom_plan_generation PASSED [ 30%]
+backend/tests/test_batch2_features.py::test_supply_failure_with_empty_vendor_list_no_500 PASSED [ 32%]
+backend/tests/test_batch2_features.py::test_weather_contingency_respects_ceiling_or_warns PASSED [ 35%]
+backend/tests/test_batch2_features.py::test_copilot_apply_tool_calls_server_side PASSED [ 37%]
+backend/tests/test_batch2_features.py::test_custom_preset_routes_to_gemini_not_fixture PASSED [ 40%]
+backend/tests/test_batch2_features.py::test_health_reports_gemini_configured_flag PASSED [ 42%]
+backend/tests/test_batch2_features.py::test_rate_limit_returns_429 PASSED [ 45%]
+backend/tests/test_batch2_features.py::test_plan_request_string_and_array_limits PASSED [ 47%]
+backend/tests/test_batch2_features.py::test_budget_compression_reports_shortfall PASSED [ 50%]
+backend/tests/test_contingency.py::test_weather_risk_contingency PASSED  [ 52%]
+backend/tests/test_contingency.py::test_budget_compression_contingency PASSED [ 55%]
+backend/tests/test_contingency.py::test_timeline_slippage_contingency PASSED [ 57%]
+backend/tests/test_edge_cases.py::test_copilot_endpoint_cultural_cuisine_swap PASSED [ 60%]
+backend/tests/test_edge_cases.py::test_copilot_endpoint_floral_cut_and_sax PASSED [ 62%]
+backend/tests/test_edge_cases.py::test_copilot_party_games_birthday PASSED [ 65%]
 backend/tests/test_edge_cases.py::test_copilot_cultural_sakhar_puda_milestone PASSED [ 67%]
 backend/tests/test_edge_cases.py::test_budget_scale_boundary_small_vs_luxury PASSED [ 70%]
-backend/tests/test_edge_cases.py::test_headcount_scaling_invariants PASSED [ 74%]
-backend/tests/test_edge_cases.py::test_backwards_date_leap_year_and_short_horizon PASSED [ 77%]
-backend/tests/test_integrations.py::test_google_maps_vendor_fetch PASSED [ 80%]
-backend/tests/test_integrations.py::test_google_sheets_export_formulas PASSED [ 83%]
-backend/tests/test_integrations.py::test_google_calendar_schedule_sync PASSED [ 87%]
-backend/tests/test_schemas.py::test_boq_item_strict_validation PASSED    [ 90%]
-backend/tests/test_schemas.py::test_master_event_plan_structure PASSED   [ 93%]
-backend/tests/test_schemas.py::test_crisis_trigger_model PASSED          [ 96%]
-backend/tests/test_schemas.py::test_batch2_schema_extensions PASSED      [100%]
+backend/tests/test_edge_cases.py::test_headcount_scaling_invariants PASSED [ 72%]
+backend/tests/test_edge_cases.py::test_backwards_date_leap_year_and_short_horizon PASSED [ 75%]
+backend/tests/test_integrations.py::test_places_api_new_parsing PASSED   [ 77%]
+backend/tests/test_integrations.py::test_places_api_honest_fallback_unconfigured PASSED [ 80%]
+backend/tests/test_integrations.py::test_rfc5545_calendar_export_ics PASSED [ 82%]
+backend/tests/test_integrations.py::test_calendar_ics_api_endpoint PASSED [ 85%]
+backend/tests/test_google_calendar_web_intent PASSED                     [ 87%]
+backend/tests/test_integrations.py::test_google_sheets_export_formulas PASSED [ 90%]
+backend/tests/test_integrations.py::test_ics_escaping_folding_and_crlf PASSED [ 92%]
+backend/tests/test_schemas.py::test_boq_item_strict_validation PASSED    [ 95%]
+backend/tests/test_schemas.py::test_master_event_plan_structure PASSED   [ 97%]
+backend/tests/test_schemas.py::test_crisis_trigger_model PASSED          [100%]
 
-======================== 31 passed in ~0.50s (100% Green) =========================
+======================== 40 passed in 0.57s (100% Green) ========================
 ```
 
 Frontend production build check:
@@ -215,12 +224,13 @@ AuraPulse-AI/
 │   │   ├── llm/
 │   │   │   └── client.py                 # Async Gemini 2.5 Flash generator & schema guidance
 │   │   ├── services/
+│   │   │   ├── budget.py                 # Deterministic rebalance & line-total calculations
 │   │   │   └── timeline.py               # Backwards milestone planning logic
 │   │   └── integrations/
 │   │       ├── google_maps.py            # Google Maps Places API (New) client
 │   │       ├── google_calendar.py        # RFC-5545 .ics & web intent generator
 │   │       └── google_sheets.py          # Formula-driven workbook generator
-│   ├── tests/                            # 31 automated pytest tests
+│   ├── tests/                            # 40 automated pytest tests
 │   └── requirements.txt
 ├── frontend/
 │   ├── src/

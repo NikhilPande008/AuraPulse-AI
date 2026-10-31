@@ -174,6 +174,6 @@ def test_backwards_date_leap_year_and_short_horizon():
     dt2 = datetime.strptime(d2, "%Y-%m-%d")
     assert dt2 < datetime(2026, 11, 15)
 
-    # Malformed date fallback
-    d_fallback = get_backwards_date("invalid-date", 30)
-    assert d_fallback == "2026-11-01"
+    # Malformed date raises ValueError
+    with pytest.raises(ValueError):
+        get_backwards_date("invalid-date", 30)

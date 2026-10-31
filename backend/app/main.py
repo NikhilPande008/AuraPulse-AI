@@ -1,3 +1,4 @@
+import os
 import json
 import asyncio
 import logging
@@ -34,10 +35,18 @@ app = FastAPI(
     description="Autonomous Multimodal Event Planning & Reactive Contingency Engine",
 )
 
-# CORS configuration for Next.js client
+# CORS configuration restricted to authorized frontend origins
+allowed_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+custom_origin = os.getenv("ALLOWED_ORIGIN")
+if custom_origin:
+    allowed_origins.extend([o.strip() for o in custom_origin.split(",") if o.strip()])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -2,13 +2,14 @@
 
 import React from "react";
 import { ContingencyDiff } from "../lib/api";
-import { PlusCircle, Edit3, Trash2, ArrowRight, ShieldCheck, Cpu, CheckCircle, TrendingDown, TrendingUp, Equal } from "lucide-react";
+import { PlusCircle, Edit3, Trash2, ArrowRight, ShieldCheck, Cpu, CheckCircle, TrendingDown, TrendingUp, Equal, RotateCcw } from "lucide-react";
 
 interface DiffVisualizerProps {
   diff: ContingencyDiff;
+  onReset?: () => void;
 }
 
-export default function DiffVisualizer({ diff }: DiffVisualizerProps) {
+export default function DiffVisualizer({ diff, onReset }: DiffVisualizerProps) {
   const getActionBadge = (action: string) => {
     switch (action) {
       case "ADDED":
@@ -60,48 +61,62 @@ export default function DiffVisualizer({ diff }: DiffVisualizerProps) {
           </p>
         </div>
 
-        {/* Side-by-Side Cost Delta Indicator */}
-        <div className="grid grid-cols-3 sm:flex sm:items-center gap-3">
-          {/* Card 1: Original Total */}
-          <div className="px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-right">
-            <p className="text-[10px] text-slate-400 uppercase font-mono tracking-wider">Original Total</p>
-            <p className="text-sm font-mono font-bold text-slate-200">
-              ₹{diff.original_total_inr.toLocaleString("en-IN")}
-            </p>
+        {/* Side-by-Side Cost Delta Indicator & Reset Action */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="grid grid-cols-3 sm:flex sm:items-center gap-3">
+            {/* Card 1: Original Total */}
+            <div className="px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-right">
+              <p className="text-[10px] text-slate-400 uppercase font-mono tracking-wider">Original Total</p>
+              <p className="text-sm font-mono font-bold text-slate-200">
+                ₹{diff.original_total_inr.toLocaleString("en-IN")}
+              </p>
+            </div>
+
+            <div className="hidden sm:block">
+              <ArrowRight className="w-4 h-4 text-slate-500" />
+            </div>
+
+            {/* Card 2: Simulated Total */}
+            <div className="px-3.5 py-2.5 rounded-xl bg-slate-900 border border-purple-800/40 text-right shadow-sm shadow-purple-950">
+              <p className="text-[10px] text-purple-300 uppercase font-mono tracking-wider">Simulated Total</p>
+              <p className="text-sm font-mono font-bold text-cyan-300">
+                ₹{diff.new_total_inr.toLocaleString("en-IN")}
+              </p>
+            </div>
+
+            <div className="hidden sm:block">
+              <ArrowRight className="w-4 h-4 text-slate-500" />
+            </div>
+
+            {/* Card 3: Contingency Buffer Variance */}
+            <div className={`px-3.5 py-2.5 rounded-xl border text-right transition-all ${
+              isSavings
+                ? "bg-emerald-950/40 border-emerald-500/40 text-emerald-300 shadow-sm shadow-emerald-950"
+                : isNeutral
+                ? "bg-cyan-950/40 border-cyan-500/40 text-cyan-300 shadow-sm shadow-cyan-950"
+                : "bg-amber-950/40 border-amber-500/40 text-amber-300 shadow-sm shadow-amber-950"
+            }`}>
+              <p className="text-[10px] uppercase font-mono tracking-wider flex items-center justify-end gap-1">
+                {isSavings ? <TrendingDown className="w-3 h-3 text-emerald-400" /> : isNeutral ? <Equal className="w-3 h-3 text-cyan-400" /> : <TrendingUp className="w-3 h-3 text-amber-400" />}
+                Contingency Buffer Variance
+              </p>
+              <p className="text-sm font-mono font-bold">
+                {isSavings ? "Released +" : isNeutral ? "Neutral " : "Absorbed -"}₹{Math.abs(delta).toLocaleString("en-IN")}
+              </p>
+            </div>
           </div>
 
-          <div className="hidden sm:block">
-            <ArrowRight className="w-4 h-4 text-slate-500" />
-          </div>
-
-          {/* Card 2: Simulated Total */}
-          <div className="px-3.5 py-2.5 rounded-xl bg-slate-900 border border-purple-800/40 text-right shadow-sm shadow-purple-950">
-            <p className="text-[10px] text-purple-300 uppercase font-mono tracking-wider">Simulated Total</p>
-            <p className="text-sm font-mono font-bold text-cyan-300">
-              ₹{diff.new_total_inr.toLocaleString("en-IN")}
-            </p>
-          </div>
-
-          <div className="hidden sm:block">
-            <ArrowRight className="w-4 h-4 text-slate-500" />
-          </div>
-
-          {/* Card 3: Contingency Buffer Variance */}
-          <div className={`px-3.5 py-2.5 rounded-xl border text-right transition-all ${
-            isSavings
-              ? "bg-emerald-950/40 border-emerald-500/40 text-emerald-300 shadow-sm shadow-emerald-950"
-              : isNeutral
-              ? "bg-cyan-950/40 border-cyan-500/40 text-cyan-300 shadow-sm shadow-cyan-950"
-              : "bg-amber-950/40 border-amber-500/40 text-amber-300 shadow-sm shadow-amber-950"
-          }`}>
-            <p className="text-[10px] uppercase font-mono tracking-wider flex items-center justify-end gap-1">
-              {isSavings ? <TrendingDown className="w-3 h-3 text-emerald-400" /> : isNeutral ? <Equal className="w-3 h-3 text-cyan-400" /> : <TrendingUp className="w-3 h-3 text-amber-400" />}
-              Contingency Buffer Variance
-            </p>
-            <p className="text-sm font-mono font-bold">
-              {isSavings ? "Released +" : isNeutral ? "Neutral " : "Absorbed -"}₹{Math.abs(delta).toLocaleString("en-IN")}
-            </p>
-          </div>
+          {onReset && (
+            <button
+              type="button"
+              onClick={onReset}
+              className="px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 hover:text-white border border-rose-500/30 text-xs font-semibold font-mono flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer shrink-0"
+              title="Revert simulation changes and restore the baseline plan"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Reset Simulation</span>
+            </button>
+          )}
         </div>
       </div>
 

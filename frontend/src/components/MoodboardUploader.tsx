@@ -295,10 +295,11 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <span className="text-[11px] text-slate-400 flex items-center gap-1 mb-1 font-mono">
+              <label htmlFor="locality-input" className="text-[11px] text-slate-400 flex items-center gap-1 mb-1 font-mono cursor-pointer">
                 <MapPin className="w-3 h-3 text-cyan-400" /> Locality / City
-              </span>
+              </label>
               <input
+                id="locality-input"
                 type="text"
                 value={locality}
                 onChange={(e) => setLocality(e.target.value)}
@@ -307,10 +308,11 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
             </div>
 
             <div>
-              <span className="text-[11px] text-slate-400 flex items-center gap-1 mb-1 font-mono">
+              <label htmlFor="headcount-input" className="text-[11px] text-slate-400 flex items-center gap-1 mb-1 font-mono cursor-pointer">
                 <Users className="w-3 h-3 text-cyan-400" /> Headcount (Pax)
-              </span>
+              </label>
               <input
+                id="headcount-input"
                 type="number"
                 value={headcount}
                 onChange={(e) => setHeadcount(Number(e.target.value))}
@@ -321,24 +323,25 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
 
           <div>
             <div className="flex justify-between items-center mb-1">
-              <span className="text-[11px] text-slate-400 flex items-center gap-1 font-mono">
+              <label htmlFor="budget-slider" className="text-[11px] text-slate-400 flex items-center gap-1 font-mono cursor-pointer">
                 <IndianRupee className="w-3 h-3 text-cyan-400" /> Budget Ceiling (INR)
-              </span>
+              </label>
               <span className="text-xs font-mono font-bold text-purple-300">
                 ₹{budget.toLocaleString("en-IN")}
               </span>
             </div>
             <input
+              id="budget-slider"
               type="range"
-              min="200000"
+              min="20000"
               max="5000000"
-              step="50000"
+              step="5000"
               value={budget}
               onChange={(e) => setBudget(Number(e.target.value))}
               className="w-full accent-purple-500 cursor-pointer"
             />
             <div className="flex justify-between text-[10px] text-slate-500 font-mono">
-              <span>₹2 Lakhs</span>
+              <span>₹20 Thousand</span>
               <span>₹25 Lakhs</span>
               <span>₹50 Lakhs</span>
             </div>

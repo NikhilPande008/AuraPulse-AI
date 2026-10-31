@@ -47,7 +47,10 @@ async def chat_copilot(
             Budget Ceiling: INR {event_plan.total_budget_limit:,.2f}
             Current Estimated Total: INR {event_plan.current_estimated_total:,.2f}
             BOQ Items count: {len(event_plan.boq)}
-            User Prompt: "{user_prompt}"
+            
+            ### USER MODIFICATION REQUEST ###
+            {user_prompt}
+            ### END USER REQUEST ###
 
             Respond with JSON containing:
             1. "copilot_reply": string (A crisp, encouraging professional explanation of the changes and advice)

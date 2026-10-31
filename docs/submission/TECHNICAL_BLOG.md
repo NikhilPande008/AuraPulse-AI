@@ -21,7 +21,7 @@ Events—whether high-stakes destination weddings, tech conferences, or vibrant 
 
 ## 2. Architectural Deep Dive: The Five-Layer Symphony
 
-AuraPulse AI coordinates five decoupled architectural layers:
+AuraPulse AI coordinates five decoupled architectural layers using an ephemeral, reactive client-state model backed by FastAPI Pydantic v2 validation contracts:
 
 ```
 +-----------------------------------------------------------------------------------+
@@ -29,17 +29,17 @@ AuraPulse AI coordinates five decoupled architectural layers:
 |   Next.js 15 (App Router) + Tailwind CSS + Lucide Icons + React Reactive Diff     |
 |   Hosted on: Firebase App Hosting / Cloud CDN                                     |
 +------------------------------------------+----------------------------------------+
-                                           | HTTPS / Server-Sent Events (SSE)
+                                           | HTTPS / Ephemeral Reactive State Calls
                                            v
 +-----------------------------------------------------------------------------------+
 |                        2. API GATEWAY & SESSION MANAGER                           |
 |   FastAPI (Python 3.12) / Cloud Run (Serverless, Autoscaling 0 -> 3)              |
-|   • Session & Pydantic Strict Validation Engine                                   |
-|   • Session State Management & Telemetry Stream                                   |
+|   • Ephemeral Reactive Client-State Model & Pydantic v2 Strict Contracts          |
+|   • Optional Developer Telemetry Hook (/api/v1/pulse/events/stream)               |
 +---------------------+--------------------+----------------------------------------+
                       |                    |
         +-------------+                    +-------------+
-        | Asynchronous SSE Event Bus                     | Structured Pipeline Calls
+        | Reasoning Cluster Dispatch                     | Structured Integration Calls
         v                                                v
 +------------------------------------+   +------------------------------------------+
 |  3. GEMINI REASONING CLUSTER       |   |  4. GOOGLE TOOL FABRIC & INTEGRATIONS    |

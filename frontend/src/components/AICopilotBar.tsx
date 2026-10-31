@@ -121,7 +121,7 @@ export default function AICopilotBar({ plan, onPlanUpdate }: AICopilotBarProps) 
 
       {/* Response Panel */}
       {lastResponse && (
-        <div className="mt-4 p-4 rounded-xl bg-slate-900/90 border border-indigo-500/40 shadow-inner">
+        <div aria-live="polite" className="mt-4 p-4 rounded-xl bg-slate-900/90 border border-indigo-500/40 shadow-inner">
           <div className="flex items-start justify-between gap-3 mb-2">
             <div className="flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center">

@@ -14,6 +14,7 @@ import { Activity, ShieldCheck, Zap, Layers, Sparkles, AlertCircle, RefreshCw, W
 
 export default function Dashboard() {
   const [currentPlan, setCurrentPlan] = useState<MasterEventPlan>(FALLBACK_PRESET_1);
+  const [baselinePlan, setBaselinePlan] = useState<MasterEventPlan>(FALLBACK_PRESET_1);
   const [activeDiff, setActiveDiff] = useState<ContingencyDiff | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
@@ -43,16 +44,19 @@ export default function Dashboard() {
         if (res.ok) {
           const data = await res.json();
           setCurrentPlan(data);
+          setBaselinePlan(data);
           setIsOfflineFallback(false);
         } else {
           console.warn("Backend responded with non-200. Activating embedded fallback.");
           setCurrentPlan(FALLBACK_PRESET_1);
+          setBaselinePlan(FALLBACK_PRESET_1);
           setIsOfflineFallback(true);
         }
       } catch (err) {
         clearTimeout(timeoutId);
         console.warn("Initial hydration timed out or network blocked. Activating embedded fallback.", err);
         setCurrentPlan(FALLBACK_PRESET_1);
+        setBaselinePlan(FALLBACK_PRESET_1);
         setIsOfflineFallback(true);
       }
     };
@@ -61,12 +65,18 @@ export default function Dashboard() {
 
   const handlePlanLoaded = (plan: MasterEventPlan) => {
     setCurrentPlan(plan);
+    setBaselinePlan(plan);
     setActiveDiff(null); // Reset active diff on new baseline
   };
 
   const handleDiffGenerated = (diff: ContingencyDiff) => {
     setActiveDiff(diff);
     setCurrentPlan(diff.updated_plan); // Update state to reflected plan
+  };
+
+  const handleResetSimulation = () => {
+    setActiveDiff(null);
+    setCurrentPlan(baselinePlan);
   };
 
   const handleMilestoneToggle = (milestoneId: string) => {
@@ -159,7 +169,7 @@ export default function Dashboard() {
       {/* Layer 4: Reactive State Diff Visualizer (shown when a simulation is executed) */}
       {activeDiff && (
         <section className="animate-fadeIn">
-          <DiffVisualizer diff={activeDiff} />
+          <DiffVisualizer diff={activeDiff} onReset={handleResetSimulation} />
         </section>
       )}
 

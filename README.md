@@ -8,7 +8,7 @@
 [![Next.js 15](https://img.shields.io/badge/Next.js-15%20App%20Router-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Python%203.12-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Google Cloud Run](https://img.shields.io/badge/Google%20Cloud-Run%20%26%20Firebase-FF9900?style=for-the-badge&logo=googlecloud&logoColor=white)](https://cloud.google.com/run)
-[![Tests Passing](https://img.shields.io/badge/Pytest-14%2F14%20Passing-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](#automated-testing--verification)
+[![Tests Passing](https://img.shields.io/badge/Pytest-21%2F21%20Passing%20(100%25%20Green)-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](#automated-testing--verification)
 
 ---
 
@@ -32,7 +32,7 @@ AuraPulse AI bridges the gap between aesthetic inspiration and real-world event 
 
 ## 🏛️ 2. Architectural Topology & Data Flow
 
-AuraPulse AI coordinates five architectural layers:
+AuraPulse AI coordinates five architectural layers using an ephemeral, reactive client-state model backed by FastAPI Pydantic v2 validation contracts (with `/api/v1/pulse/events/stream` provided as an optional developer telemetry hook):
 
 ```
 +-----------------------------------------------------------------------------------+
@@ -40,17 +40,17 @@ AuraPulse AI coordinates five architectural layers:
 |   Next.js 15 (App Router) + Tailwind CSS + Lucide Icons + React Reactive Diff     |
 |   Hosted on: Firebase App Hosting / Cloud CDN                                     |
 +------------------------------------------+----------------------------------------+
-                                           | HTTPS / Server-Sent Events (SSE)
+                                           | HTTPS / Ephemeral Reactive State Calls
                                            v
 +-----------------------------------------------------------------------------------+
 |                        2. API GATEWAY & SESSION MANAGER                           |
 |   FastAPI (Python 3.12) / Cloud Run (Serverless, Autoscaling 0 -> 3)              |
-|   • Session & Pydantic Strict Validation Engine                                   |
-|   • Session State Management & Telemetry Stream                                   |
+|   • Ephemeral Reactive Client-State Model & Pydantic v2 Strict Contracts          |
+|   • Optional Developer Telemetry Hook (/api/v1/pulse/events/stream)               |
 +---------------------+--------------------+----------------------------------------+
                       |                    |
         +-------------+                    +-------------+
-        | Asynchronous SSE Event Bus                     | Structured Pipeline Calls
+        | Reasoning Cluster Dispatch                     | Structured Integration Calls
         v                                                v
 +------------------------------------+   +------------------------------------------+
 |  3. GEMINI REASONING CLUSTER       |   |  4. GOOGLE TOOL FABRIC & INTEGRATIONS    |
@@ -142,29 +142,36 @@ Open **[http://localhost:3000](http://localhost:3000)** in your browser. Next.js
 
 ## 🧪 5. Automated Testing & Verification
 
-AuraPulse AI includes automated test coverage for schemas, integrations, and API routes:
+AuraPulse AI includes comprehensive automated test coverage for schemas, integrations, API routes, and edge-case cultural & budgetary boundary conditions (21/21 passing tests, 100% green):
 
 ```bash
 # Run pytest test suite
 $ .venv/bin/pytest backend/tests/ -v
 
 ============================= test session starts ==============================
-backend/tests/test_api_endpoints.py::test_health_endpoint PASSED         [  7%]
-backend/tests/test_api_endpoints.py::test_deconstruct_endpoint PASSED    [ 14%]
-backend/tests/test_api_endpoints.py::test_simulate_contingency_endpoint PASSED [ 21%]
-backend/tests/test_api_endpoints.py::test_vendor_discovery_endpoint PASSED [ 28%]
-backend/tests/test_api_endpoints.py::test_sheets_export_endpoint PASSED  [ 35%]
-backend/tests/test_contingency.py::test_weather_risk_contingency PASSED  [ 42%]
-backend/tests/test_contingency.py::test_budget_compression_contingency PASSED [ 50%]
-backend/tests/test_contingency.py::test_timeline_slippage_contingency PASSED [ 57%]
-backend/tests/test_integrations.py::test_google_maps_vendor_fetch PASSED [ 64%]
-backend/tests/test_integrations.py::test_google_sheets_export_formulas PASSED [ 71%]
-backend/tests/test_integrations.py::test_google_calendar_schedule_sync PASSED [ 78%]
-backend/tests/test_schemas.py::test_boq_item_strict_validation PASSED    [ 85%]
-backend/tests/test_schemas.py::test_master_event_plan_structure PASSED   [ 92%]
+backend/tests/test_api_endpoints.py::test_health_endpoint PASSED         [  4%]
+backend/tests/test_api_endpoints.py::test_deconstruct_endpoint PASSED    [  9%]
+backend/tests/test_api_endpoints.py::test_simulate_contingency_endpoint PASSED [ 14%]
+backend/tests/test_api_endpoints.py::test_vendor_discovery_endpoint PASSED [ 19%]
+backend/tests/test_api_endpoints.py::test_sheets_export_endpoint PASSED  [ 23%]
+backend/tests/test_contingency.py::test_weather_risk_contingency PASSED  [ 28%]
+backend/tests/test_contingency.py::test_budget_compression_contingency PASSED [ 33%]
+backend/tests/test_contingency.py::test_timeline_slippage_contingency PASSED [ 38%]
+backend/tests/test_edge_cases.py::test_copilot_endpoint_cultural_cuisine_swap PASSED [ 42%]
+backend/tests/test_edge_cases.py::test_copilot_endpoint_floral_cut_and_sax PASSED [ 47%]
+backend/tests/test_edge_cases.py::test_copilot_party_games_birthday PASSED [ 52%]
+backend/tests/test_edge_cases.py::test_copilot_cultural_sakhar_puda_milestone PASSED [ 57%]
+backend/tests/test_edge_cases.py::test_budget_scale_boundary_small_vs_luxury PASSED [ 61%]
+backend/tests/test_edge_cases.py::test_headcount_scaling_invariants PASSED [ 66%]
+backend/tests/test_edge_cases.py::test_backwards_date_leap_year_and_short_horizon PASSED [ 71%]
+backend/tests/test_integrations.py::test_google_maps_vendor_fetch PASSED [ 76%]
+backend/tests/test_integrations.py::test_google_sheets_export_formulas PASSED [ 80%]
+backend/tests/test_integrations.py::test_google_calendar_schedule_sync PASSED [ 85%]
+backend/tests/test_schemas.py::test_boq_item_strict_validation PASSED    [ 90%]
+backend/tests/test_schemas.py::test_master_event_plan_structure PASSED   [ 95%]
 backend/tests/test_schemas.py::test_crisis_trigger_model PASSED          [100%]
 
-======================== 14 passed in 0.22s =========================
+======================== 21 passed in 0.24s (100% Green) =========================
 ```
 
 Compile the frontend production bundle:

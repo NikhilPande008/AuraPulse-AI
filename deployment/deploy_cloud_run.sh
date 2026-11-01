@@ -12,6 +12,17 @@ WEB_SERVICE_NAME="${WEB_SERVICE_NAME:-aurapulse-web}"
 REGION="${REGION:-us-central1}"
 PROJECT_ID="${PROJECT_ID:-$(gcloud config get-value project 2>/dev/null || echo '')}"
 ARTIFACT_REPO="${ARTIFACT_REPO:-aurapulse}"
+
+# If PROJECT_ID is a numeric project number, resolve to alphanumeric project ID
+PROJECT_NUMBER_DETECTED=""
+if [[ "$PROJECT_ID" =~ ^[0-9]+$ ]]; then
+  RESOLVED_ID="$(gcloud projects describe "$PROJECT_ID" --format='value(projectId)' 2>/dev/null || echo '')"
+  if [ -n "$RESOLVED_ID" ]; then
+    PROJECT_NUMBER_DETECTED="$PROJECT_ID"
+    PROJECT_ID="$RESOLVED_ID"
+  fi
+fi
+
 IMAGE_TAG="${IMAGE_TAG:-${REGION}-docker.pkg.dev/${PROJECT_ID}/${ARTIFACT_REPO}/${SERVICE_NAME}:v2.2.0}"
 WEB_IMAGE="${WEB_IMAGE:-${REGION}-docker.pkg.dev/${PROJECT_ID}/${ARTIFACT_REPO}/${WEB_SERVICE_NAME}:v2.2.0}"
 # Note: min-instances=1 keeps instances warm to avoid cold starts (costs ~$10-15/month per service)
@@ -22,6 +33,16 @@ USE_SECRET_MANAGER="${USE_SECRET_MANAGER:-true}"
 ALLOW_PLAIN_ENV_KEYS="${ALLOW_PLAIN_ENV_KEYS:-false}"
 GEMINI_API_KEY="${GEMINI_API_KEY:-}"
 GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_API_KEY:-}"
+
+# If .env exists in the repository root and keys aren't explicitly provided, load them
+if [ -f .env ]; then
+  if [ -z "${GEMINI_API_KEY}" ]; then
+    GEMINI_API_KEY="$(grep -E '^GEMINI_API_KEY=' .env | cut -d '=' -f2- | tr -d '\r' || true)"
+  fi
+  if [ -z "${GOOGLE_MAPS_API_KEY}" ]; then
+    GOOGLE_MAPS_API_KEY="$(grep -E '^GOOGLE_MAPS_API_KEY=' .env | cut -d '=' -f2- | tr -d '\r' || true)"
+  fi
+fi
 
 echo "=================================================================="
 echo "  🚀 AuraPulse AI: Deploying Full-Stack Services to Google Cloud Run"
@@ -34,7 +55,15 @@ if [ -z "$PROJECT_ID" ]; then
   exit 1
 fi
 
-PROJECT_NUMBER="$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)' 2>/dev/null || echo '')"
+if [[ "$PROJECT_ID" =~ ^[0-9]+$ ]]; then
+  echo "❌ Error: Target project '${PROJECT_ID}' is a numeric Project Number."
+  echo "Google Cloud Artifact Registry and Cloud Run require the alphanumeric PROJECT ID (e.g. 'cargoclear-hackathon')."
+  echo "Find your Project ID with: gcloud projects list"
+  echo "Then run: PROJECT_ID=\"<your-project-id>\" ./deployment/deploy_cloud_run.sh"
+  exit 1
+fi
+
+PROJECT_NUMBER="${PROJECT_NUMBER_DETECTED:-$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)' 2>/dev/null || echo '')}"
 RUNTIME_SA="${RUNTIME_SA:-${PROJECT_NUMBER}-compute@developer.gserviceaccount.com}"
 
 echo "✔ Target Project:        ${PROJECT_ID} (${PROJECT_NUMBER:-unknown})"
@@ -64,6 +93,17 @@ gcloud artifacts repositories describe "${ARTIFACT_REPO}" \
        --project="${PROJECT_ID}" \
        --description="AuraPulse AI container registry"
 
+# Ensure Cloud Build & Compute service accounts have required build & storage permissions
+echo "✔ Ensuring Cloud Build service account has required storage & registry permissions..."
+for sa in "${RUNTIME_SA}" "${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com"; do
+  for role in roles/storage.admin roles/artifactregistry.writer roles/logging.logWriter; do
+    gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+      --member="serviceAccount:${sa}" \
+      --role="${role}" \
+      --condition=None >/dev/null 2>&1 || true
+  done
+done
+
 # Step 1: Build Backend Container with Google Cloud Build
 echo ""
 echo "📦 Step 1: Submitting backend build to Google Cloud Build..."
@@ -92,10 +132,16 @@ if [ "${USE_SECRET_MANAGER}" = "true" ]; then
   echo "✔ Checking Secret Manager secrets exist..."
   for secret_name in GEMINI_API_KEY GOOGLE_MAPS_API_KEY; do
     if ! gcloud secrets describe "${secret_name}" --project="${PROJECT_ID}" >/dev/null 2>&1; then
-      echo "❌ Error: Secret '${secret_name}' does not exist in Secret Manager."
-      echo "Create it using:"
-      echo "  printf %s \"\$YOUR_KEY\" | gcloud secrets create ${secret_name} --data-file=- --project=\"${PROJECT_ID}\""
-      exit 1
+      val="${!secret_name:-}"
+      if [ -n "$val" ]; then
+        echo "✔ Creating missing Secret Manager secret '${secret_name}' from environment..."
+        printf "%s" "$val" | gcloud secrets create "${secret_name}" --data-file=- --project="${PROJECT_ID}"
+      else
+        echo "❌ Error: Secret '${secret_name}' does not exist in Secret Manager."
+        echo "Create it using:"
+        echo "  printf %s \"\$YOUR_KEY\" | gcloud secrets create ${secret_name} --data-file=- --project=\"${PROJECT_ID}\""
+        exit 1
+      fi
     fi
   done
 

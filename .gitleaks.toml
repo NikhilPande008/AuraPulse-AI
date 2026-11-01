@@ -1,0 +1,9 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Ignore test dummy secrets"
+paths = [
+  '''(^|/)tests/''',
+  '''(^|/)backend/tests/''',
+]

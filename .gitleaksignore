@@ -1,0 +1,3 @@
+# Gitleaks ignore file for false positives
+19be4c917de610f436d69115bbf5c98e3295d78d:backend/tests/test_config_secrets.py:generic-api-key:11
+backend/tests/test_config_secrets.py:generic-api-key:11

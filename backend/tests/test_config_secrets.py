@@ -8,7 +8,7 @@ from backend.app.llm.client import _CLIENT_HOLDER, get_genai_client
 
 def test_secret_never_exposed_in_str_or_repr() -> None:
     """str(settings.GEMINI_API_KEY) and repr(settings) must never contain the raw secret."""
-    raw_secret = "AIzaSySecretKey998877"
+    raw_secret = "dummy_secret_value_for_testing"
     cfg = Settings(
         GEMINI_API_KEY=SecretStr(raw_secret),
         GOOGLE_MAPS_API_KEY=SecretStr(raw_secret),

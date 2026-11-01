@@ -41,8 +41,16 @@ disable_error_code = ["import-untyped"]
 module = [
     "googleapiclient",
     "googleapiclient.*",
+    "google.oauth2.*",
 ]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+    "app.integrations.google_sheets",
+    "backend.app.integrations.google_sheets",
+]
+disallow_untyped_calls = false
 
 [tool.pytest.ini_options]
 pythonpath = [".", "backend"]

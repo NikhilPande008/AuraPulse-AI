@@ -1,20 +1,12 @@
 """Google Sheets API integration for dynamic formula-driven BOQ export."""
 
-import importlib
 import os
 from typing import Any
 
+from google.oauth2 import service_account
+from googleapiclient.discovery import Resource, build
+
 from ..config import settings
-
-build: Any = None
-service_account: Any = None
-
-try:
-    service_account = importlib.import_module("google.oauth2.service_account")
-    _discovery = importlib.import_module("googleapiclient.discovery")
-    build = getattr(_discovery, "build", None)
-except (ImportError, AttributeError):
-    pass
 
 
 class SheetsNotConfiguredError(Exception):
@@ -36,7 +28,19 @@ def is_sheets_configured() -> bool:
         True if the service account credentials file exists and client libraries are present.
     """
     creds_file = settings.GOOGLE_APPLICATION_CREDENTIALS
-    return bool(creds_file and os.path.exists(creds_file) and build and service_account)
+    return bool(creds_file and os.path.exists(creds_file))
+
+
+def _build_sheets_service(creds_file: str) -> Resource:
+    """Instantiate authenticated Google Sheets client from service account credentials file."""
+    creds = service_account.Credentials.from_service_account_file(
+        creds_file,
+        scopes=[
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive",
+        ],
+    )
+    return build("sheets", "v4", credentials=creds)
 
 
 def export_event_to_google_sheets(
@@ -153,10 +157,7 @@ def export_event_to_google_sheets(
 
     creds_file = settings.GOOGLE_APPLICATION_CREDENTIALS
     try:
-        creds = service_account.Credentials.from_service_account_file(
-            creds_file, scopes=["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-        )
-        sheets_service = build("sheets", "v4", credentials=creds)
+        sheets_service = _build_sheets_service(creds_file)
         spreadsheet = {
             "properties": {"title": f"AuraPulse - {spreadsheet_title}"},
             "sheets": [{"properties": {"title": "Master BOQ & Budget", "gridProperties": {"frozenRowCount": 1}}}],

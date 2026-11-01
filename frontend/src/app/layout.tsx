@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "AuraPulse AI | Multimodal Event Planning & Reactive Contingency Engine",
   description:
-    "Autonomous Multimodal Event Planning & Reactive Contingency Engine powered by Gemini 2.5 and Google Antigravity.",
+    "Event planning assistant for weddings, birthdays and community events powered by Gemini 2.5 and Google Cloud.",
 };
 
 export default function RootLayout({
@@ -35,7 +35,7 @@ export default function RootLayout({
                   </span>
                 </div>
                 <p className="text-xs text-slate-400">
-                  Autonomous Multimodal Event Planning & Reactive Contingency Engine
+                  Event planning assistant for weddings, birthdays and community events
                 </p>
               </div>
             </div>

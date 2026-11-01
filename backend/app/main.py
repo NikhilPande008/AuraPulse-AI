@@ -15,7 +15,7 @@ __all__ = ["SlidingWindowLimiter", "app", "get_client_ip"]
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    description="Autonomous Multimodal Event Planning & Reactive Contingency Engine",
+    description="Event planning assistant API for weddings, birthdays and community events",
 )
 
 # Global Middlewares

@@ -14,7 +14,7 @@ def root() -> RootResponse:
     """Return root system classification and available endpoints."""
     return RootResponse(
         system=settings.PROJECT_NAME,
-        classification="Autonomous Multimodal Event Planning & Reactive Contingency Engine",
+        classification="Event planning assistant API for weddings, birthdays and community events",
         version=settings.VERSION,
         status="ONLINE",
         endpoints={

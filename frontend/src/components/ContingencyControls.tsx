@@ -132,7 +132,7 @@ export default function ContingencyControls({
             💸 Cut 20% Budget
           </h3>
           <p className="text-xs text-slate-400 mt-1 leading-snug">
-            Preserves Tier-1 critical safety and catering; surgically scales and trims Tier-3 luxury
+            Preserves Tier-1 critical safety and catering; scales and trims Tier-3 discretionary
             line items.
           </p>
         </button>

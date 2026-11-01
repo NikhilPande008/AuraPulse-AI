@@ -19,7 +19,7 @@ backend/app/
 │       ├── integrations.py        # Maps Places, Sheets export, Calendar sync
 │       ├── export.py              # RFC-5545 .ics calendar export
 │       └── studio.py              # Imagen 3 generative staging & visual alternatives
-├── agents/                        # Autonomous AI Agent Layer
+├── agents/                        # AI Planning and Copilot Agents
 │   ├── aura_vision.py             # Vision-to-BOQ deconstruction agent
 │   ├── pulse_engine.py            # Reactive contingency engine & crisis strategy dispatch
 │   ├── generator_studio.py        # Generative visual staging agent (Imagen 3)

@@ -117,7 +117,7 @@ test.describe("AuraPulse AI Flow and Accessibility", () => {
     await page.waitForLoadState("networkidle");
 
     // Click Generate plan with Gemini button
-    const generateBtn = page.getByRole("button", { name: /Generate plan with Gemini/i });
+    const generateBtn = page.getByRole("button", { name: /Generate.*Gemini/i });
     await generateBtn.click();
 
     // Verify role="alert" with error message

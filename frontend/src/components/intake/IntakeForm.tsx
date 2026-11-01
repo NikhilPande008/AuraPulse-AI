@@ -88,10 +88,10 @@ export default function IntakeForm({
             onChange={(e) => handleInputChange(setEventType, e.target.value)}
             className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500 font-mono"
           >
-            <option value="wedding">Wedding (Traditional/Contemporary)</option>
-            <option value="birthday">Milestone Birthday (Rooftop/Lounge)</option>
+            <option value="wedding">Wedding</option>
+            <option value="birthday">Birthday</option>
             <option value="community_festival">Community Festival / Mela</option>
-            <option value="community_event">Corporate / Gala Event</option>
+            <option value="community_event">Community Event</option>
           </select>
         </div>
 

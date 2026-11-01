@@ -41,37 +41,41 @@ chmod +x deployment/deploy_cloud_run.sh
 ### Configuration Options (Environment Variables)
 
 - `PROJECT_ID`: Target GCP project ID (defaults to current `gcloud config get-value project`).
-- `REGION`: Target region (defaults to `asia-south1`).
+- `REGION`: Target region (defaults to `us-central1`).
+- `SERVICE_NAME`: Backend service name (defaults to `aurapulse-backend`).
+- `WEB_SERVICE_NAME`: Frontend service name (defaults to `aurapulse-web`).
+- `IMAGE_TAG`: Custom backend container image tag override.
+- `WEB_IMAGE`: Custom frontend container image tag override.
 - `MIN_INSTANCES`: Minimum instances for backend and frontend (defaults to `1` to eliminate cold starts; set to `0` for development cost savings).
 - `ALLOW_PLAIN_ENV_KEYS`: Set to `true` if deploying without Secret Manager (passes local env values directly as environment variables).
 
 ### Expected Outputs
 
-1. **Backend Cloud Run Service**: `aurapulse-api` listening on port 8080.
-   - Verifies health check: `GET /api/health` -> returns status 200 with honest integration flags.
+1. **Backend Cloud Run Service**: `aurapulse-backend` listening on port 8080.
+   - Verifies health check: `GET /api/health` -> returns status 200 with integration flags.
 2. **Frontend Cloud Run Service**: `aurapulse-web` listening on port 3000.
-   - Built with `--build-arg BACKEND_URL=https://<aurapulse-api-url>`.
+   - Built with `--build-arg BACKEND_URL=https://<aurapulse-backend-url>`.
    - Verifies health check: `GET /` -> returns status 200.
 3. Backend CORS `ALLOWED_ORIGIN` is updated to include the frontend URL.
 
 ## Rollback Procedure
 
-If a deployment introduces issues, instantly roll back traffic to a prior known-healthy revision using Cloud Run traffic splitting:
+If a deployment introduces issues, roll back traffic to a prior known-healthy revision using Cloud Run traffic splitting:
 
 ```bash
 # List revisions
-gcloud run revisions list --service aurapulse-api --region asia-south1
-gcloud run revisions list --service aurapulse-web --region asia-south1
+gcloud run revisions list --service aurapulse-backend --region us-central1
+gcloud run revisions list --service aurapulse-web --region us-central1
 
 # Roll back backend to previous revision
-gcloud run services update-traffic aurapulse-api \
+gcloud run services update-traffic aurapulse-backend \
   --to-revisions PREVIOUS_REVISION_NAME=100 \
-  --region asia-south1
+  --region us-central1
 
 # Roll back frontend to previous revision
 gcloud run services update-traffic aurapulse-web \
   --to-revisions PREVIOUS_REVISION_NAME=100 \
-  --region asia-south1
+  --region us-central1
 ```
 
 ## Custom Domain Mapping (Optional)
@@ -83,8 +87,7 @@ To map a custom domain (e.g., `aurapulse.ai` or `app.example.com`):
    gcloud beta run domain-mappings create \
      --service=aurapulse-web \
      --domain=app.example.com \
-     --region=asia-south1
+     --region=us-central1
    ```
 2. Update DNS records with the DNS Resource Records (CNAME / A) returned by the command.
 3. Update `ALLOWED_ORIGIN` on the backend service to include `https://app.example.com`.
-

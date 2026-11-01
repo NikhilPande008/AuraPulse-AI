@@ -1,6 +1,6 @@
 {
   "project_name": "AuraPulse AI",
-  "tagline": "Autonomous multimodal event planning and reactive contingency engine powered by Google Gemini and Places API.",
+  "tagline": "Multimodal event planning and reactive contingency engine powered by Google Gemini and Places API.",
   "challenge": "Challenge 5: GenAI-powered planning assistant",
   "version": "2.2.0",
   "competition": {
@@ -18,7 +18,7 @@
     "Google Calendar Web Intents",
     "Google Cloud Run"
   ],
-  "test_suite": "72 Pytest backend tests passing (100% green), 13 Vitest unit tests passing across 5 test suites, Playwright e2e passing",
+  "test_suite": "91 Pytest backend tests passing (100% green), 13 Vitest unit tests passing across 5 test suites, Playwright e2e passing",
   "frontend_framework": "Next.js 15 App Router with Tailwind CSS",
   "backend_framework": "FastAPI with Python 3.12 and Pydantic v2",
   "key_features": [

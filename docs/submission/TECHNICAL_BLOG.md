@@ -56,7 +56,7 @@ AuraPulse AI coordinates 3 decoupled, resilient layers using strictly typed Pyda
 |     Multi-turn tool execution      |   |    Milestone due dates & day-of blocks   |
 |     (scale_budget, add_item, etc.) |   |                                          |
 |                                    |   |  • Google Calendar Web Intent Links      |
-|  C. Pulse Contingency Solver       |   |    Zero-permission direct calendar sync   |
+|  C. Pulse Contingency Solver       |   |    Zero-permission direct calendar links  |
 |     Deterministic tier locking     |   |                                          |
 +------------------------------------+   +------------------------------------------+
 ```

@@ -1,6 +1,6 @@
 fastapi==0.115.6
 uvicorn[standard]==0.34.0
-pydantic==2.10.6
+pydantic==2.14.2
 pydantic-settings==2.7.1
 httpx==0.28.1
 google-genai==2.34.0

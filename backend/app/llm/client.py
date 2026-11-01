@@ -93,7 +93,7 @@ def get_genai_client() -> object | None:
 
 
 def _classify_error(exc: Exception) -> ErrorKind:
-    if isinstance(exc, (TimeoutError, asyncio.TimeoutError)):
+    if isinstance(exc, TimeoutError | asyncio.TimeoutError):
         return ErrorKind.TIMEOUT
     err_str = str(exc).lower()
     if any(q in err_str for q in ("429", "resource_exhausted", "quota")):

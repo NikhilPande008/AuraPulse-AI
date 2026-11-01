@@ -62,6 +62,4 @@ def test_pulse_simulate_budget_delta_invariant(trigger: dict):
     orig = data["original_total_inr"]
     new = data["new_total_inr"]
     delta = data["budget_delta_inr"]
-    assert delta == round(new - orig, 2), (
-        f"Trigger {trigger['trigger_type']}: delta {delta} != round({new} - {orig}, 2)"
-    )
+    assert delta == round(new - orig, 2), f"Trigger {trigger['trigger_type']}: delta {delta} != round({new} - {orig}, 2)"

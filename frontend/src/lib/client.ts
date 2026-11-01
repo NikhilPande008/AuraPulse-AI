@@ -4,7 +4,6 @@ export const API_BASE = "/api/v1";
 
 export function reportError(err: unknown, context?: string): void {
   if (process.env.NODE_ENV === "development") {
-    // eslint-disable-next-line no-console
     console.error(context ? `[${context}]` : "[AuraPulse Error]:", err);
   }
 }

@@ -28,7 +28,7 @@ def test_tool_registry_unknown_tool():
 def test_tool_registry_invalid_args():
     plan = create_baseline_wedding_plan()
     # scale_budget percentage must be between -90 and 100
-    p, d, reply = apply_tool_call(plan, "scale_budget", {"percentage": -95.0})
+    _p, d, reply = apply_tool_call(plan, "scale_budget", {"percentage": -95.0})
     assert d is None
     assert "Error executing tool 'scale_budget'" in reply
 

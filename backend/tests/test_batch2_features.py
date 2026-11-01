@@ -396,12 +396,12 @@ def test_copilot_apply_tool_calls_server_side():
     )
     assert d1 is not None and p1.current_estimated_total == pytest.approx(plan.current_estimated_total + 50000)
     target = p1.boq[0].item_id
-    p2, d2, _ = apply_tool_call(p1, "remove_item", {"item_id": target})
+    p2, _d2, _ = apply_tool_call(p1, "remove_item", {"item_id": target})
     assert next(i for i in p2.boq if i.item_id == target).status == "DROPPED"
     future = (date.today() + timedelta(days=120)).strftime("%Y-%m-%d")
     p3, _, _ = apply_tool_call(p2, "set_event_date", {"new_date": future})
     assert p3.event_date == future and len(p3.planning_milestones) > 0
-    p4, d4, _ = apply_tool_call(p3, "set_headcount", {"count": 250})
+    p4, _d4, _ = apply_tool_call(p3, "set_headcount", {"count": 250})
     assert p4.headcount == 250
 
 
@@ -475,7 +475,7 @@ def test_budget_compression_reports_shortfall():
 
     # Set ceiling lower than critical total
     target_ceiling = critical_total - 50000.0
-    updated_plan, shortfall, diffs = rebalance_to_ceiling(plan, target_ceiling)
+    updated_plan, shortfall, _diffs = rebalance_to_ceiling(plan, target_ceiling)
 
     assert shortfall > 0
     assert updated_plan.current_estimated_total >= critical_total

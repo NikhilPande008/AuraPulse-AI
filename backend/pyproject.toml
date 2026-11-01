@@ -24,7 +24,7 @@ ignore = [
 max-complexity = 10
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["ANN", "PLR2004", "S101", "RUF059", "SIM117", "PLC0415", "BLE001", "TRY002", "TRY201", "TRY400", "SLF001"]
+"tests/**" = ["ANN", "PLR2004", "S101", "SIM117", "PLC0415", "BLE001", "TRY002", "TRY201", "TRY400", "SLF001"]
 "app/fixtures/**" = ["PLR2004", "ANN"]
 
 [tool.ruff.format]

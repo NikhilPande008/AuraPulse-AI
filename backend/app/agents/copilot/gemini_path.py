@@ -3,7 +3,7 @@
 import json
 import logging
 import os
-from typing import Any, cast
+from typing import Any
 
 import google.api_core.exceptions
 import httpx
@@ -147,7 +147,7 @@ async def run_gemini_path(
 
         config = types.GenerateContentConfig(
             system_instruction=system_instruction,
-            tools=cast(list[Any], list(COPILOT_TOOLS)),
+            tools=list(COPILOT_TOOLS),
             automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
             temperature=0.2,
         )

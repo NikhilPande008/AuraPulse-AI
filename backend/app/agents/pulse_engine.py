@@ -401,7 +401,7 @@ async def _generate_crisis_narrative(
             timeout=CRISIS_NARRATIVE_TIMEOUT,
         )
         if hasattr(gemini_res, "text") and gemini_res.text:
-            return gemini_res.text.strip()
+            return str(gemini_res.text).strip()
     except (
         GeminiError,
         google.api_core.exceptions.GoogleAPIError,

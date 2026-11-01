@@ -1,8 +1,7 @@
 """HTTP middleware components for payload size enforcement and rate limiting."""
 
 import os
-from collections.abc import Callable
-from typing import Any
+from collections.abc import Awaitable, Callable
 
 from fastapi import Request, Response, status
 from fastapi.responses import JSONResponse
@@ -11,7 +10,7 @@ from .constants import MAX_BODY_BYTES
 from .rate_limit import AI_RATE_LIMITED_PATHS, get_client_ip, rate_limiter
 
 
-async def limit_body_size_middleware(request: Request, call_next: Callable[[Request], Any]) -> Response:
+async def limit_body_size_middleware(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
     """Enforce maximum request body size limit of 6MB.
 
     Args:
@@ -38,7 +37,7 @@ async def limit_body_size_middleware(request: Request, call_next: Callable[[Requ
     return await call_next(request)
 
 
-async def rate_limiting_middleware(request: Request, call_next: Callable[[Request], Any]) -> Response:
+async def rate_limiting_middleware(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
     """Enforce sliding-window rate limit on intensive AI and integration endpoints.
 
     Args:

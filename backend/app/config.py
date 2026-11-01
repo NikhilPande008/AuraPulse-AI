@@ -18,8 +18,6 @@ class Settings(BaseSettings):
     """Typed application configuration with environment variable resolution."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
         extra="ignore",
     )
 

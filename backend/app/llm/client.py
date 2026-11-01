@@ -73,7 +73,7 @@ GeminiBadOutput = GeminiBadOutputError
 RETRY_DELAYS: tuple[float, float] = (1.0, 3.0)
 
 # Module-level lazy singleton client
-_CLIENT_HOLDER: dict[str, Any] = {}
+_CLIENT_HOLDER: dict[str, object] = {}
 
 
 def get_genai_client() -> object | None:
@@ -89,7 +89,7 @@ def get_genai_client() -> object | None:
         return None
     client_instance = genai.Client(api_key=api_key)
     _CLIENT_HOLDER["client"] = client_instance
-    return client_instance
+    return _CLIENT_HOLDER["client"]
 
 
 def _classify_error(exc: Exception) -> ErrorKind:

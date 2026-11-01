@@ -41,8 +41,6 @@ disable_error_code = ["import-untyped"]
 module = [
     "googleapiclient",
     "googleapiclient.*",
-    "google_auth_oauthlib",
-    "google_auth_oauthlib.*",
 ]
 ignore_missing_imports = true
 

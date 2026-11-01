@@ -1,0 +1,63 @@
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "C90", "N", "RUF", "ANN", "BLE", "TRY", "PL", "G", "ERA"]
+ignore = [
+    "E501",    # Line too long (handled by line-length/formatter)
+    "B008",    # Do not perform function call in argument defaults (FastAPI Depends/Query pattern)
+    "TRY003",  # Avoid specifying long messages outside the exception class
+    "TRY300",  # Consider moving this statement to an `else` block
+    "TRY301",  # Abstract `raise` to an inner function
+    "PLR0913", # Too many arguments in function definition
+    "PLR0917", # Too many positional arguments
+    "PLR2004", # Magic value used in comparison
+    "G201",    # Logging .exception(...) vs .error(..., exc_info=True)
+    "UP042",   # Class inherits from both str and Enum (preserves exact Enum.__format__ string serialization)
+    "RUF001",  # String contains ambiguous characters (Devanagari scripts intentionally supported)
+    "RUF002",  # Docstring contains ambiguous characters
+    "RUF003",  # Comment contains ambiguous characters
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.per-file-ignores]
+"backend/tests/**" = ["ANN", "PLR2004", "S101", "SIM117", "PLC0415", "BLE001", "TRY002", "TRY201", "TRY400", "SLF001"]
+"backend/app/fixtures/**" = ["PLR2004", "ANN"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+disable_error_code = ["import-untyped"]
+
+[[tool.mypy.overrides]]
+module = [
+    "googleapiclient",
+    "googleapiclient.*",
+    "google.oauth2.*",
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+    "app.integrations.google_sheets",
+    "backend.app.integrations.google_sheets",
+]
+disallow_untyped_calls = false
+
+[tool.pytest.ini_options]
+pythonpath = [".", "backend"]
+asyncio_mode = "auto"
+markers = [
+    "live: live API integration tests requiring GEMINI_API_KEY",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]

@@ -94,4 +94,4 @@ class VendorSearchResponse(BaseModel):
 class CopilotRequest(BaseModel):
     event_plan: MasterEventPlan
     user_prompt: str = Field(..., min_length=1, max_length=1000)
-    history: list[dict[str, str]] | None = Field(default_factory=list, max_length=12)
+    history: list[dict[str, str]] = Field(default_factory=list, max_length=12)

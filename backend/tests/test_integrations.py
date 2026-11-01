@@ -154,3 +154,14 @@ def test_ics_escaping_folding_and_crlf():
         assert len(line.encode("utf-8")) <= 75
     # 3. Escaped characters present
     assert "\\," in ics_text or "\\;" in ics_text or "\\\\" in ics_text
+
+
+def test_ics_clean_labels_and_enum_formatting():
+    """Verify .ics output never contains raw Enum reprs like MilestonePhase. or MilestoneCategory."""
+    plan = create_baseline_wedding_plan()
+    ics_text = generate_calendar_ics(plan)
+
+    assert "MilestonePhase." not in ics_text
+    assert "MilestoneCategory." not in ics_text
+    assert "[T-3 Months]" in ics_text or "[Do Immediately]" in ics_text or "[T-6 Months]" in ics_text
+    assert "Category: Venue" in ics_text or "Category: Catering" in ics_text or "Category: Logistics" in ics_text

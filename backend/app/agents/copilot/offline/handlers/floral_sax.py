@@ -1,3 +1,4 @@
+from .....schemas.contingency import ContingencyDiff
 from .....schemas.event_plan import MasterEventPlan
 from .....services.budget import recompute_totals
 from ...models import CopilotResult
@@ -16,6 +17,21 @@ def _cut_floral_budget(plan: MasterEventPlan) -> None:
             it.status = "MODIFIED"
 
 
+def _add_sax_item(new_plan: MasterEventPlan) -> tuple[MasterEventPlan, ContingencyDiff | None]:
+    if any("sax" in it.name.lower() for it in new_plan.boq):
+        return new_plan, None
+    return execute_add_item(
+        new_plan,
+        category="Entertainment & Music",
+        name="Live Solo Saxophonist (Sunset & Dinner Sets)",
+        specification="3 hours live performance with wireless mic & monitor",
+        quantity=1.0,
+        unit="artist",
+        rate_inr=35000.0,
+        priority="Operational",
+    )
+
+
 class FloralSaxIntentHandler(IntentHandler):
     """Handles floral cut and solo saxophonist addition."""
 
@@ -31,18 +47,8 @@ class FloralSaxIntentHandler(IntentHandler):
         if "floral" in lower:
             _cut_floral_budget(new_plan)
 
-        if "sax" in lower and not any("sax" in it.name.lower() for it in new_plan.boq):
-            new_plan, diff_add = execute_add_item(
-                new_plan,
-                category="Entertainment & Music",
-                name="Live Solo Saxophonist (Sunset & Dinner Sets)",
-                specification="3 hours live performance with wireless mic & monitor",
-                quantity=1.0,
-                unit="artist",
-                rate_inr=35000.0,
-                priority="Operational",
-            )
-            active_diff = diff_add
+        if "sax" in lower:
+            new_plan, active_diff = _add_sax_item(new_plan)
 
         recompute_totals(new_plan)
         return CopilotResult(

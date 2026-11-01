@@ -25,7 +25,6 @@ def build_contingency_diff(
     actionable_mitigations: list[str] | None = None,
     budget_cut_percent: float | None = None,
     diff_prefix: str = "diff",
-    budget_delta_override: float | None = None,
 ) -> ContingencyDiff:
     """Build a standardized ContingencyDiff instance for plan alterations.
 
@@ -41,7 +40,6 @@ def build_contingency_diff(
         actionable_mitigations: Suggested mitigation checklist items.
         budget_cut_percent: Percentage reduction if applicable.
         diff_prefix: Identifier prefix for diff_id.
-        budget_delta_override: Explicit budget delta value if applicable.
 
     Returns:
         Populated ContingencyDiff model instance.
@@ -51,7 +49,7 @@ def build_contingency_diff(
         description=description,
         budget_cut_percent=budget_cut_percent,
     )
-    delta = budget_delta_override if budget_delta_override is not None else round(new_total_inr - original_total_inr, 2)
+    delta = round(new_total_inr - original_total_inr, 2)
     return ContingencyDiff(
         diff_id=f"{diff_prefix}_{uuid.uuid4().hex[:6]}",
         trigger=trigger,

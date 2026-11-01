@@ -76,7 +76,6 @@ def execute_add_item(
         ],
         actionable_mitigations=[f"Verify supplier availability for {name}"],
         diff_prefix="diff_add",
-        budget_delta_override=total_cost,
     )
     return new_plan, diff
 

@@ -53,9 +53,12 @@ def _vevent_for_milestone(ms: PlanningMilestone, now_utc: str, clean_city: str) 
     except (ValueError, TypeError):
         next_day_str = due_str
 
-    summary = _escape_text(f"[{ms.phase}] {ms.title}")
+    phase_str = ms.phase.value if hasattr(ms.phase, "value") else str(ms.phase)
+    category_str = ms.category.value if hasattr(ms.category, "value") else str(ms.category)
+
+    summary = _escape_text(f"[{phase_str}] {ms.title}")
     desc = _escape_text(
-        f"AuraPulse Milestone\nCategory: {ms.category}\nDeliverable: {ms.description}\nPhase: {ms.phase}"
+        f"AuraPulse Milestone\nCategory: {category_str}\nDeliverable: {ms.description}\nPhase: {phase_str}"
     )
 
     return [
@@ -89,12 +92,13 @@ def _vevent_for_block(block: ScheduleBlock, now_utc: str, clean_city: str, clean
     start_fmt = _format_block_time(block.start_time_iso, clean_date, "10")
     end_fmt = _format_block_time(block.end_time_iso, clean_date, "11")
 
+    phase_str = block.phase.value if hasattr(block.phase, "value") else str(block.phase)
     outdoor_tag = " [OUTDOOR ZONE - WEATHER WATCH]" if block.is_outdoor else " [INDOOR / COVERED]"
-    summary = _escape_text(f"[{block.phase}] {block.activity}{outdoor_tag}")
+    summary = _escape_text(f"[{phase_str}] {block.activity}{outdoor_tag}")
     zone_label = "Outdoor Zone (Weather Alert)" if block.is_outdoor else "Covered / Indoor Zone"
     desc = _escape_text(
         f"AuraPulse Run-of-Show\n"
-        f"Phase: {block.phase}\n"
+        f"Phase: {phase_str}\n"
         f"Responsible Party: {block.responsible_party}\n"
         f"Zone: {zone_label}\n"
         f"Block ID: {block.block_id}"

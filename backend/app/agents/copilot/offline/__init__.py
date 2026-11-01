@@ -27,12 +27,24 @@ def run_offline(plan: MasterEventPlan, prompt: str, lang: str | None = None) -> 
         lang = detect_language(prompt, getattr(plan, "language", None))
     prompt_norm = normalize_prompt(prompt)
 
+    result = None
     for handler in INTENT_HANDLERS:
         if handler.matches(prompt_norm):
-            return handler.apply(plan, prompt_norm, lang)
+            result = handler.apply(plan, prompt_norm, lang)
+            break
 
-    # Fallback guaranteed by DefaultIntentHandler
-    return INTENT_HANDLERS[-1].apply(plan, prompt_norm, lang)
+    if result is None:
+        # Fallback guaranteed by DefaultIntentHandler
+        result = INTENT_HANDLERS[-1].apply(plan, prompt_norm, lang)
+
+    if result.diff is not None:
+        result.diff.original_total_inr = plan.current_estimated_total
+        result.diff.new_total_inr = result.updated_plan.current_estimated_total
+        result.diff.budget_delta_inr = round(
+            result.updated_plan.current_estimated_total - plan.current_estimated_total, 2
+        )
+
+    return result
 
 
 def _execute_deterministic_copilot(

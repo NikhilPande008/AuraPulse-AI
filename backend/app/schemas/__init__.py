@@ -1,3 +1,5 @@
+"""Pydantic schemas and models for AuraPulse AI."""
+
 from .contingency import (
     BOQDiffItem,
     ContingencyDiff,
@@ -8,8 +10,10 @@ from .contingency import (
     SimulationRequest,
 )
 from .event_plan import (
+    AccessibilityType,
     BOQItem,
     DeconstructRequest,
+    DietaryType,
     EventIdea,
     MasterEventPlan,
     MilestoneCategory,
@@ -23,23 +27,25 @@ from .event_plan import (
 )
 
 __all__ = [
-    "PriorityTier",
-    "BOQItem",
-    "ScheduleBlock",
-    "MasterEventPlan",
-    "MilestonePhase",
-    "MilestoneCategory",
-    "PlanningMilestone",
-    "VendorStatus",
-    "VendorChecklistItem",
-    "EventIdea",
-    "PlanRequest",
-    "DeconstructRequest",
-    "CrisisTriggerType",
-    "CrisisTrigger",
-    "DiffAction",
+    "AccessibilityType",
     "BOQDiffItem",
-    "ScheduleDiffItem",
+    "BOQItem",
     "ContingencyDiff",
+    "CrisisTrigger",
+    "CrisisTriggerType",
+    "DeconstructRequest",
+    "DietaryType",
+    "DiffAction",
+    "EventIdea",
+    "MasterEventPlan",
+    "MilestoneCategory",
+    "MilestonePhase",
+    "PlanRequest",
+    "PlanningMilestone",
+    "PriorityTier",
+    "ScheduleBlock",
+    "ScheduleDiffItem",
     "SimulationRequest",
+    "VendorChecklistItem",
+    "VendorStatus",
 ]

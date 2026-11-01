@@ -16,7 +16,7 @@ async def test_weather_risk_contingency():
     trigger = CrisisTrigger(
         trigger_type=CrisisTriggerType.WEATHER_RISK,
         description="Flash rain alert: 85% probability in 2 hours",
-        weather_condition="Heavy Downpour"
+        weather_condition="Heavy Downpour",
     )
 
     diff = await evaluate_contingency(plan=plan, trigger=trigger)
@@ -25,7 +25,7 @@ async def test_weather_risk_contingency():
     added_items = [d for d in diff.boq_diffs if d.action == DiffAction.ADDED]
     assert len(added_items) == 1
     assert "Canopy" in added_items[0].updated_item.name or "Marquee" in added_items[0].updated_item.name
-    
+
     # Outdoor blocks were re-routed to protected zone
     for sched_diff in diff.schedule_diffs:
         assert sched_diff.updated_block.is_outdoor is False
@@ -38,7 +38,7 @@ async def test_budget_compression_contingency():
     trigger = CrisisTrigger(
         trigger_type=CrisisTriggerType.BUDGET_COMPRESSION,
         description="Client requests urgent 20% budget cut",
-        budget_cut_percent=20.0
+        budget_cut_percent=20.0,
     )
 
     diff = await evaluate_contingency(plan=plan, trigger=trigger)
@@ -55,7 +55,7 @@ async def test_timeline_slippage_contingency():
     trigger = CrisisTrigger(
         trigger_type=CrisisTriggerType.TIMELINE_SLIPPAGE,
         description="Baraat arrival stuck in traffic, delayed 60 minutes",
-        delay_minutes=60
+        delay_minutes=60,
     )
 
     diff = await evaluate_contingency(plan=plan, trigger=trigger)

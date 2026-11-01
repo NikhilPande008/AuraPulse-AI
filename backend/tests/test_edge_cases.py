@@ -25,17 +25,19 @@ def test_copilot_endpoint_cultural_cuisine_swap():
     plan = create_preset_meadow_wedding()
     payload = {
         "event_plan": plan.model_dump(),
-        "user_prompt": "Switch catering to authentic Puneri Maharashtrian menu with Puran Poli and Modaks"
+        "user_prompt": "Switch catering to authentic Puneri Maharashtrian menu with Puran Poli and Modaks",
     }
     response = client.post("/api/v1/aura/chat-copilot", json=payload)
     assert response.status_code == 200
     data = response.json()
     assert "copilot_reply" in data
     assert len(data["suggested_ideas"]) >= 3
-    
+
     # Check that updated plan has Puneri catering
     updated = data["updated_plan"]
-    assert any("puneri" in item["name"].lower() or "puran poli" in item["specification"].lower() for item in updated["boq"])
+    assert any(
+        "puneri" in item["name"].lower() or "puran poli" in item["specification"].lower() for item in updated["boq"]
+    )
     assert updated["current_estimated_total"] == sum(it["total_cost_inr"] for it in updated["boq"])
 
 
@@ -43,14 +45,11 @@ def test_copilot_endpoint_floral_cut_and_sax():
     """Verify co-pilot cuts floral budget by 20% and adds solo saxophonist."""
     plan = create_preset_meadow_wedding()
     initial_total = plan.current_estimated_total
-    payload = {
-        "event_plan": plan.model_dump(),
-        "user_prompt": "Cut florals by 20% and add a live solo saxophonist"
-    }
+    payload = {"event_plan": plan.model_dump(), "user_prompt": "Cut florals by 20% and add a live solo saxophonist"}
     response = client.post("/api/v1/aura/chat-copilot", json=payload)
     assert response.status_code == 200
     data = response.json()
-    
+
     updated = data["updated_plan"]
     assert updated["current_estimated_total"] != initial_total
     # Check that saxophonist item exists in BOQ
@@ -64,7 +63,7 @@ def test_copilot_party_games_birthday():
     plan = create_preset_cyberpunk_birthday()
     payload = {
         "event_plan": plan.model_dump(),
-        "user_prompt": "Suggest 5 interactive games for 30th birthday and add a Game Master"
+        "user_prompt": "Suggest 5 interactive games for 30th birthday and add a Game Master",
     }
     response = client.post("/api/v1/aura/chat-copilot", json=payload)
     assert response.status_code == 200
@@ -78,7 +77,7 @@ def test_copilot_cultural_sakhar_puda_milestone():
     plan = create_preset_meadow_wedding()
     payload = {
         "event_plan": plan.model_dump(),
-        "user_prompt": "Add Sakhar Puda ceremony and pooja samagri audit to timeline"
+        "user_prompt": "Add Sakhar Puda ceremony and pooja samagri audit to timeline",
     }
     response = client.post("/api/v1/aura/chat-copilot", json=payload)
     assert response.status_code == 200
@@ -101,7 +100,7 @@ def test_budget_scale_boundary_small_vs_luxury():
             estimated_rate_inr=500.0,
             total_cost_inr=5000.0,
             priority=PriorityTier.CRITICAL,
-            status="ACTIVE"
+            status="ACTIVE",
         ),
         BOQItem(
             item_id="b_02",
@@ -113,8 +112,8 @@ def test_budget_scale_boundary_small_vs_luxury():
             estimated_rate_inr=3000.0,
             total_cost_inr=3000.0,
             priority=PriorityTier.OPERATIONAL,
-            status="ACTIVE"
-        )
+            status="ACTIVE",
+        ),
     ]
     small_plan = MasterEventPlan(
         event_id="evt_small",
@@ -133,9 +132,9 @@ def test_budget_scale_boundary_small_vs_luxury():
                 end_time_iso="2026-11-15T21:00:00",
                 activity="Celebration & Cake",
                 responsible_party="Host",
-                is_outdoor=False
+                is_outdoor=False,
             )
-        ]
+        ],
     )
     assert small_plan.current_estimated_total <= small_plan.total_budget_limit
     assert len(small_plan.boq) == 2

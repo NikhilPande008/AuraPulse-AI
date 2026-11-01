@@ -1,8 +1,19 @@
 "use client";
 
 import React, { useState } from "react";
-import { Sparkles, Send, Loader2, Lightbulb, CheckCircle2, MessageSquare, ArrowRight, RefreshCw } from "lucide-react";
-import { MasterEventPlan, chatCopilot, CopilotResponse, ContingencyDiff } from "../lib/api";
+import {
+  Sparkles,
+  Send,
+  Loader2,
+  Lightbulb,
+  CheckCircle2,
+  MessageSquare,
+  ArrowRight,
+  RefreshCw,
+} from "lucide-react";
+import type { MasterEventPlan, CopilotResponse, ContingencyDiff } from "../lib/api";
+import { chatCopilot } from "../lib/api";
+import { reportError } from "../lib/client";
 import InlineError from "./InlineError";
 
 interface AICopilotBarProps {
@@ -20,11 +31,23 @@ export default function AICopilotBar({ plan, onPlanUpdate, onDiffGenerated }: AI
 
   const quickPrompts = [
     { label: "📉 Cut Budget by 20%", query: "Cut budget by 20% across non-critical items" },
-    { label: "🍽️ Authentic Puneri Cuisine", query: "Switch catering to authentic Puneri Maharashtrian cuisine with Puran Poli and Modaks" },
-    { label: "🎷 Cut Florals 20% & Add Sax", query: "Cut floral decor by 20% and add a live solo saxophonist for the sunset hour" },
+    {
+      label: "🍽️ Authentic Puneri Cuisine",
+      query: "Switch catering to authentic Puneri Maharashtrian cuisine with Puran Poli and Modaks",
+    },
+    {
+      label: "🎷 Cut Florals 20% & Add Sax",
+      query: "Cut floral decor by 20% and add a live solo saxophonist for the sunset hour",
+    },
     { label: "🌿 मेनू शाकाहारी करा", query: "मेनू पूर्णपणे शाकाहारी करा आणि पुरणपोळी जोडा" },
-    { label: "🎮 5 Interactive Party Games", query: "Suggest 5 high-energy interactive games and add a Game Master coordinator" },
-    { label: "🪔 Sakhar Puda & Pre-Ceremony Rituals", query: "Add Sakhar Puda pre-ceremony rituals and pooja samagri audit to timeline" },
+    {
+      label: "🎮 5 Interactive Party Games",
+      query: "Suggest 5 high-energy interactive games and add a Game Master coordinator",
+    },
+    {
+      label: "🪔 Sakhar Puda & Pre-Ceremony Rituals",
+      query: "Add Sakhar Puda pre-ceremony rituals and pooja samagri audit to timeline",
+    },
   ];
 
   const handleSendPrompt = async (queryText?: string) => {
@@ -47,8 +70,8 @@ export default function AICopilotBar({ plan, onPlanUpdate, onDiffGenerated }: AI
         onDiffGenerated(res.diff);
       }
       setPrompt("");
-    } catch (err) {
-      console.error("Co-Pilot error:", err);
+    } catch (err: unknown) {
+      reportError(err, "AICopilotBar");
       setErrorMsg("Co-Pilot encountered an issue. Please try again.");
     } finally {
       setIsLoading(false);
@@ -71,7 +94,9 @@ export default function AICopilotBar({ plan, onPlanUpdate, onDiffGenerated }: AI
             Conversational Event Architect
           </h2>
           <p className="text-xs text-slate-300">
-            Converse directly with Gemini to adapt themes, swap regional menus, optimize line-item budgets, and brainstorm activities. Changes automatically mutate the live BOQ and timeline.
+            Converse directly with Gemini to adapt themes, swap regional menus, optimize line-item
+            budgets, and brainstorm activities. Changes automatically mutate the live BOQ and
+            timeline.
           </p>
         </div>
 
@@ -93,19 +118,29 @@ export default function AICopilotBar({ plan, onPlanUpdate, onDiffGenerated }: AI
       )}
 
       {/* Quick Prompt Chips */}
-      <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 scrollbar-thin">
-        <span className="text-xs font-mono text-indigo-300/80 uppercase shrink-0">Quick Prompts:</span>
-        {quickPrompts.map((qp, idx) => (
-          <button
-            key={idx}
-            type="button"
-            onClick={() => handleSendPrompt(qp.query)}
-            disabled={isLoading}
-            className="shrink-0 text-xs px-3 py-1.5 rounded-full bg-slate-800/80 hover:bg-indigo-600/30 text-slate-200 hover:text-white border border-slate-700 hover:border-indigo-500/50 transition-all flex items-center gap-1.5 disabled:opacity-50"
-          >
-            {qp.label}
-          </button>
-        ))}
+      <div
+        className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 scrollbar-thin"
+        role="toolbar"
+        aria-label="Co-Pilot quick suggestion prompts"
+      >
+        <span className="text-xs font-mono text-indigo-300/80 uppercase shrink-0">
+          Quick Prompts:
+        </span>
+        {quickPrompts.map((qp, idx) => {
+          const isDevanagari = /[\u0900-\u097F]/.test(qp.label);
+          return (
+            <button
+              key={idx}
+              type="button"
+              lang={isDevanagari ? "mr" : undefined}
+              onClick={() => handleSendPrompt(qp.query)}
+              disabled={isLoading}
+              className="shrink-0 text-xs px-3 py-1.5 rounded-full bg-slate-800/80 hover:bg-indigo-600/30 text-slate-200 hover:text-white border border-slate-700 hover:border-indigo-500/50 transition-all flex items-center gap-1.5 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none"
+            >
+              {qp.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Input Field */}
@@ -132,18 +167,17 @@ export default function AICopilotBar({ plan, onPlanUpdate, onDiffGenerated }: AI
           disabled={isLoading || !prompt.trim()}
           className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium text-sm flex items-center gap-2 shadow-lg shadow-indigo-600/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
         >
-          {isLoading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Send className="w-4 h-4" />
-          )}
+          {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
           <span>Ask Co-Pilot</span>
         </button>
       </form>
 
       {/* Response Panel */}
       {lastResponse && (
-        <div aria-live="polite" className="mt-4 p-4 rounded-xl bg-slate-900/90 border border-indigo-500/40 shadow-inner">
+        <div
+          aria-live="polite"
+          className="mt-4 p-4 rounded-xl bg-slate-900/90 border border-indigo-500/40 shadow-inner"
+        >
           <div className="flex items-start justify-between gap-3 mb-2">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
@@ -163,7 +197,10 @@ export default function AICopilotBar({ plan, onPlanUpdate, onDiffGenerated }: AI
             </span>
           </div>
 
-          <p className="text-sm text-slate-200 leading-relaxed pl-8 pr-2 mb-3">
+          <p
+            lang={/[\u0900-\u097F]/.test(lastResponse.copilot_reply) ? "mr" : undefined}
+            className="text-sm text-slate-200 leading-relaxed pl-8 pr-2 mb-3"
+          >
             {lastResponse.copilot_reply}
           </p>
 

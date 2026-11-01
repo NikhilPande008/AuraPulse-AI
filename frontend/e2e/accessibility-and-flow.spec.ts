@@ -65,7 +65,9 @@ test.describe("AuraPulse AI Flow and Accessibility", () => {
     });
   });
 
-  test("1. Core Flow: generates plan, cuts budget by 20% via copilot, and exports .ics", async ({ page }) => {
+  test("1. Core Flow: generates plan, cuts budget by 20% via copilot, and exports .ics", async ({
+    page,
+  }) => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
 
@@ -96,7 +98,9 @@ test.describe("AuraPulse AI Flow and Accessibility", () => {
     expect(download.suggestedFilename()).toContain(".ics");
   });
 
-  test("2. Error Path: displays 503 error alert and visible Retry button on generation failure", async ({ page }) => {
+  test("2. Error Path: displays 503 error alert and visible Retry button on generation failure", async ({
+    page,
+  }) => {
     // Override deconstruct route to return 503
     await page.route("**/api/v1/aura/deconstruct", async (route) => {
       await route.fulfill({
@@ -126,7 +130,9 @@ test.describe("AuraPulse AI Flow and Accessibility", () => {
     await expect(retryBtn).toBeVisible();
   });
 
-  test("3. Keyboard Navigation: tablist responds to arrow keys with roving focus and aria-selected", async ({ page }) => {
+  test("3. Keyboard Navigation: tablist responds to arrow keys with roving focus and aria-selected", async ({
+    page,
+  }) => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
 
@@ -154,7 +160,9 @@ test.describe("AuraPulse AI Flow and Accessibility", () => {
     await expect(scheduleTab).toHaveAttribute("aria-selected", "true");
   });
 
-  test("4. Accessibility: page passes WCAG 2.1 AA scan with color-contrast enabled", async ({ page }) => {
+  test("4. Accessibility: page passes WCAG 2.1 AA scan with color-contrast enabled", async ({
+    page,
+  }) => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
 

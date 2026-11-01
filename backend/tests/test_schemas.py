@@ -23,7 +23,7 @@ def test_boq_item_strict_validation():
         estimated_rate_inr=50000.0,
         total_cost_inr=50000.0,
         priority=PriorityTier.DISCRETIONARY,
-        status="ACTIVE"
+        status="ACTIVE",
     )
     assert item.item_id == "boq_test_1"
     assert item.priority == PriorityTier.DISCRETIONARY
@@ -39,7 +39,7 @@ def test_boq_item_strict_validation():
             unit="units",
             estimated_rate_inr=1000.0,
             total_cost_inr=1000.0,
-            priority=PriorityTier.OPERATIONAL
+            priority=PriorityTier.OPERATIONAL,
         )
 
 
@@ -62,7 +62,7 @@ def test_crisis_trigger_model():
     trigger = CrisisTrigger(
         trigger_type=CrisisTriggerType.BUDGET_COMPRESSION,
         description="Emergency budget contraction of 20%",
-        budget_cut_percent=20.0
+        budget_cut_percent=20.0,
     )
     assert trigger.trigger_type == CrisisTriggerType.BUDGET_COMPRESSION
     assert trigger.budget_cut_percent == 20.0

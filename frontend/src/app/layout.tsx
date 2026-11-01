@@ -3,7 +3,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "AuraPulse AI | Multimodal Event Planning & Reactive Contingency Engine",
-  description: "Autonomous Multimodal Event Planning & Reactive Contingency Engine powered by Gemini 2.5 and Google Antigravity.",
+  description:
+    "Autonomous Multimodal Event Planning & Reactive Contingency Engine powered by Gemini 2.5 and Google Antigravity.",
 };
 
 export default function RootLayout({
@@ -26,9 +27,11 @@ export default function RootLayout({
               </div>
               <div>
                 <div className="flex items-center space-x-2">
-                  <span className="text-base font-bold tracking-tight text-white">AuraPulse AI</span>
+                  <span className="text-base font-bold tracking-tight text-white">
+                    AuraPulse AI
+                  </span>
                   <span className="text-xs uppercase font-mono px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20 font-semibold">
-                    v2.1.0
+                    v{process.env.NEXT_PUBLIC_APP_VERSION || "2.2.0"}
                   </span>
                 </div>
                 <p className="text-xs text-slate-400">
@@ -60,9 +63,7 @@ export default function RootLayout({
           </div>
         </header>
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-          {children}
-        </main>
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">{children}</main>
       </body>
     </html>
   );

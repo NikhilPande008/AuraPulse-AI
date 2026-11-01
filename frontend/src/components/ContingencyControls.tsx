@@ -2,7 +2,9 @@
 
 import React, { useState } from "react";
 import { CloudRain, DollarSign, Clock, AlertOctagon, Play, RefreshCw, Zap } from "lucide-react";
-import { CrisisTrigger, MasterEventPlan, simulateContingency, ContingencyDiff } from "../lib/api";
+import type { CrisisTrigger, MasterEventPlan, ContingencyDiff } from "../lib/api";
+import { simulateContingency } from "../lib/api";
+import { reportError } from "../lib/client";
 import InlineError from "./InlineError";
 
 interface ContingencyControlsProps {
@@ -28,8 +30,8 @@ export default function ContingencyControls({
     try {
       const diff = await simulateContingency(plan, trigger);
       onDiffGenerated(diff);
-    } catch (err) {
-      console.error(err);
+    } catch (err: unknown) {
+      reportError(err, "ContingencyControls");
       setErrorMsg("Failed to simulate contingency. Please try again.");
     } finally {
       setIsSimulating(false);
@@ -48,7 +50,8 @@ export default function ContingencyControls({
           </div>
           <h2 className="text-xl font-bold text-white mt-1">Reactive Contingency Engine</h2>
           <p className="text-sm text-slate-400">
-            Simulate real-time crisis scenarios. The multi-constraint graph solver protects Tier-1 lines and dynamically balances tradeoffs.
+            Simulate real-time crisis scenarios. The multi-constraint graph solver protects Tier-1
+            lines and dynamically balances tradeoffs.
           </p>
         </div>
 
@@ -61,11 +64,7 @@ export default function ContingencyControls({
       </div>
 
       {errorMsg && (
-        <InlineError
-          message={errorMsg}
-          onDismiss={() => setErrorMsg(null)}
-          className="mb-4"
-        />
+        <InlineError message={errorMsg} onDismiss={() => setErrorMsg(null)} className="mb-4" />
       )}
 
       {/* Preset Action Grid */}
@@ -99,7 +98,8 @@ export default function ContingencyControls({
             🌧️ Rain Storm Alert
           </h3>
           <p className="text-xs text-slate-400 mt-1 leading-snug">
-            Injects emergency German Pagoda marquee, reroutes outdoor schedule, trims discretionary florals.
+            Injects emergency German Pagoda marquee, reroutes outdoor schedule, trims discretionary
+            florals.
           </p>
         </button>
 
@@ -132,7 +132,8 @@ export default function ContingencyControls({
             💸 Cut 20% Budget
           </h3>
           <p className="text-xs text-slate-400 mt-1 leading-snug">
-            Preserves Tier-1 critical safety and catering; surgically scales and trims Tier-3 luxury line items.
+            Preserves Tier-1 critical safety and catering; surgically scales and trims Tier-3 luxury
+            line items.
           </p>
         </button>
 
@@ -165,7 +166,8 @@ export default function ContingencyControls({
             ⏰ Baraat Delayed 1 Hr
           </h3>
           <p className="text-xs text-slate-400 mt-1 leading-snug">
-            Graph cascades subsequent ceremony milestones while maintaining buffet kitchen fresh-holding protocols.
+            Graph cascades subsequent ceremony milestones while maintaining buffet kitchen
+            fresh-holding protocols.
           </p>
         </button>
 
@@ -198,7 +200,8 @@ export default function ContingencyControls({
             🚨 Caterer Cancelled
           </h3>
           <p className="text-xs text-slate-400 mt-1 leading-snug">
-            Queries Google Maps Places API for verified backup caterer and hot-swaps lines with verified ratings.
+            Queries Google Maps Places API for verified backup caterer and hot-swaps lines with
+            verified ratings.
           </p>
         </button>
       </div>

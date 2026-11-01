@@ -2,9 +2,7 @@ name: CI Verification Gate
 
 on:
   push:
-    branches: [ main, "fix/**", "feat/**" ]
   pull_request:
-    branches: [ main ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -52,9 +50,21 @@ jobs:
           pip install -r backend/requirements.txt
           pip install -r backend/requirements-dev.txt
 
+      - name: Ruff Format Check
+        run: |
+          ruff format --check backend
+
       - name: Ruff Lint & Import Check
         run: |
           ruff check backend
+
+      - name: Mypy Strict Type Check
+        run: |
+          mypy backend/app
+
+      - name: Cyclomatic Complexity Gate (Xenon)
+        run: |
+          xenon --max-absolute B --max-modules A --max-average A backend/app
 
       - name: Run Pytest Suite
         run: |
@@ -78,6 +88,10 @@ jobs:
       - name: Install Frontend Dependencies
         working-directory: frontend
         run: npm ci
+
+      - name: Prettier Formatting Check
+        working-directory: frontend
+        run: npm run format:check
 
       - name: ESLint Check
         working-directory: frontend

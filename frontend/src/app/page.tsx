@@ -1,207 +1,41 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useRef } from "react";
-import MoodboardUploader from "../components/MoodboardUploader";
+import React from "react";
+import AICopilotBar from "../components/AICopilotBar";
 import BoqTable from "../components/BoqTable";
 import ContingencyControls from "../components/ContingencyControls";
 import DiffVisualizer from "../components/DiffVisualizer";
+import ExportActions from "../components/ExportActions";
+import MoodboardUploader from "../components/MoodboardUploader";
 import ScheduleTimeline from "../components/ScheduleTimeline";
 import VendorFinder from "../components/VendorFinder";
-import ExportActions from "../components/ExportActions";
-import AICopilotBar from "../components/AICopilotBar";
-import { MasterEventPlan, ContingencyDiff, FALLBACK_PRESET_1, VendorChecklistItem } from "../lib/api";
-import { Activity, ShieldCheck, Zap, Layers, Sparkles, AlertCircle, RefreshCw, WifiOff, RotateCcw } from "lucide-react";
-
-const STORAGE_KEY = "aurapulse_state_v1";
-
-function getInitialEventDate(): string {
-  const d = new Date();
-  d.setDate(d.getDate() + 90);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
+import { usePlanState } from "../hooks/usePlanState";
+import { RefreshCw, RotateCcw, WifiOff } from "lucide-react";
 
 export default function Dashboard() {
-  const [currentPlan, setCurrentPlan] = useState<MasterEventPlan>(FALLBACK_PRESET_1);
-  const [baselinePlan, setBaselinePlan] = useState<MasterEventPlan>(FALLBACK_PRESET_1);
-  const [activeDiff, setActiveDiff] = useState<ContingencyDiff | null>(null);
-  const [eventDate, setEventDate] = useState<string>(getInitialEventDate);
-  const [healthStatus, setHealthStatus] = useState<any | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSimulating, setIsSimulating] = useState(false);
-  const [isOfflineFallback, setIsOfflineFallback] = useState(false);
-  const [activeTab, setActiveTab] = useState<"boq" | "schedule" | "vendors" | "export">("boq");
-  const [liveAnnouncement, setLiveAnnouncement] = useState<string>("");
-  const isHydrated = useRef(false);
-
-  const tabKeys: Array<"boq" | "schedule" | "vendors" | "export"> = ["boq", "schedule", "vendors", "export"];
-  const handleTabKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    const currentIndex = tabKeys.indexOf(activeTab);
-    if (currentIndex === -1) return;
-
-    let targetIndex = -1;
-    if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-      e.preventDefault();
-      targetIndex = (currentIndex + 1) % tabKeys.length;
-    } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-      e.preventDefault();
-      targetIndex = (currentIndex - 1 + tabKeys.length) % tabKeys.length;
-    } else if (e.key === "Home") {
-      e.preventDefault();
-      targetIndex = 0;
-    } else if (e.key === "End") {
-      e.preventDefault();
-      targetIndex = tabKeys.length - 1;
-    }
-
-    if (targetIndex !== -1) {
-      const targetTab = tabKeys[targetIndex];
-      setActiveTab(targetTab);
-      const tabElement = document.getElementById(`tab-workspace-${targetTab}`);
-      if (tabElement) {
-        tabElement.focus();
-      }
-    }
-  };
-
-  // Restore state from localStorage if available
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (parsed && parsed.version === 1 && parsed.currentPlan) {
-            setCurrentPlan(parsed.currentPlan);
-            setBaselinePlan(parsed.baselinePlan || parsed.currentPlan);
-            if (parsed.activeDiff) setActiveDiff(parsed.activeDiff);
-            if (parsed.eventDate) setEventDate(parsed.eventDate);
-            isHydrated.current = true;
-          }
-        }
-      } catch (e) {
-        console.warn("Failed to restore saved plan from localStorage", e);
-      }
-    }
-  }, []);
-
-  // Save state changes to localStorage
-  useEffect(() => {
-    if (typeof window !== "undefined" && isHydrated.current) {
-      try {
-        localStorage.setItem(
-          STORAGE_KEY,
-          JSON.stringify({
-            version: 1,
-            currentPlan,
-            baselinePlan,
-            activeDiff,
-            eventDate,
-          })
-        );
-      } catch (e) {
-        // Quota exceeded or private browsing
-      }
-    }
-  }, [currentPlan, baselinePlan, activeDiff, eventDate]);
-
-  // Initial load: fetch health status and hydrate default if no saved plan
-  useEffect(() => {
-    fetch("/api/health")
-      .then((r) => r.json())
-      .then((data) => setHealthStatus(data))
-      .catch((err) => console.warn("Health check error:", err));
-
-    if (!isHydrated.current) {
-      const init = async () => {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000);
-
-        try {
-          const res = await fetch("/api/v1/aura/deconstruct", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              moodboard_preset: "meadow_wedding",
-              headcount: 300,
-              locality: "Pune",
-              budget_ceiling: 1500000,
-              event_type: "wedding",
-            }),
-            signal: controller.signal,
-          });
-          clearTimeout(timeoutId);
-          if (res.ok) {
-            const data = await res.json();
-            setCurrentPlan(data);
-            setBaselinePlan(data);
-            setIsOfflineFallback(false);
-          } else {
-            console.warn("Backend responded with non-200. Activating embedded fallback.");
-            setCurrentPlan(FALLBACK_PRESET_1);
-            setBaselinePlan(FALLBACK_PRESET_1);
-            setIsOfflineFallback(true);
-          }
-        } catch (err) {
-          clearTimeout(timeoutId);
-          console.warn("Initial hydration timed out or network blocked. Activating embedded fallback.", err);
-          setCurrentPlan(FALLBACK_PRESET_1);
-          setBaselinePlan(FALLBACK_PRESET_1);
-          setIsOfflineFallback(true);
-        } finally {
-          isHydrated.current = true;
-        }
-      };
-      init();
-    }
-  }, []);
-
-  const handlePlanLoaded = (plan: MasterEventPlan) => {
-    setCurrentPlan(plan);
-    setBaselinePlan(plan);
-    if (plan.event_date) {
-      setEventDate(plan.event_date);
-    }
-    setActiveDiff(null);
-    setLiveAnnouncement(`Loaded new plan: ${plan.title || "Custom Event Plan"}`);
-  };
-
-  const handleDiffGenerated = (diff: ContingencyDiff) => {
-    setActiveDiff(diff);
-    setCurrentPlan(diff.updated_plan);
-    setLiveAnnouncement(`Plan updated: ${diff.trigger?.description || diff.trigger?.trigger_type || "Contingency simulation"}`);
-  };
-
-  const handleResetSimulation = () => {
-    setActiveDiff(null);
-    setCurrentPlan(baselinePlan);
-    setLiveAnnouncement("Simulation reset to baseline plan.");
-  };
-
-  const handleResetToFreshPlan = () => {
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.removeItem(STORAGE_KEY);
-      } catch (e) {}
-    }
-    setCurrentPlan(FALLBACK_PRESET_1);
-    setBaselinePlan(FALLBACK_PRESET_1);
-    setActiveDiff(null);
-    setEventDate(getInitialEventDate());
-    setLiveAnnouncement("Plan reset to default template.");
-  };
-
-  const handleMilestoneToggle = (milestoneId: string) => {
-    if (!currentPlan.planning_milestones) return;
-    const updatedMilestones = currentPlan.planning_milestones.map((m) =>
-      m.id === milestoneId ? { ...m, completed: !m.completed } : m
-    );
-    setCurrentPlan({ ...currentPlan, planning_milestones: updatedMilestones });
-  };
-
-  const handleChecklistUpdate = (updatedChecklist: VendorChecklistItem[]) => {
-    setCurrentPlan({ ...currentPlan, vendor_checklist: updatedChecklist });
-  };
+  const {
+    currentPlan,
+    setCurrentPlan,
+    activeDiff,
+    eventDate,
+    setEventDate,
+    healthStatus,
+    isLoading,
+    setIsLoading,
+    isSimulating,
+    setIsSimulating,
+    isOfflineFallback,
+    activeTab,
+    setActiveTab,
+    liveAnnouncement,
+    handleTabKeyDown,
+    handlePlanLoaded,
+    handleDiffGenerated,
+    handleResetSimulation,
+    handleResetToFreshPlan,
+    handleMilestoneToggle,
+    handleChecklistUpdate,
+  } = usePlanState();
 
   return (
     <div className="space-y-8 pb-16">
@@ -213,36 +47,46 @@ export default function Dashboard() {
       {/* Clean Dynamic System Status Strip based on GET /api/health */}
       <div className="glass-card rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 border border-slate-800">
         <div className="flex items-center gap-3">
-          <div className={`h-2.5 w-2.5 rounded-full ${healthStatus ? "bg-emerald-400" : "bg-amber-400"}`}></div>
+          <div
+            className={`h-2.5 w-2.5 rounded-full ${healthStatus ? "bg-emerald-400" : "bg-amber-400"}`}
+          ></div>
           <span className="text-xs font-mono font-semibold text-white">
             Backend: {healthStatus ? "Online" : "Unreachable"}
           </span>
           <span className="text-xs text-slate-400 hidden sm:inline">•</span>
           <span className="text-xs text-slate-400 font-mono hidden sm:inline">
-            Version: {healthStatus?.version || "v2.1.0"}
+            Version: {healthStatus?.version || process.env.NEXT_PUBLIC_APP_VERSION || "2.2.0"}
           </span>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
-          <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border ${
-            healthStatus?.gemini_configured
-              ? "bg-purple-950/60 border-purple-800/60 text-purple-300"
-              : "bg-amber-950/40 border-amber-800/60 text-amber-300"
-          }`}>
-            <span className={`h-1.5 w-1.5 rounded-full ${
-              healthStatus?.gemini_configured ? "bg-purple-400" : "bg-amber-400"
-            }`}></span>
+          <span
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border ${
+              healthStatus?.gemini_configured
+                ? "bg-purple-950/60 border-purple-800/60 text-purple-300"
+                : "bg-amber-950/40 border-amber-800/60 text-amber-300"
+            }`}
+          >
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${
+                healthStatus?.gemini_configured ? "bg-purple-400" : "bg-amber-400"
+              }`}
+            ></span>
             Gemini Flash: {healthStatus?.gemini_configured ? "Active" : "API Key Required"}
           </span>
 
-          <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border ${
-            healthStatus?.google_apis?.places_maps
-              ? "bg-cyan-950/60 border-cyan-800/60 text-cyan-300"
-              : "bg-slate-900 border-slate-800 text-slate-400"
-          }`}>
-            <span className={`h-1.5 w-1.5 rounded-full ${
-              healthStatus?.google_apis?.places_maps ? "bg-cyan-400" : "bg-slate-500"
-            }`}></span>
+          <span
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border ${
+              healthStatus?.google_apis?.places_maps
+                ? "bg-cyan-950/60 border-cyan-800/60 text-cyan-300"
+                : "bg-slate-900 border-slate-800 text-slate-400"
+            }`}
+          >
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${
+                healthStatus?.google_apis?.places_maps ? "bg-cyan-400" : "bg-slate-500"
+              }`}
+            ></span>
             Places Grounding: {healthStatus?.google_apis?.places_maps ? "Ready" : "Inactive"}
           </span>
 
@@ -268,7 +112,9 @@ export default function Dashboard() {
         <div className="px-4 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between text-xs text-amber-300 font-mono">
           <div className="flex items-center gap-2">
             <WifiOff className="w-4 h-4 text-amber-400 shrink-0" />
-            <span>Offline/Preview Mode Active: Displaying cached baseline (Preset 1 • Meadow Wedding).</span>
+            <span>
+              Offline/Preview Mode Active: Displaying cached baseline (Preset 1 • Meadow Wedding).
+            </span>
           </div>
           <button
             onClick={() => window.location.reload()}
@@ -355,7 +201,8 @@ export default function Dashboard() {
                   : "border-transparent text-slate-400 hover:text-slate-200"
               }`}
             >
-              Milestones & Timeline ({currentPlan.planning_milestones?.length || 0} Milestones • {currentPlan.schedule.length} Blocks)
+              Milestones & Timeline ({currentPlan.planning_milestones?.length || 0} Milestones •{" "}
+              {currentPlan.schedule.length} Blocks)
             </button>
             <button
               role="tab"
@@ -370,7 +217,8 @@ export default function Dashboard() {
                   : "border-transparent text-slate-400 hover:text-slate-200"
               }`}
             >
-              Vendor Action Center ({currentPlan.vendor_checklist?.length || 0} Checklist • {currentPlan.location_city})
+              Vendor Action Center ({currentPlan.vendor_checklist?.length || 0} Checklist •{" "}
+              {currentPlan.location_city})
             </button>
             <button
               role="tab"
@@ -396,7 +244,11 @@ export default function Dashboard() {
               </div>
             )}
             {activeTab === "schedule" && (
-              <div id="panel-workspace-schedule" role="tabpanel" aria-labelledby="tab-workspace-schedule">
+              <div
+                id="panel-workspace-schedule"
+                role="tabpanel"
+                aria-labelledby="tab-workspace-schedule"
+              >
                 <ScheduleTimeline
                   schedule={currentPlan.schedule}
                   milestones={currentPlan.planning_milestones}
@@ -410,7 +262,11 @@ export default function Dashboard() {
               </div>
             )}
             {activeTab === "vendors" && (
-              <div id="panel-workspace-vendors" role="tabpanel" aria-labelledby="tab-workspace-vendors">
+              <div
+                id="panel-workspace-vendors"
+                role="tabpanel"
+                aria-labelledby="tab-workspace-vendors"
+              >
                 <VendorFinder
                   city={currentPlan.location_city}
                   checklist={currentPlan.vendor_checklist}
@@ -419,7 +275,11 @@ export default function Dashboard() {
               </div>
             )}
             {activeTab === "export" && (
-              <div id="panel-workspace-export" role="tabpanel" aria-labelledby="tab-workspace-export">
+              <div
+                id="panel-workspace-export"
+                role="tabpanel"
+                aria-labelledby="tab-workspace-export"
+              >
                 <ExportActions plan={currentPlan} />
               </div>
             )}

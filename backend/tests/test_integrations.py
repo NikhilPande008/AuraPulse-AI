@@ -18,7 +18,7 @@ client = TestClient(app)
 @pytest.mark.asyncio
 async def test_places_api_new_parsing():
     """
-    CR-13: Verifies Places API (New) https://places.googleapis.com/v1/places:searchText
+    Verifies Places API (New) https://places.googleapis.com/v1/places:searchText
     parses displayName, formattedAddress, rating, userRatingCount, nationalPhoneNumber, googleMapsUri.
     """
     mock_places_response = {
@@ -58,7 +58,7 @@ async def test_places_api_new_parsing():
 @pytest.mark.asyncio
 async def test_places_api_honest_fallback_unconfigured():
     """
-    CR-13: Verifies that when Maps API key is unset or error occurs,
+    Verifies that when Maps API key is unset or error occurs,
     an empty vendor list is returned with status 'SIMULATED' and is_configured: false.
     Never marks unverified or mock vendors with is_verified: True.
     """
@@ -71,7 +71,7 @@ async def test_places_api_honest_fallback_unconfigured():
 
 def test_rfc5545_calendar_export_ics():
     """
-    CR-14: Verifies standard RFC-5545 .ics generation:
+    Verifies standard RFC-5545 .ics generation:
     - Milestones as all-day events on due_date.
     - Day-of schedule blocks on event_date with TZID=Asia/Kolkata.
     - CRLF line endings (\\r\\n).
@@ -98,7 +98,7 @@ def test_rfc5545_calendar_export_ics():
 
 def test_calendar_ics_api_endpoint():
     """
-    CR-14: Verifies POST /api/v1/export/calendar-ics returns 200 and valid .ics content.
+    Verifies POST /api/v1/export/calendar-ics returns 200 and valid .ics content.
     """
     plan = create_baseline_wedding_plan()
     response = client.post("/api/v1/export/calendar-ics", json=plan.model_dump())
@@ -113,7 +113,7 @@ def test_calendar_ics_api_endpoint():
 
 def test_google_calendar_web_intent():
     """
-    CR-14: Verifies generation of zero-permission Google Calendar web intent links.
+    Verifies generation of zero-permission Google Calendar web intent links.
     """
     intent = generate_google_calendar_web_intent(
         title="Royal Sangeet Night",
@@ -133,13 +133,11 @@ def test_google_sheets_export_formulas():
     import pytest
 
     from backend.app.integrations.google_sheets import SheetsNotConfiguredError
+
     plan = create_baseline_wedding_plan()
     boq_dicts = [item.model_dump() for item in plan.boq]
     with pytest.raises(SheetsNotConfiguredError):
-        export_event_to_google_sheets(
-            spreadsheet_title="Test Royal Wedding",
-            boq_items=boq_dicts
-        )
+        export_event_to_google_sheets(spreadsheet_title="Test Royal Wedding", boq_items=boq_dicts)
 
 
 def test_ics_escaping_folding_and_crlf():

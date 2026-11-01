@@ -1,8 +1,17 @@
 "use client";
 
 import React from "react";
-import { BOQItem, MasterEventPlan } from "../lib/api";
-import { Lock, ShieldAlert, Sparkles, Layers, DollarSign, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
+import type { BOQItem, MasterEventPlan } from "../lib/api";
+import {
+  Lock,
+  ShieldAlert,
+  Sparkles,
+  Layers,
+  DollarSign,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
+} from "lucide-react";
 
 interface BoqTableProps {
   plan: MasterEventPlan;
@@ -99,12 +108,16 @@ export default function BoqTable({ plan, onItemUpdate }: BoqTableProps) {
             </p>
           </div>
 
-          <div className={`px-4 py-2 rounded-xl border text-right ${
-            isOverBudget
-              ? "bg-rose-950/30 border-rose-500/30 text-rose-300"
-              : "bg-emerald-950/30 border-emerald-500/30 text-emerald-300"
-          }`}>
-            <p className="text-xs uppercase font-mono">{isOverBudget ? "Over Budget" : "Reserve Buffer"}</p>
+          <div
+            className={`px-4 py-2 rounded-xl border text-right ${
+              isOverBudget
+                ? "bg-rose-950/30 border-rose-500/30 text-rose-300"
+                : "bg-emerald-950/30 border-emerald-500/30 text-emerald-300"
+            }`}
+          >
+            <p className="text-xs uppercase font-mono">
+              {isOverBudget ? "Over Budget" : "Reserve Buffer"}
+            </p>
             <p className="text-sm font-mono font-bold">
               {isOverBudget ? "-" : "+"}₹{Math.abs(budgetDelta).toLocaleString("en-IN")}
             </p>
@@ -131,7 +144,8 @@ export default function BoqTable({ plan, onItemUpdate }: BoqTableProps) {
             {plan.boq.map((item) => {
               const isDropped = item.status === "DROPPED";
               const isModified = item.status === "MODIFIED";
-              const isEmergencyAdded = item.item_id.includes("emerg") || item.item_id.includes("canopy");
+              const isEmergencyAdded =
+                item.item_id.includes("emerg") || item.item_id.includes("canopy");
               return (
                 <tr
                   key={item.item_id}
@@ -139,14 +153,16 @@ export default function BoqTable({ plan, onItemUpdate }: BoqTableProps) {
                     isDropped
                       ? "bg-rose-950/20 opacity-50 border-l-2 border-rose-500"
                       : isModified
-                      ? "bg-amber-950/25 border-l-2 border-amber-500 hover:bg-amber-950/35"
-                      : isEmergencyAdded
-                      ? "bg-emerald-950/25 border-l-2 border-emerald-400 hover:bg-emerald-950/35 animate-pulse"
-                      : "hover:bg-slate-800/40"
+                        ? "bg-amber-950/25 border-l-2 border-amber-500 hover:bg-amber-950/35"
+                        : isEmergencyAdded
+                          ? "bg-emerald-950/25 border-l-2 border-emerald-400 hover:bg-emerald-950/35 animate-pulse"
+                          : "hover:bg-slate-800/40"
                   }`}
                 >
                   <td className="py-3 px-4 max-w-xs">
-                    <p className={`font-semibold text-slate-100 ${isDropped ? "line-through text-slate-400" : ""}`}>
+                    <p
+                      className={`font-semibold text-slate-100 ${isDropped ? "line-through text-slate-400" : ""}`}
+                    >
                       {item.name}
                     </p>
                     <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">
@@ -158,15 +174,11 @@ export default function BoqTable({ plan, onItemUpdate }: BoqTableProps) {
                       {item.category}
                     </span>
                   </td>
-                  <td className="py-3 px-3 whitespace-nowrap">
-                    {getPriorityBadge(item.priority)}
-                  </td>
+                  <td className="py-3 px-3 whitespace-nowrap">{getPriorityBadge(item.priority)}</td>
                   <td className="py-3 px-3 text-right font-mono font-medium text-slate-300">
                     {item.quantity.toLocaleString()}
                   </td>
-                  <td className="py-3 px-3 font-mono text-slate-400">
-                    {item.unit}
-                  </td>
+                  <td className="py-3 px-3 font-mono text-slate-400">{item.unit}</td>
                   <td className="py-3 px-4 text-right font-mono text-slate-300">
                     ₹{item.estimated_rate_inr.toLocaleString("en-IN")}
                   </td>
@@ -182,7 +194,10 @@ export default function BoqTable({ plan, onItemUpdate }: BoqTableProps) {
           </tbody>
           <tfoot className="bg-slate-900/90 font-mono border-t border-slate-700">
             <tr>
-              <td colSpan={6} className="py-3 px-4 text-right font-bold text-slate-300 uppercase tracking-wider text-xs">
+              <td
+                colSpan={6}
+                className="py-3 px-4 text-right font-bold text-slate-300 uppercase tracking-wider text-xs"
+              >
                 Active Grand Total (INR):
               </td>
               <td className="py-3 px-4 text-right font-bold text-sm text-cyan-300">

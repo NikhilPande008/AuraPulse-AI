@@ -1,5 +1,6 @@
+"""Sample preset event plans for deterministic offline demonstrations and tests."""
+
 import uuid
-from typing import Optional
 
 from ..schemas import (
     BOQItem,
@@ -12,7 +13,7 @@ from ..schemas import (
 from ..services.timeline import build_milestones, default_event_date
 
 
-def create_preset_meadow_wedding(event_date: Optional[str] = None) -> MasterEventPlan:
+def create_preset_meadow_wedding(event_date: str | None = None) -> MasterEventPlan:
     """Preset 1: Boho Sunset Meadow Wedding (Pune, 300 Pax, ₹15,00,000)"""
     if not event_date:
         event_date = default_event_date(90)
@@ -37,7 +38,7 @@ def create_preset_meadow_wedding(event_date: Optional[str] = None) -> MasterEven
                 estimated_rate_inr=1500.0,
                 total_cost_inr=450000.0,
                 priority=PriorityTier.CRITICAL,
-                status="ACTIVE"
+                status="ACTIVE",
             ),
             BOQItem(
                 item_id="boq_meadow_02",
@@ -49,7 +50,7 @@ def create_preset_meadow_wedding(event_date: Optional[str] = None) -> MasterEven
                 estimated_rate_inr=180000.0,
                 total_cost_inr=180000.0,
                 priority=PriorityTier.CRITICAL,
-                status="ACTIVE"
+                status="ACTIVE",
             ),
             BOQItem(
                 item_id="boq_meadow_03",
@@ -61,7 +62,7 @@ def create_preset_meadow_wedding(event_date: Optional[str] = None) -> MasterEven
                 estimated_rate_inr=85000.0,
                 total_cost_inr=85000.0,
                 priority=PriorityTier.CRITICAL,
-                status="ACTIVE"
+                status="ACTIVE",
             ),
             BOQItem(
                 item_id="boq_meadow_04",
@@ -73,7 +74,7 @@ def create_preset_meadow_wedding(event_date: Optional[str] = None) -> MasterEven
                 estimated_rate_inr=120000.0,
                 total_cost_inr=120000.0,
                 priority=PriorityTier.OPERATIONAL,
-                status="ACTIVE"
+                status="ACTIVE",
             ),
             BOQItem(
                 item_id="boq_meadow_05",
@@ -85,7 +86,7 @@ def create_preset_meadow_wedding(event_date: Optional[str] = None) -> MasterEven
                 estimated_rate_inr=175000.0,
                 total_cost_inr=175000.0,
                 priority=PriorityTier.OPERATIONAL,
-                status="ACTIVE"
+                status="ACTIVE",
             ),
             BOQItem(
                 item_id="boq_meadow_06",
@@ -97,7 +98,7 @@ def create_preset_meadow_wedding(event_date: Optional[str] = None) -> MasterEven
                 estimated_rate_inr=500.0,
                 total_cost_inr=140000.0,
                 priority=PriorityTier.OPERATIONAL,
-                status="ACTIVE"
+                status="ACTIVE",
             ),
             BOQItem(
                 item_id="boq_meadow_07",
@@ -109,7 +110,7 @@ def create_preset_meadow_wedding(event_date: Optional[str] = None) -> MasterEven
                 estimated_rate_inr=160000.0,
                 total_cost_inr=160000.0,
                 priority=PriorityTier.DISCRETIONARY,
-                status="ACTIVE"
+                status="ACTIVE",
             ),
             BOQItem(
                 item_id="boq_meadow_08",
@@ -121,7 +122,7 @@ def create_preset_meadow_wedding(event_date: Optional[str] = None) -> MasterEven
                 estimated_rate_inr=75000.0,
                 total_cost_inr=75000.0,
                 priority=PriorityTier.DISCRETIONARY,
-                status="ACTIVE"
+                status="ACTIVE",
             ),
             BOQItem(
                 item_id="boq_meadow_09",
@@ -133,7 +134,7 @@ def create_preset_meadow_wedding(event_date: Optional[str] = None) -> MasterEven
                 estimated_rate_inr=35000.0,
                 total_cost_inr=35000.0,
                 priority=PriorityTier.DISCRETIONARY,
-                status="ACTIVE"
+                status="ACTIVE",
             ),
         ],
         schedule=[
@@ -144,7 +145,7 @@ def create_preset_meadow_wedding(event_date: Optional[str] = None) -> MasterEven
                 end_time_iso="13:00",
                 activity="Meadow pergola timber assembly & 2,000 ft festoon light stringing",
                 responsible_party="EcoScaffold Productions",
-                is_outdoor=True
+                is_outdoor=True,
             ),
             ScheduleBlock(
                 block_id="sch_m02",
@@ -153,7 +154,7 @@ def create_preset_meadow_wedding(event_date: Optional[str] = None) -> MasterEven
                 end_time_iso="16:45",
                 activity="Sunset meadow welcome, sparkling botanical mocktails & flower crown fitting",
                 responsible_party="Meadow Hospitality Team",
-                is_outdoor=True
+                is_outdoor=True,
             ),
             ScheduleBlock(
                 block_id="sch_m03",
@@ -162,7 +163,7 @@ def create_preset_meadow_wedding(event_date: Optional[str] = None) -> MasterEven
                 end_time_iso="18:30",
                 activity="Vow exchange beneath pampas grass arch during golden hour sunset",
                 responsible_party="Celebrant & Family Leads",
-                is_outdoor=True
+                is_outdoor=True,
             ),
             ScheduleBlock(
                 block_id="sch_m04",
@@ -171,7 +172,7 @@ def create_preset_meadow_wedding(event_date: Optional[str] = None) -> MasterEven
                 end_time_iso="19:30",
                 activity="Golden hour acoustic guitar & cello performance with woodfired canapés",
                 responsible_party="Acoustic Trio",
-                is_outdoor=True
+                is_outdoor=True,
             ),
             ScheduleBlock(
                 block_id="sch_m05",
@@ -180,7 +181,7 @@ def create_preset_meadow_wedding(event_date: Optional[str] = None) -> MasterEven
                 end_time_iso="22:30",
                 activity="Farm-to-table banquet served family-style under warm Edison festoon canopy",
                 responsible_party="Artisan Head Chef",
-                is_outdoor=True
+                is_outdoor=True,
             ),
             ScheduleBlock(
                 block_id="sch_m06",
@@ -189,7 +190,7 @@ def create_preset_meadow_wedding(event_date: Optional[str] = None) -> MasterEven
                 end_time_iso="01:00",
                 activity="Barnhouse indoor acoustic jam, craft cider bar & midnight bonfire",
                 responsible_party="Night Operations Lead",
-                is_outdoor=False
+                is_outdoor=False,
             ),
         ],
         planning_milestones=build_milestones(event_date=event_date, event_type="wedding"),
@@ -201,7 +202,7 @@ def create_preset_meadow_wedding(event_date: Optional[str] = None) -> MasterEven
                 estimated_cost=450000.0,
                 status=VendorStatus.BOOKED,
                 notes="Deposit paid (30%). Woodfired ovens mobilization confirmed for 07:00 AM.",
-                google_maps_place_id=None
+                google_maps_place_id=None,
             ),
             VendorChecklistItem(
                 id="vc_m02",
@@ -210,7 +211,7 @@ def create_preset_meadow_wedding(event_date: Optional[str] = None) -> MasterEven
                 estimated_cost=160000.0,
                 status=VendorStatus.QUOTED,
                 notes="Revised quote for dried palms and local marigold garland substitution submitted.",
-                google_maps_place_id=None
+                google_maps_place_id=None,
             ),
             VendorChecklistItem(
                 id="vc_m03",
@@ -219,7 +220,7 @@ def create_preset_meadow_wedding(event_date: Optional[str] = None) -> MasterEven
                 estimated_cost=295000.0,
                 status=VendorStatus.BOOKED,
                 notes="Includes 2,000 ft festoons and waterproof column array audio system.",
-                google_maps_place_id=None
+                google_maps_place_id=None,
             ),
             VendorChecklistItem(
                 id="vc_m04",
@@ -228,7 +229,7 @@ def create_preset_meadow_wedding(event_date: Optional[str] = None) -> MasterEven
                 estimated_cost=85000.0,
                 status=VendorStatus.TO_CONTACT,
                 notes="Need to verify local municipal earthing certificate for hillside lawn.",
-                google_maps_place_id=None
+                google_maps_place_id=None,
             ),
             VendorChecklistItem(
                 id="vc_m05",
@@ -237,13 +238,13 @@ def create_preset_meadow_wedding(event_date: Optional[str] = None) -> MasterEven
                 estimated_cost=85000.0,
                 status=VendorStatus.PAID,
                 notes="100% advance paid. 2 cinematographers and 1 drone pilot confirmed.",
-                google_maps_place_id=None
-            )
-        ]
+                google_maps_place_id=None,
+            ),
+        ],
     )
 
 
-def create_preset_cyberpunk_birthday(event_date: Optional[str] = None) -> MasterEventPlan:
+def create_preset_cyberpunk_birthday(event_date: str | None = None) -> MasterEventPlan:
     """Preset 2: Cyberpunk Neon 30th Birthday (Mumbai, 60 Pax, ₹2,50,000)"""
     if not event_date:
         event_date = default_event_date(90)
@@ -268,7 +269,7 @@ def create_preset_cyberpunk_birthday(event_date: Optional[str] = None) -> Master
                 estimated_rate_inr=1400.0,
                 total_cost_inr=84000.0,
                 priority=PriorityTier.CRITICAL,
-                status="ACTIVE"
+                status="ACTIVE",
             ),
             BOQItem(
                 item_id="boq_cyber_02",
@@ -280,7 +281,7 @@ def create_preset_cyberpunk_birthday(event_date: Optional[str] = None) -> Master
                 estimated_rate_inr=38000.0,
                 total_cost_inr=38000.0,
                 priority=PriorityTier.CRITICAL,
-                status="ACTIVE"
+                status="ACTIVE",
             ),
             BOQItem(
                 item_id="boq_cyber_03",
@@ -292,7 +293,7 @@ def create_preset_cyberpunk_birthday(event_date: Optional[str] = None) -> Master
                 estimated_rate_inr=16000.0,
                 total_cost_inr=16000.0,
                 priority=PriorityTier.CRITICAL,
-                status="ACTIVE"
+                status="ACTIVE",
             ),
             BOQItem(
                 item_id="boq_cyber_04",
@@ -304,7 +305,7 @@ def create_preset_cyberpunk_birthday(event_date: Optional[str] = None) -> Master
                 estimated_rate_inr=1458.33,
                 total_cost_inr=35000.0,
                 priority=PriorityTier.OPERATIONAL,
-                status="ACTIVE"
+                status="ACTIVE",
             ),
             BOQItem(
                 item_id="boq_cyber_05",
@@ -316,7 +317,7 @@ def create_preset_cyberpunk_birthday(event_date: Optional[str] = None) -> Master
                 estimated_rate_inr=30000.0,
                 total_cost_inr=30000.0,
                 priority=PriorityTier.OPERATIONAL,
-                status="ACTIVE"
+                status="ACTIVE",
             ),
             BOQItem(
                 item_id="boq_cyber_06",
@@ -328,7 +329,7 @@ def create_preset_cyberpunk_birthday(event_date: Optional[str] = None) -> Master
                 estimated_rate_inr=20000.0,
                 total_cost_inr=20000.0,
                 priority=PriorityTier.DISCRETIONARY,
-                status="ACTIVE"
+                status="ACTIVE",
             ),
             BOQItem(
                 item_id="boq_cyber_07",
@@ -340,7 +341,7 @@ def create_preset_cyberpunk_birthday(event_date: Optional[str] = None) -> Master
                 estimated_rate_inr=15000.0,
                 total_cost_inr=15000.0,
                 priority=PriorityTier.DISCRETIONARY,
-                status="ACTIVE"
+                status="ACTIVE",
             ),
         ],
         schedule=[
@@ -351,7 +352,7 @@ def create_preset_cyberpunk_birthday(event_date: Optional[str] = None) -> Master
                 end_time_iso="19:30",
                 activity="Audio rigging, pixel tube programming & UV blacklight focus",
                 responsible_party="Sound & Light Technician",
-                is_outdoor=False
+                is_outdoor=False,
             ),
             ScheduleBlock(
                 block_id="sch_c02",
@@ -360,7 +361,7 @@ def create_preset_cyberpunk_birthday(event_date: Optional[str] = None) -> Master
                 end_time_iso="21:00",
                 activity="Guest welcome, UV glow tattoo station & molecular signature drinks",
                 responsible_party="Bar Lead & Host",
-                is_outdoor=False
+                is_outdoor=False,
             ),
             ScheduleBlock(
                 block_id="sch_c03",
@@ -369,7 +370,7 @@ def create_preset_cyberpunk_birthday(event_date: Optional[str] = None) -> Master
                 end_time_iso="21:30",
                 activity="Roast & toast, cyberpunk cake cutting with dry ice waterfall",
                 responsible_party="MC & Birthday Lead",
-                is_outdoor=False
+                is_outdoor=False,
             ),
             ScheduleBlock(
                 block_id="sch_c04",
@@ -378,7 +379,7 @@ def create_preset_cyberpunk_birthday(event_date: Optional[str] = None) -> Master
                 end_time_iso="23:30",
                 activity="Live DJ synthwave and peak-time techno set, passing tapas",
                 responsible_party="Featured DJ",
-                is_outdoor=False
+                is_outdoor=False,
             ),
             ScheduleBlock(
                 block_id="sch_c05",
@@ -387,7 +388,7 @@ def create_preset_cyberpunk_birthday(event_date: Optional[str] = None) -> Master
                 end_time_iso="01:30",
                 activity="Sub-bass after-hours groove, midnight sliders & espresso shots",
                 responsible_party="Sound Engineer",
-                is_outdoor=False
+                is_outdoor=False,
             ),
         ],
         planning_milestones=build_milestones(event_date=event_date, event_type="birthday"),
@@ -399,7 +400,7 @@ def create_preset_cyberpunk_birthday(event_date: Optional[str] = None) -> Master
                 estimated_cost=84000.0,
                 status=VendorStatus.BOOKED,
                 notes="Molecular bar equipment and dry ice coolers included.",
-                google_maps_place_id=None
+                google_maps_place_id=None,
             ),
             VendorChecklistItem(
                 id="vc_c02",
@@ -408,7 +409,7 @@ def create_preset_cyberpunk_birthday(event_date: Optional[str] = None) -> Master
                 estimated_cost=38000.0,
                 status=VendorStatus.BOOKED,
                 notes="Dual 18-inch subwoofers + sound engineer on-site.",
-                google_maps_place_id=None
+                google_maps_place_id=None,
             ),
             VendorChecklistItem(
                 id="vc_c03",
@@ -417,7 +418,7 @@ def create_preset_cyberpunk_birthday(event_date: Optional[str] = None) -> Master
                 estimated_cost=35000.0,
                 status=VendorStatus.QUOTED,
                 notes="Awaiting final delivery quote for custom acrylic neon crest.",
-                google_maps_place_id=None
+                google_maps_place_id=None,
             ),
             VendorChecklistItem(
                 id="vc_c04",
@@ -426,13 +427,13 @@ def create_preset_cyberpunk_birthday(event_date: Optional[str] = None) -> Master
                 estimated_cost=30000.0,
                 status=VendorStatus.PAID,
                 notes="Track list approved. 100% advance cleared.",
-                google_maps_place_id=None
+                google_maps_place_id=None,
             ),
-        ]
+        ],
     )
 
 
-def create_preset_diwali_mela(event_date: Optional[str] = None) -> MasterEventPlan:
+def create_preset_diwali_mela(event_date: str | None = None) -> MasterEventPlan:
     """Preset 3: Eco-Friendly Society Diwali Mela (Pune, 800 Pax, ₹5,00,000)"""
     if not event_date:
         event_date = default_event_date(90)
@@ -457,7 +458,7 @@ def create_preset_diwali_mela(event_date: Optional[str] = None) -> MasterEventPl
                 estimated_rate_inr=45000.0,
                 total_cost_inr=45000.0,
                 priority=PriorityTier.CRITICAL,
-                status="ACTIVE"
+                status="ACTIVE",
             ),
             BOQItem(
                 item_id="boq_mela_02",
@@ -469,7 +470,7 @@ def create_preset_diwali_mela(event_date: Optional[str] = None) -> MasterEventPl
                 estimated_rate_inr=60000.0,
                 total_cost_inr=60000.0,
                 priority=PriorityTier.CRITICAL,
-                status="ACTIVE"
+                status="ACTIVE",
             ),
             BOQItem(
                 item_id="boq_mela_03",
@@ -481,7 +482,7 @@ def create_preset_diwali_mela(event_date: Optional[str] = None) -> MasterEventPl
                 estimated_rate_inr=70000.0,
                 total_cost_inr=70000.0,
                 priority=PriorityTier.CRITICAL,
-                status="ACTIVE"
+                status="ACTIVE",
             ),
             BOQItem(
                 item_id="boq_mela_04",
@@ -493,7 +494,7 @@ def create_preset_diwali_mela(event_date: Optional[str] = None) -> MasterEventPl
                 estimated_rate_inr=80000.0,
                 total_cost_inr=80000.0,
                 priority=PriorityTier.OPERATIONAL,
-                status="ACTIVE"
+                status="ACTIVE",
             ),
             BOQItem(
                 item_id="boq_mela_05",
@@ -505,7 +506,7 @@ def create_preset_diwali_mela(event_date: Optional[str] = None) -> MasterEventPl
                 estimated_rate_inr=75000.0,
                 total_cost_inr=75000.0,
                 priority=PriorityTier.OPERATIONAL,
-                status="ACTIVE"
+                status="ACTIVE",
             ),
             BOQItem(
                 item_id="boq_mela_06",
@@ -517,7 +518,7 @@ def create_preset_diwali_mela(event_date: Optional[str] = None) -> MasterEventPl
                 estimated_rate_inr=3800.0,
                 total_cost_inr=95000.0,
                 priority=PriorityTier.OPERATIONAL,
-                status="ACTIVE"
+                status="ACTIVE",
             ),
             BOQItem(
                 item_id="boq_mela_07",
@@ -529,7 +530,7 @@ def create_preset_diwali_mela(event_date: Optional[str] = None) -> MasterEventPl
                 estimated_rate_inr=30000.0,
                 total_cost_inr=30000.0,
                 priority=PriorityTier.DISCRETIONARY,
-                status="ACTIVE"
+                status="ACTIVE",
             ),
             BOQItem(
                 item_id="boq_mela_08",
@@ -541,7 +542,7 @@ def create_preset_diwali_mela(event_date: Optional[str] = None) -> MasterEventPl
                 estimated_rate_inr=20000.0,
                 total_cost_inr=20000.0,
                 priority=PriorityTier.DISCRETIONARY,
-                status="ACTIVE"
+                status="ACTIVE",
             ),
         ],
         schedule=[
@@ -552,7 +553,7 @@ def create_preset_diwali_mela(event_date: Optional[str] = None) -> MasterEventPl
                 end_time_iso="14:00",
                 activity="Bamboo artisan stall erection, zero-plastic waste bin deployment & power tests",
                 responsible_party="Society Managing Committee",
-                is_outdoor=True
+                is_outdoor=True,
             ),
             ScheduleBlock(
                 block_id="sch_dm02",
@@ -561,7 +562,7 @@ def create_preset_diwali_mela(event_date: Optional[str] = None) -> MasterEventPl
                 end_time_iso="17:00",
                 activity="Dhol Tasha procession, ribbon cutting by society elders & diya lighting",
                 responsible_party="Cultural Secretary",
-                is_outdoor=True
+                is_outdoor=True,
             ),
             ScheduleBlock(
                 block_id="sch_dm03",
@@ -570,7 +571,7 @@ def create_preset_diwali_mela(event_date: Optional[str] = None) -> MasterEventPl
                 end_time_iso="19:00",
                 activity="Handmade crafts, organic sweets, terracotta pottery live demonstrations",
                 responsible_party="Stall Coordinators",
-                is_outdoor=True
+                is_outdoor=True,
             ),
             ScheduleBlock(
                 block_id="sch_dm04",
@@ -579,7 +580,7 @@ def create_preset_diwali_mela(event_date: Optional[str] = None) -> MasterEventPl
                 end_time_iso="20:30",
                 activity="Children's folk dance performances, classical sitar recital on main stage",
                 responsible_party="Youth Group Lead",
-                is_outdoor=True
+                is_outdoor=True,
             ),
             ScheduleBlock(
                 block_id="sch_dm05",
@@ -588,7 +589,7 @@ def create_preset_diwali_mela(event_date: Optional[str] = None) -> MasterEventPl
                 end_time_iso="22:30",
                 activity="500 earthen diyas illuminated across courtyard, food stalls active",
                 responsible_party="Food & Safety Marshal",
-                is_outdoor=True
+                is_outdoor=True,
             ),
             ScheduleBlock(
                 block_id="sch_dm06",
@@ -597,7 +598,7 @@ def create_preset_diwali_mela(event_date: Optional[str] = None) -> MasterEventPl
                 end_time_iso="23:30",
                 activity="Waste audit, compostable bag collection & green venue handover",
                 responsible_party="Cleanliness Taskforce",
-                is_outdoor=True
+                is_outdoor=True,
             ),
         ],
         planning_milestones=build_milestones(event_date=event_date, event_type="community_festival"),
@@ -609,7 +610,7 @@ def create_preset_diwali_mela(event_date: Optional[str] = None) -> MasterEventPl
                 estimated_cost=20000.0,
                 status=VendorStatus.PAID,
                 notes="15 drummers booked for 16:00 grand entrance. Full payment cleared.",
-                google_maps_place_id=None
+                google_maps_place_id=None,
             ),
             VendorChecklistItem(
                 id="vc_dm02",
@@ -618,7 +619,7 @@ def create_preset_diwali_mela(event_date: Optional[str] = None) -> MasterEventPl
                 estimated_cost=60000.0,
                 status=VendorStatus.BOOKED,
                 notes="Includes 10 dual-bin stations and 4 dedicated segregation marshals.",
-                google_maps_place_id=None
+                google_maps_place_id=None,
             ),
             VendorChecklistItem(
                 id="vc_dm03",
@@ -627,7 +628,7 @@ def create_preset_diwali_mela(event_date: Optional[str] = None) -> MasterEventPl
                 estimated_cost=95000.0,
                 status=VendorStatus.QUOTED,
                 notes="25 bamboo kiosk structures with fire-retardant cloth canopies.",
-                google_maps_place_id=None
+                google_maps_place_id=None,
             ),
             VendorChecklistItem(
                 id="vc_dm04",
@@ -636,7 +637,7 @@ def create_preset_diwali_mela(event_date: Optional[str] = None) -> MasterEventPl
                 estimated_cost=70000.0,
                 status=VendorStatus.BOOKED,
                 notes="100 kVA silent DG with cabling to all 25 artisan stalls.",
-                google_maps_place_id=None
+                google_maps_place_id=None,
             ),
             VendorChecklistItem(
                 id="vc_dm05",
@@ -645,17 +646,14 @@ def create_preset_diwali_mela(event_date: Optional[str] = None) -> MasterEventPl
                 estimated_cost=45000.0,
                 status=VendorStatus.BOOKED,
                 notes="On-site paramedic booth with basic trauma and burn kit.",
-                google_maps_place_id=None
+                google_maps_place_id=None,
             ),
-        ]
+        ],
     )
 
 
 def create_baseline_wedding_plan(
-    headcount: int = 450,
-    city: str = "Jaipur",
-    budget: float = 3500000.0,
-    event_type: str = "wedding"
+    headcount: int = 450, city: str = "Jaipur", budget: float = 3500000.0, event_type: str = "wedding"
 ) -> MasterEventPlan:
     """Default baseline plan calibrated to user constraints."""
     base = create_preset_meadow_wedding()
@@ -663,21 +661,23 @@ def create_baseline_wedding_plan(
     base.location_city = city
     base.title = f"Destination {event_type.capitalize()} ({headcount} Guests)"
     base.total_budget_limit = budget
-    base.schedule.insert(2, ScheduleBlock(
-        block_id="sch_baraat_proc",
-        phase="Procession (Baraat)",
-        start_time_iso="18:00",
-        end_time_iso="19:00",
-        activity="Arrival procession with brass band and royal dhol beats",
-        responsible_party="Procession Marshal",
-        is_outdoor=True
-    ))
+    base.schedule.insert(
+        2,
+        ScheduleBlock(
+            block_id="sch_baraat_proc",
+            phase="Procession (Baraat)",
+            start_time_iso="18:00",
+            end_time_iso="19:00",
+            activity="Arrival procession with brass band and royal dhol beats",
+            responsible_party="Procession Marshal",
+            is_outdoor=True,
+        ),
+    )
     return base
 
 
-
 SAMPLE_PRESETS = {
-    'meadow_wedding': create_preset_meadow_wedding,
-    'cyber_birthday': create_preset_cyberpunk_birthday,
-    'diwali_mela': create_preset_diwali_mela,
+    "meadow_wedding": create_preset_meadow_wedding,
+    "cyber_birthday": create_preset_cyberpunk_birthday,
+    "diwali_mela": create_preset_diwali_mela,
 }

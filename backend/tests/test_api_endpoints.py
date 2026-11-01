@@ -24,7 +24,7 @@ def test_deconstruct_endpoint():
         "headcount": 300,
         "locality": "Pune",
         "budget_ceiling": 1500000.0,
-        "event_type": "wedding"
+        "event_type": "wedding",
     }
     response = client.post("/api/v1/aura/deconstruct", json=payload)
     assert response.status_code == 200
@@ -41,13 +41,16 @@ def test_deconstruct_endpoint():
 def test_simulate_contingency_endpoint():
     """Verify POST /api/v1/pulse/simulate calculates and returns valid ContingencyDiff."""
     # First get a valid baseline plan
-    plan_res = client.post("/api/v1/aura/deconstruct", json={
-        "moodboard_preset": "meadow_wedding",
-        "headcount": 300,
-        "locality": "Pune",
-        "budget_ceiling": 1500000.0,
-        "event_type": "wedding"
-    })
+    plan_res = client.post(
+        "/api/v1/aura/deconstruct",
+        json={
+            "moodboard_preset": "meadow_wedding",
+            "headcount": 300,
+            "locality": "Pune",
+            "budget_ceiling": 1500000.0,
+            "event_type": "wedding",
+        },
+    )
     assert plan_res.status_code == 200
     plan = plan_res.json()
 
@@ -57,8 +60,8 @@ def test_simulate_contingency_endpoint():
         "trigger": {
             "trigger_type": CrisisTriggerType.WEATHER_RISK.value,
             "description": "Flash storm incoming in 2 hours",
-            "weather_condition": "Severe Torrential Rain"
-        }
+            "weather_condition": "Severe Torrential Rain",
+        },
     }
     response = client.post("/api/v1/pulse/simulate", json=sim_payload)
     assert response.status_code == 200
@@ -98,9 +101,9 @@ def test_sheets_export_endpoint():
                 "estimated_rate_inr": 180000,
                 "total_cost_inr": 180000,
                 "priority": "Critical",
-                "status": "ACTIVE"
+                "status": "ACTIVE",
             }
-        ]
+        ],
     }
     response = client.post("/api/v1/integrations/sheets/export", json=payload)
     # Without service-account credentials the API must NOT fabricate a docs.google.com link.

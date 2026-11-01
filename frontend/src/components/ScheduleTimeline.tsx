@@ -1,8 +1,19 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { ScheduleBlock, PlanningMilestone } from "../lib/api";
-import { Clock, Sun, UserCheck, Shield, Calendar as CalendarIcon, CheckSquare, Square, Tag, ArrowRight, Sparkles } from "lucide-react";
+import type { ScheduleBlock, PlanningMilestone } from "../lib/api";
+import {
+  Clock,
+  Sun,
+  UserCheck,
+  Shield,
+  Calendar as CalendarIcon,
+  CheckSquare,
+  Square,
+  Tag,
+  ArrowRight,
+  Sparkles,
+} from "lucide-react";
 
 interface ScheduleTimelineProps {
   schedule: ScheduleBlock[];
@@ -96,10 +107,21 @@ export default function ScheduleTimeline({
   };
 
   const completedCount = computedMilestones.filter((m) => m.completed).length;
-  const progressPercent = computedMilestones.length > 0 ? Math.round((completedCount / computedMilestones.length) * 100) : 0;
+  const progressPercent =
+    computedMilestones.length > 0
+      ? Math.round((completedCount / computedMilestones.length) * 100)
+      : 0;
 
   // Group milestones by phase (including dynamic compressed 'Do Immediately')
-  const phases = ["Do Immediately", "T-6 Months", "T-3 Months", "T-1 Month", "T-2 Weeks", "T-1 Week", "Day-Of"];
+  const phases = [
+    "Do Immediately",
+    "T-6 Months",
+    "T-3 Months",
+    "T-1 Month",
+    "T-2 Weeks",
+    "T-1 Week",
+    "Day-Of",
+  ];
 
   const getCategoryBadge = (category: string) => {
     const colors: Record<string, string> = {
@@ -111,11 +133,7 @@ export default function ScheduleTimeline({
       Rituals: "bg-emerald-950/80 text-emerald-300 border-emerald-800/60",
     };
     const c = colors[category] || "bg-slate-800 text-slate-300 border-slate-700";
-    return (
-      <span className={`text-xs font-mono px-2 py-0.5 rounded border ${c}`}>
-        {category}
-      </span>
-    );
+    return <span className={`text-xs font-mono px-2 py-0.5 rounded border ${c}`}>{category}</span>;
   };
 
   return (
@@ -127,11 +145,16 @@ export default function ScheduleTimeline({
             <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 uppercase font-mono">
               Challenge 5 Core • Temporal Engine
             </span>
-            <span className="text-xs text-slate-400 font-mono">Backwards Roadmap & Run-of-Show</span>
+            <span className="text-xs text-slate-400 font-mono">
+              Backwards Roadmap & Run-of-Show
+            </span>
           </div>
-          <h2 className="text-xl font-bold text-white mt-1">Timeline & Backwards Planning Matrix</h2>
+          <h2 className="text-xl font-bold text-white mt-1">
+            Timeline & Backwards Planning Matrix
+          </h2>
           <p className="text-sm text-slate-400">
-            Track multi-month vendor milestones backwards from event date and review day-of hourly execution blocks.
+            Track multi-month vendor milestones backwards from event date and review day-of hourly
+            execution blocks.
           </p>
         </div>
 
@@ -220,7 +243,10 @@ export default function ScheduleTimeline({
               if (items.length === 0) return null;
 
               return (
-                <div key={phase} className="rounded-xl bg-slate-900/40 p-4 border border-slate-800/80">
+                <div
+                  key={phase}
+                  className="rounded-xl bg-slate-900/40 p-4 border border-slate-800/80"
+                >
                   <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-800/60">
                     <div className="flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full bg-purple-400"></span>
@@ -332,9 +358,7 @@ export default function ScheduleTimeline({
                     )}
                   </div>
 
-                  <p className="text-sm font-medium text-slate-200">
-                    {block.activity}
-                  </p>
+                  <p className="text-sm font-medium text-slate-200">{block.activity}</p>
 
                   <div className="mt-2 flex items-center gap-1 text-xs text-slate-400 font-mono">
                     <UserCheck className="w-3.5 h-3.5 text-cyan-400" />

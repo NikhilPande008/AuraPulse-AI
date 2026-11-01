@@ -62,14 +62,14 @@ async def test_copilot_system_prompt_in_config_not_contents():
     mock_response.text = "Plan updated"
     mock_response.function_calls = []
 
-    with patch("backend.app.agents.copilot.settings.GEMINI_API_KEY", "mock_key"), \
-         patch("backend.app.agents.copilot.generate", new_callable=AsyncMock) as mock_generate:
+    with (
+        patch("backend.app.agents.copilot.settings.GEMINI_API_KEY", "mock_key"),
+        patch("backend.app.agents.copilot.generate", new_callable=AsyncMock) as mock_generate,
+    ):
         mock_generate.return_value = mock_response
 
         _ = await chat_copilot(
-            event_plan=plan,
-            user_prompt="Add a floral centerpiece",
-            history=[{"role": "user", "content": "hello"}]
+            event_plan=plan, user_prompt="Add a floral centerpiece", history=[{"role": "user", "content": "hello"}]
         )
 
         assert mock_generate.called
@@ -80,7 +80,9 @@ async def test_copilot_system_prompt_in_config_not_contents():
         # Check config contains system_instruction
         assert hasattr(config, "system_instruction")
         assert config.system_instruction is not None
-        assert "AuraPulse Co-Pilot" in config.system_instruction or "event architect" in config.system_instruction.lower()
+        assert (
+            "AuraPulse Co-Pilot" in config.system_instruction or "event architect" in config.system_instruction.lower()
+        )
 
         # Check contents only contain user/model Content turns, NOT raw system_instruction string
         for c in contents:

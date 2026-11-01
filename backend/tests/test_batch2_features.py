@@ -63,8 +63,16 @@ def test_budget_scaling():
     original_total = plan.current_estimated_total
 
     # Identify items by tier before scaling
-    critical_before = {it.item_id: (it.estimated_rate_inr, it.total_cost_inr) for it in plan.boq if it.priority == PriorityTier.CRITICAL}
-    operational_before = {it.item_id: (it.estimated_rate_inr, it.total_cost_inr) for it in plan.boq if it.priority != PriorityTier.CRITICAL}
+    critical_before = {
+        it.item_id: (it.estimated_rate_inr, it.total_cost_inr)
+        for it in plan.boq
+        if it.priority == PriorityTier.CRITICAL
+    }
+    operational_before = {
+        it.item_id: (it.estimated_rate_inr, it.total_cost_inr)
+        for it in plan.boq
+        if it.priority != PriorityTier.CRITICAL
+    }
 
     assert len(critical_before) > 0
     assert len(operational_before) > 0
@@ -110,13 +118,7 @@ def test_validation_boundaries():
     yesterday = (date.today() - timedelta(days=1)).strftime("%Y-%m-%d")
 
     # 1. Valid request baseline
-    valid_req = PlanRequest(
-        city="Pune",
-        headcount=200,
-        budget=1500000.0,
-        event_date=tomorrow,
-        event_type="wedding"
-    )
+    valid_req = PlanRequest(city="Pune", headcount=200, budget=1500000.0, event_date=tomorrow, event_type="wedding")
     assert valid_req.city == "Pune"
     assert valid_req.budget == 1500000.0
 
@@ -151,30 +153,36 @@ def test_validation_boundaries():
 
 def test_no_implicit_preset_fallback_and_503_error():
     """
-    CR-06: Verifies that unrecognized presets or custom requests never silently
+    Verifies that unrecognized presets or custom requests never silently
     fall back to canned presets, and raise HTTP 503 GENERATION_FAILED when Gemini fails.
     """
     # 1. Recognized preset returns 200
-    res_preset = client.post("/api/v1/aura/deconstruct", json={
-        "moodboard_preset": "meadow_wedding",
-        "headcount": 300,
-        "city": "Pune",
-        "budget": 1500000.0,
-        "event_type": "wedding"
-    })
+    res_preset = client.post(
+        "/api/v1/aura/deconstruct",
+        json={
+            "moodboard_preset": "meadow_wedding",
+            "headcount": 300,
+            "city": "Pune",
+            "budget": 1500000.0,
+            "event_type": "wedding",
+        },
+    )
     assert res_preset.status_code == 200
     plan = res_preset.json()
     assert plan["event_type"] == "wedding"
 
     # 2. Unrecognized preset / custom parameters without Gemini API connectivity
     # Must NOT return canned meadow_wedding; must return HTTP 503 GENERATION_FAILED
-    res_custom = client.post("/api/v1/aura/deconstruct", json={
-        "moodboard_preset": "unrecognized_custom_preset_123",
-        "headcount": 150,
-        "city": "Nashik",
-        "budget": 800000.0,
-        "event_type": "wedding"
-    })
+    res_custom = client.post(
+        "/api/v1/aura/deconstruct",
+        json={
+            "moodboard_preset": "unrecognized_custom_preset_123",
+            "headcount": 150,
+            "city": "Nashik",
+            "budget": 800000.0,
+            "event_type": "wedding",
+        },
+    )
     assert res_custom.status_code == 503
     err = res_custom.json()
     assert err["code"] == "GENERATION_FAILED"
@@ -184,14 +192,11 @@ def test_no_implicit_preset_fallback_and_503_error():
 @pytest.mark.asyncio
 async def test_copilot_tool_budget_cut_endpoint():
     """
-    CR-11: Verifies conversational copilot handles budget cut prompt by
+    Verifies conversational copilot handles budget cut prompt by
     scaling non-critical items and returning a diff payload.
     """
     plan = create_preset_meadow_wedding()
-    payload = {
-        "event_plan": plan.model_dump(),
-        "user_prompt": "Cut budget by 20% across all flexible items"
-    }
+    payload = {"event_plan": plan.model_dump(), "user_prompt": "Cut budget by 20% across all flexible items"}
     response = client.post("/api/v1/aura/chat-copilot", json=payload)
     assert response.status_code == 200
     data = response.json()
@@ -206,29 +211,23 @@ async def test_copilot_tool_budget_cut_endpoint():
 @pytest.mark.asyncio
 async def test_copilot_language_awareness_marathi_hindi():
     """
-    CR-11: Verifies Co-Pilot responds in matching language for Hindi & Marathi prompts.
+    Verifies Co-Pilot responds in matching language for Hindi & Marathi prompts.
     """
     plan = create_preset_meadow_wedding()
 
     # Marathi
-    res_mr = await chat_copilot(
-        event_plan=plan,
-        user_prompt="मेनू पूर्णपणे शाकाहारी करा आणि पुरणपोळी जोडा"
-    )
+    res_mr = await chat_copilot(event_plan=plan, user_prompt="मेनू पूर्णपणे शाकाहारी करा आणि पुरणपोळी जोडा")
     assert any(word in res_mr["copilot_reply"] for word in ["शाकाहारी", "पुरणपोळी", "मोदक", "बदलण्यात"])
 
     # Hindi
-    res_hi = await chat_copilot(
-        event_plan=plan,
-        user_prompt="मेनू को शाकाहारी करो और थाली में बदलाव करो"
-    )
+    res_hi = await chat_copilot(event_plan=plan, user_prompt="मेनू को शाकाहारी करो और थाली में बदलाव करो")
     assert any(word in res_hi["copilot_reply"] for word in ["शाकाहारी", "पूरन पोली", "थाली", "परिवर्तित"])
 
 
 @pytest.mark.asyncio
 async def test_mocked_gemini_custom_plan_generation():
     """
-    CR-08: Verifies asynchronous Gemini plan generation with schema validation
+    Verifies asynchronous Gemini plan generation with schema validation
     when processing a custom input (Marathi wedding in Nashik for ₹12L).
     """
     from backend.app.llm.client import generate_event_plan
@@ -245,32 +244,56 @@ async def test_mocked_gemini_custom_plan_generation():
         "culture_region": "Maharashtrian",
         "theme": "Traditional Peshwai & Marigold",
         "ideas": [
-            {"title": "Live Tutari & Dhol Tasha Ingress", "rationale": "Authentic royal arrival", "estimated_cost": 35000.0},
-            {"title": "Puran Poli & Modak Culinary Stage", "rationale": "Pure-ghee traditional banquet", "estimated_cost": 450000.0}
+            {
+                "title": "Live Tutari & Dhol Tasha Ingress",
+                "rationale": "Authentic royal arrival",
+                "estimated_cost": 35000.0,
+            },
+            {
+                "title": "Puran Poli & Modak Culinary Stage",
+                "rationale": "Pure-ghee traditional banquet",
+                "estimated_cost": 450000.0,
+            },
         ],
         "boq": [
             {
-                "item_id": "boq_n01", "category": "Catering", "name": "Peshwai Maharashtrian Feast",
+                "item_id": "boq_n01",
+                "category": "Catering",
+                "name": "Peshwai Maharashtrian Feast",
                 "specification": "Puran Poli, Katachi Amti, Kothimbir Vadi, Ukdiche Modak for 300 pax",
-                "quantity": 300.0, "unit": "pax", "estimated_rate_inr": 1500.0, "total_cost_inr": 450000.0,
-                "priority": "Critical", "status": "ACTIVE"
+                "quantity": 300.0,
+                "unit": "pax",
+                "estimated_rate_inr": 1500.0,
+                "total_cost_inr": 450000.0,
+                "priority": "Critical",
+                "status": "ACTIVE",
             },
             {
-                "item_id": "boq_n02", "category": "Rituals", "name": "Mandap & Antarpat Setup",
+                "item_id": "boq_n02",
+                "category": "Rituals",
+                "name": "Mandap & Antarpat Setup",
                 "specification": "Authentic wooden mandap with yellow marigold garlands and handwoven Antarpat",
-                "quantity": 1.0, "unit": "lot", "estimated_rate_inr": 180000.0, "total_cost_inr": 180000.0,
-                "priority": "Critical", "status": "ACTIVE"
-            }
+                "quantity": 1.0,
+                "unit": "lot",
+                "estimated_rate_inr": 180000.0,
+                "total_cost_inr": 180000.0,
+                "priority": "Critical",
+                "status": "ACTIVE",
+            },
         ],
         "schedule": [
             {
-                "block_id": "sch_n01", "phase": "Arrival & Seemant Pujan", "start_time_iso": "09:00",
-                "end_time_iso": "10:30", "activity": "Welcoming groom side with brass thalis",
-                "responsible_party": "Family Leads", "is_outdoor": False
+                "block_id": "sch_n01",
+                "phase": "Arrival & Seemant Pujan",
+                "start_time_iso": "09:00",
+                "end_time_iso": "10:30",
+                "activity": "Welcoming groom side with brass thalis",
+                "responsible_party": "Family Leads",
+                "is_outdoor": False,
             }
         ],
         "planning_milestones": [],
-        "vendor_checklist": []
+        "vendor_checklist": [],
     }
 
     mock_resp = MagicMock()
@@ -306,10 +329,10 @@ async def test_mocked_gemini_custom_plan_generation():
         assert plan.ideas[0].title == "Live Tutari & Dhol Tasha Ingress"
 
 
-
 # ---------------------------------------------------------------------------
 # Remediation regression tests
 # ---------------------------------------------------------------------------
+
 
 def _plan_payload():
     return json.loads(create_preset_meadow_wedding().model_dump_json())
@@ -321,14 +344,17 @@ def test_supply_failure_with_empty_vendor_list_no_500():
     with patch("backend.app.agents.pulse_engine.fetch_verified_vendors", new=AsyncMock(return_value=empty)):
         plan = _plan_payload()
         category = plan["boq"][0]["category"]
-        response = client.post("/api/v1/pulse/simulate", json={
-            "plan": plan,
-            "trigger": {
-                "trigger_type": "SUPPLY_FAILURE",
-                "description": "Primary vendor cancelled",
-                "affected_vendor_category": category,
+        response = client.post(
+            "/api/v1/pulse/simulate",
+            json={
+                "plan": plan,
+                "trigger": {
+                    "trigger_type": "SUPPLY_FAILURE",
+                    "description": "Primary vendor cancelled",
+                    "affected_vendor_category": category,
+                },
             },
-        })
+        )
     assert response.status_code == 200, response.text
     data = response.json()
     joined = " ".join(data["actionable_mitigations"])
@@ -339,10 +365,13 @@ def test_supply_failure_with_empty_vendor_list_no_500():
 def test_weather_contingency_respects_ceiling_or_warns():
     """Rain marquee is offset by Tier-3 then Tier-2 trims; otherwise an explicit warning appears."""
     plan = _plan_payload()
-    response = client.post("/api/v1/pulse/simulate", json={
-        "plan": plan,
-        "trigger": {"trigger_type": "WEATHER_RISK", "description": "Heavy rain forecast"},
-    })
+    response = client.post(
+        "/api/v1/pulse/simulate",
+        json={
+            "plan": plan,
+            "trigger": {"trigger_type": "WEATHER_RISK", "description": "Heavy rain forecast"},
+        },
+    )
     assert response.status_code == 200, response.text
     data = response.json()
     updated = data["updated_plan"]
@@ -358,8 +387,13 @@ def test_weather_contingency_respects_ceiling_or_warns():
 def test_copilot_apply_tool_calls_server_side():
     """Function calls returned by Gemini are executed deterministically on the server."""
     from backend.app.agents.copilot import apply_tool_call
+
     plan = create_preset_meadow_wedding()
-    p1, d1, _ = apply_tool_call(plan, "add_item", {"category": "Entertainment", "name": "Live Sax", "cost": 25000, "priority": "Operational", "quantity": 2})
+    p1, d1, _ = apply_tool_call(
+        plan,
+        "add_item",
+        {"category": "Entertainment", "name": "Live Sax", "cost": 25000, "priority": "Operational", "quantity": 2},
+    )
     assert d1 is not None and p1.current_estimated_total == pytest.approx(plan.current_estimated_total + 50000)
     target = p1.boq[0].item_id
     p2, d2, _ = apply_tool_call(p1, "remove_item", {"item_id": target})
@@ -373,12 +407,21 @@ def test_copilot_apply_tool_calls_server_side():
 
 def test_custom_preset_routes_to_gemini_not_fixture():
     """moodboard_preset='custom' must never return a canned fixture."""
-    with patch("backend.app.agents.aura_vision.generate_event_plan", new=AsyncMock(side_effect=RuntimeError("no network"))):
+    with patch(
+        "backend.app.agents.aura_vision.generate_event_plan", new=AsyncMock(side_effect=RuntimeError("no network"))
+    ):
         tomorrow = (date.today() + timedelta(days=30)).strftime("%Y-%m-%d")
-        response = client.post("/api/v1/aura/deconstruct", json={
-            "event_type": "wedding", "event_date": tomorrow, "city": "Nagpur",
-            "headcount": 150, "budget": 900000, "moodboard_preset": "custom",
-        })
+        response = client.post(
+            "/api/v1/aura/deconstruct",
+            json={
+                "event_type": "wedding",
+                "event_date": tomorrow,
+                "city": "Nagpur",
+                "headcount": 150,
+                "budget": 900000,
+                "moodboard_preset": "custom",
+            },
+        )
     assert response.status_code == 503
     assert response.json()["code"] == "GENERATION_FAILED"
 
@@ -393,10 +436,7 @@ def test_rate_limit_returns_429(monkeypatch):
     """Verify that exceeding 10 requests per minute triggers 429 RATE_LIMITED."""
     monkeypatch.setenv("DISABLE_RATE_LIMIT", "false")
     plan = create_preset_meadow_wedding()
-    payload = {
-        "event_plan": plan.model_dump(),
-        "user_prompt": "Quick check"
-    }
+    payload = {"event_plan": plan.model_dump(), "user_prompt": "Quick check"}
 
     # Make 10 requests
     status_codes = []
@@ -405,7 +445,10 @@ def test_rate_limit_returns_429(monkeypatch):
         status_codes.append(resp.status_code)
 
     assert 429 in status_codes
-    assert any(resp.json().get("code") == "RATE_LIMITED" for resp in [client.post("/api/v1/aura/chat-copilot", json=payload, headers={"x-forwarded-for": "192.0.2.1"})])
+    assert any(
+        resp.json().get("code") == "RATE_LIMITED"
+        for resp in [client.post("/api/v1/aura/chat-copilot", json=payload, headers={"x-forwarded-for": "192.0.2.1"})]
+    )
 
 
 def test_plan_request_string_and_array_limits():
@@ -414,27 +457,19 @@ def test_plan_request_string_and_array_limits():
 
     # String too long (> 80 chars)
     with pytest.raises(ValidationError):
-        PlanRequest(
-            city="Pune", headcount=100, budget=500000.0, event_date=tomorrow,
-            culture_region="A" * 85
-        )
+        PlanRequest(city="Pune", headcount=100, budget=500000.0, event_date=tomorrow, culture_region="A" * 85)
 
     with pytest.raises(ValidationError):
-        PlanRequest(
-            city="Pune", headcount=100, budget=500000.0, event_date=tomorrow,
-            theme="B" * 85
-        )
+        PlanRequest(city="Pune", headcount=100, budget=500000.0, event_date=tomorrow, theme="B" * 85)
 
     with pytest.raises(ValidationError):
-        PlanRequest(
-            city="Pune", headcount=100, budget=500000.0, event_date=tomorrow,
-            notes="C" * 1005
-        )
+        PlanRequest(city="Pune", headcount=100, budget=500000.0, event_date=tomorrow, notes="C" * 1005)
 
 
 def test_budget_compression_reports_shortfall():
     """Verify that rebalance_to_ceiling correctly reports shortfall when target cannot be met without cutting Critical items."""
     from backend.app.services.budget import rebalance_to_ceiling
+
     plan = create_preset_meadow_wedding()
     critical_total = sum(it.total_cost_inr for it in plan.boq if it.priority == PriorityTier.CRITICAL)
 

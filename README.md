@@ -37,7 +37,7 @@ AuraPulse AI bridges the gap between aesthetic inspiration and real-world event 
 ### Step 1: Clone & Install
 ```bash
 git clone https://github.com/NikhilPande008/AuraPulse-AI.git
-cd "AuraPulse AI"
+cd AuraPulse-AI
 
 # Backend virtualenv & dependencies
 python3 -m venv .venv && source .venv/bin/activate
@@ -160,10 +160,32 @@ flowchart TD
 * Python 3.12+ (or Python 3.14)
 * Node.js v20+ & npm
 
+### Environment Configuration
+
+A template `.env.example` is provided in the repository root. Copy it to `.env`:
+
+```bash
+cp .env.example .env
+```
+
+| Variable | Type | Default | Description |
+|---|---|---|---|
+| `GEMINI_API_KEY` | Secret | `""` | Google Gemini API key for multimodal intake, Flash replanning, and Imagen 3. |
+| `GEMINI_FLASH_MODEL` | String | `gemini-2.5-flash` | Gemini model identifier used for event plan generation. |
+| `GOOGLE_MAPS_API_KEY` | Secret | `""` | Google Maps API key for Places API (New) verified vendor search. |
+| `GOOGLE_APPLICATION_CREDENTIALS` | Path | `""` | Path to Google Service Account JSON key for live Google Sheets API v4 export. |
+| `PORT` | Integer | `8000` | Backend FastAPI server port. |
+| `HOST` | String | `127.0.0.1` | Backend host binding interface. |
+| `RATE_LIMIT_PER_MINUTE` | Integer | `10` | Sliding window request rate limit per minute per client IP. |
+| `RATE_LIMIT_PER_DAY` | Integer | `100` | Sliding window request rate limit per day per client IP. |
+| `TRUSTED_PROXY_HOPS` | Integer | `1` | Upstream proxy hops to trust when resolving client IP from `X-Forwarded-For`. |
+| `ALLOWED_ORIGIN` | String | `""` | Additional comma-separated origins for CORS header whitelist. |
+| `DISABLE_RATE_LIMIT` | Boolean | `false` | Set to `true` to disable sliding-window rate limiting for local stress testing. |
+
 ### Step 1: Clone Repository
 ```bash
 git clone https://github.com/NikhilPande008/AuraPulse-AI.git
-cd "AuraPulse AI"
+cd AuraPulse-AI
 ```
 
 ### Step 2: Backend Setup (FastAPI Gateway)
@@ -196,28 +218,28 @@ Open **[http://localhost:3000](http://localhost:3000)** in your browser. Next.js
 
 AuraPulse AI enforces comprehensive test coverage across backend business logic, dynamic backwards timelines, Gemini generation, contingency solvers, Places API grounding, Vitest frontend unit tests, and Playwright end-to-end accessibility scans:
 
-### Backend Pytest Suite (59/59 Passing)
+### Backend Pytest Suite (67/67 Passing)
 ```bash
 $ pytest backend/tests -v -m "not live"
 ============================= test session starts ==============================
 backend/tests/test_api_endpoints.py::test_health_endpoint PASSED         [  1%]
-backend/tests/test_api_endpoints.py::test_deconstruct_endpoint PASSED    [  3%]
-backend/tests/test_api_endpoints.py::test_simulate_contingency_endpoint PASSED [  5%]
-backend/tests/test_api_endpoints.py::test_vendor_discovery_endpoint PASSED [  6%]
-backend/tests/test_api_endpoints.py::test_sheets_export_endpoint PASSED  [  8%]
-backend/tests/test_batch2_features.py::test_timeline_backwards_calculation PASSED [ 10%]
-backend/tests/test_batch2_features.py::test_budget_scaling PASSED        [ 11%]
-backend/tests/test_batch2_features.py::test_validation_boundaries PASSED [ 13%]
-backend/tests/test_batch2_features.py::test_no_implicit_preset_fallback_and_503_error PASSED [ 15%]
-backend/tests/test_batch2_features.py::test_copilot_tool_budget_cut_endpoint PASSED [ 16%]
-backend/tests/test_batch2_features.py::test_copilot_language_awareness_marathi_hindi PASSED [ 18%]
-backend/tests/test_batch2_features.py::test_mocked_gemini_custom_plan_generation PASSED [ 20%]
-backend/tests/test_batch2_features.py::test_supply_failure_with_empty_vendor_list_no_500 PASSED [ 22%]
-backend/tests/test_batch2_features.py::test_weather_contingency_respects_ceiling_or_warns PASSED [ 23%]
-backend/tests/test_batch2_features.py::test_copilot_apply_tool_calls_server_side PASSED [ 25%]
-backend/tests/test_batch2_features.py::test_custom_preset_routes_to_gemini_not_fixture PASSED [ 27%]
-backend/tests/test_batch2_features.py::test_health_reports_gemini_configured_flag PASSED [ 28%]
-backend/tests/test_batch2_features.py::test_rate_limit_returns_429 PASSED [ 30%]
+backend/tests/test_api_endpoints.py::test_deconstruct_endpoint PASSED    [  2%]
+backend/tests/test_api_endpoints.py::test_simulate_contingency_endpoint PASSED [  4%]
+backend/tests/test_api_endpoints.py::test_vendor_discovery_endpoint PASSED [  5%]
+backend/tests/test_api_endpoints.py::test_sheets_export_endpoint PASSED  [  7%]
+backend/tests/test_batch2_features.py::test_timeline_backwards_calculation PASSED [  8%]
+backend/tests/test_batch2_features.py::test_budget_scaling PASSED        [ 10%]
+backend/tests/test_batch2_features.py::test_validation_boundaries PASSED [ 11%]
+backend/tests/test_batch2_features.py::test_no_implicit_preset_fallback_and_503_error PASSED [ 13%]
+backend/tests/test_batch2_features.py::test_copilot_tool_budget_cut_endpoint PASSED [ 14%]
+backend/tests/test_batch2_features.py::test_copilot_language_awareness_marathi_hindi PASSED [ 16%]
+backend/tests/test_batch2_features.py::test_mocked_gemini_custom_plan_generation PASSED [ 17%]
+backend/tests/test_batch2_features.py::test_supply_failure_with_empty_vendor_list_no_500 PASSED [ 19%]
+backend/tests/test_batch2_features.py::test_weather_contingency_respects_ceiling_or_warns PASSED [ 20%]
+backend/tests/test_batch2_features.py::test_copilot_apply_tool_calls_server_side PASSED [ 22%]
+backend/tests/test_batch2_features.py::test_custom_preset_routes_to_gemini_not_fixture PASSED [ 23%]
+backend/tests/test_batch2_features.py::test_health_reports_gemini_configured_flag PASSED [ 25%]
+backend/tests/test_batch2_features.py::test_rate_limit_returns_429 PASSED [ 26%]
 backend/tests/test_batch2_features.py::test_plan_request_string_and_array_limits PASSED [ 32%]
 backend/tests/test_batch2_features.py::test_budget_compression_reports_shortfall PASSED [ 33%]
 backend/tests/test_contingency.py::test_weather_risk_contingency PASSED  [ 35%]
@@ -299,12 +321,9 @@ $ cd frontend && npx tsc --noEmit
 # 0 errors
 
 $ cd frontend && npm run build
-✓ Compiled successfully in 546ms
+✓ Compiled successfully
 ✓ Generating static pages (4/4)
 ✓ Finalizing page optimization
-```
-$ cd frontend && npm run build
-# ✓ Compiled successfully (zero TypeScript or ESLint errors)
 ```
 
 ---
@@ -315,48 +334,72 @@ $ cd frontend && npm run build
 AuraPulse-AI/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py                       # FastAPI gateway, HTTP routers & health endpoints
-│   │   ├── config.py                     # Environment variables & API keys
-│   │   ├── schemas/
-│   │   │   ├── event_plan.py             # MasterEventPlan, BOQItem, PlanningMilestone, PlanRequest
-│   │   │   └── contingency.py            # CrisisTrigger, ContingencyDiff
-│   │   ├── agents/
+│   │   ├── main.py                       # FastAPI application gateway & middleware
+│   │   ├── config.py                     # Validated Pydantic BaseSettings configuration
+│   │   ├── api/                          # HTTP endpoints & presentation models
+│   │   │   ├── models.py                 # Pydantic request & response schemas
+│   │   │   └── routes/                   # Modular controllers (health, aura, pulse, integrations, export, studio)
+│   │   ├── agents/                       # Autonomous agent workflows
 │   │   │   ├── aura_vision.py            # Multimodal vision & preset router
-│   │   │   ├── copilot.py                # Multi-turn tool calling replanner
-│   │   │   └── pulse_engine.py           # Deterministic contingency rebalancing engine
+│   │   │   ├── pulse_engine.py           # Contingency solver & crisis strategy dispatch
+│   │   │   ├── generator_studio.py       # Imagen 3 generative staging agent
+│   │   │   └── copilot/                  # Modular conversational co-pilot package
+│   │   │       ├── service.py            # Chat copilot orchestrator
+│   │   │       ├── tools.py              # Tool execution functions
+│   │   │       ├── dispatch.py           # Tool registry & Pydantic argument models
+│   │   │       ├── gemini_path.py        # Gemini function-calling pipeline
+│   │   │       ├── diff_builder.py       # Standardized ContingencyDiff constructor
+│   │   │       └── offline/              # Multilingual offline intent solver (en, hi, mr)
+│   │   ├── core/                         # Cross-cutting infrastructure
+│   │   │   ├── constants.py              # Operational ceilings, byte limits, timeouts
+│   │   │   ├── errors.py                 # Centralized exception handlers & error mapping
+│   │   │   ├── middleware.py             # 6MB body limit & sliding-window rate limit
+│   │   │   └── rate_limit.py             # In-memory sliding-window limiter
 │   │   ├── fixtures/
-│   │   │   └── sample_plans.py           # Isolated test & demo presets
+│   │   │   └── sample_plans.py           # Curated preset event plans for instant offline intake
+│   │   ├── integrations/
+│   │   │   ├── google_maps.py            # Google Maps Places API (New) client
+│   │   │   ├── google_calendar.py        # RFC-5545 .ics & web intent generator
+│   │   │   └── google_sheets.py          # Formula-driven workbook generator
 │   │   ├── llm/
-│   │   │   └── client.py                 # Async Gemini 2.5 Flash generator & schema guidance
-│   │   ├── services/
-│   │   │   ├── budget.py                 # Deterministic rebalance & line-total calculations
-│   │   │   └── timeline.py               # Backwards milestone planning logic
-│   │   └── integrations/
-│   │       ├── google_maps.py            # Google Maps Places API (New) client
-│   │       ├── google_calendar.py        # RFC-5545 .ics & web intent generator
-│   │       └── google_sheets.py          # Formula-driven workbook generator
-│   ├── tests/                            # 59 automated pytest tests
+│   │   │   └── client.py                 # Async Gemini client with retry backoff & typed exceptions
+│   │   ├── prompts/                      # Cached versioned prompt templates
+│   │   │   ├── loader.py
+│   │   │   ├── plan_generation.v1.md
+│   │   │   ├── plan_user_payload.v1.md
+│   │   │   └── copilot_system.v1.md
+│   │   ├── schemas/                      # Domain models (MasterEventPlan, BOQItem, ContingencyDiff)
+│   │   └── services/                     # Business logic (budget rebalance, timeline milestones)
+│   ├── tests/                            # 67 automated pytest tests (CC <= 10, MI Rank A)
 │   ├── requirements.txt
 │   ├── requirements-dev.txt
 │   └── pyproject.toml
 ├── frontend/
 │   ├── src/
 │   │   ├── app/                          # Next.js 15 App Router
-│   │   │   ├── layout.tsx                # Dynamic status strip & theme header
-│   │   │   ├── page.tsx                  # Main interactive dashboard
+│   │   │   ├── layout.tsx                # Status strip & theme header
+│   │   │   ├── page.tsx                  # Main dashboard (< 250 lines)
 │   │   │   └── globals.css
 │   │   ├── components/
-│   │   │   ├── MoodboardUploader.tsx     # Intake form with date, city, budget, presets
+│   │   │   ├── intake/                   # Modular intake components (Dropzone, Form, Presets, Studio)
+│   │   │   ├── vendor/                   # Modular vendor discovery components (Card, Filter, Checklist)
 │   │   │   ├── BoqTable.tsx              # 3-tier itemized procurement table
 │   │   │   ├── ScheduleTimeline.tsx      # Backwards milestone timeline & run-of-show
 │   │   │   ├── AICopilotBar.tsx          # Multi-turn co-pilot chat & diff dispatcher
 │   │   │   ├── ContingencyControls.tsx   # Instant crisis scenario simulation toolbar
 │   │   │   ├── DiffVisualizer.tsx        # Cost delta & rationales (+Added, ~Modified, -Removed)
-│   │   │   ├── VendorFinder.tsx          # Places API grounding & attribution links
 │   │   │   └── ExportActions.tsx         # RFC-5545 .ics download & Google Calendar intents
-│   │   ├── __tests__/                    # Vitest unit test suite (5 test files, 13 tests)
-│   │   └── lib/
-│   │       └── api.ts                    # Typed API client
+│   │   ├── fixtures/
+│   │   │   └── fallbackPlan.ts           # Isolated default master event plan fixture
+│   │   ├── hooks/
+│   │   │   └── usePlanState.ts           # Unified plan state, history, and active tab management
+│   │   ├── lib/
+│   │   │   ├── api.ts                    # Re-export client API facade
+│   │   │   ├── client.ts                 # Typed fetch client with dev error reporting
+│   │   │   └── endpoints.ts              # Typed API endpoint functions
+│   │   ├── types/
+│   │   │   └── plan.ts                   # Centralized TypeScript definitions
+│   │   └── __tests__/                    # Vitest unit test suite (5 test files, 13 tests)
 │   ├── e2e/                              # Playwright e2e tests & fixtures
 │   ├── package.json
 │   └── tsconfig.json

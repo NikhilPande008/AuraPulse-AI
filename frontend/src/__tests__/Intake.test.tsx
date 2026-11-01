@@ -30,14 +30,14 @@ describe("MoodboardUploader component", () => {
     const onPlanLoaded = vi.fn();
     const setIsLoading = vi.fn();
 
-    (global.fetch as any).mockResolvedValueOnce({
+    vi.mocked(global.fetch).mockResolvedValueOnce({
       ok: false,
       status: 503,
       json: async () => ({
         code: "GENERATION_FAILED",
         message: "Failed to generate event plan via Gemini. Please retry or choose a preset.",
       }),
-    });
+    } as Response);
 
     render(
       <MoodboardUploader
@@ -47,7 +47,7 @@ describe("MoodboardUploader component", () => {
       />
     );
 
-    const generateBtn = screen.getByRole("button", { name: /Generate plan with Gemini/i });
+    const generateBtn = screen.getByRole("button", { name: /Generate.*Gemini/i });
     fireEvent.click(generateBtn);
 
     await waitFor(() => {
@@ -64,26 +64,28 @@ describe("MoodboardUploader component", () => {
     const onPlanLoaded = vi.fn();
     const setIsLoading = vi.fn();
 
-    let capturedBody: any = null;
-    (global.fetch as any).mockImplementationOnce(async (_url: string, opts: any) => {
-      if (opts && opts.body) {
-        capturedBody = JSON.parse(opts.body);
+    let capturedBody: Record<string, unknown> | null = null;
+    vi.mocked(global.fetch).mockImplementationOnce(
+      async (_url: RequestInfo | URL, opts?: RequestInit) => {
+        if (opts && typeof opts.body === "string") {
+          capturedBody = JSON.parse(opts.body) as Record<string, unknown>;
+        }
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            event_name: "Custom Meadow Celebration",
+            total_budget_limit: 1500000,
+            current_estimated_total: 1400000,
+            boq: [],
+            schedule: [],
+            planning_milestones: [],
+            vendor_checklist: [],
+            contingencies: [],
+          }),
+        } as Response;
       }
-      return {
-        ok: true,
-        status: 200,
-        json: async () => ({
-          event_name: "Custom Meadow Celebration",
-          total_budget_limit: 1500000,
-          current_estimated_total: 1400000,
-          boq: [],
-          schedule: [],
-          planning_milestones: [],
-          vendor_checklist: [],
-          contingencies: [],
-        }),
-      };
-    });
+    );
 
     render(
       <MoodboardUploader
@@ -93,7 +95,7 @@ describe("MoodboardUploader component", () => {
       />
     );
 
-    const generateBtn = screen.getByRole("button", { name: /Generate plan with Gemini/i });
+    const generateBtn = screen.getByRole("button", { name: /Generate.*Gemini/i });
     fireEvent.click(generateBtn);
 
     await waitFor(() => {

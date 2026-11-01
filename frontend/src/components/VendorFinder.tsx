@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { MapPin, Star, Phone, Search, ExternalLink, ShieldCheck, RefreshCw, CheckCircle2, ListChecks, Plus } from "lucide-react";
 import { fetchVendors, VendorChecklistItem } from "../lib/api";
 
@@ -72,7 +72,12 @@ export default function VendorFinder({
     }
   }, [checklist]);
 
-  const loadVendors = async (searchQuery: string, targetCity: string) => {
+  const queryRef = useRef(query);
+  useEffect(() => {
+    queryRef.current = query;
+  }, [query]);
+
+  const loadVendors = useCallback(async (searchQuery: string, targetCity: string) => {
     setLoading(true);
     try {
       const data = await fetchVendors(searchQuery, targetCity, 4.0);
@@ -85,11 +90,11 @@ export default function VendorFinder({
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    loadVendors(query, city);
-  }, [city]);
+    loadVendors(queryRef.current, city);
+  }, [city, loadVendors]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

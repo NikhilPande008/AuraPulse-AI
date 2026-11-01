@@ -73,3 +73,18 @@ gcloud run services update-traffic aurapulse-web \
   --to-revisions PREVIOUS_REVISION_NAME=100 \
   --region asia-south1
 ```
+
+## Custom Domain Mapping (Optional)
+
+To map a custom domain (e.g., `aurapulse.ai` or `app.example.com`):
+
+1. Map the custom domain to the frontend Cloud Run service:
+   ```bash
+   gcloud beta run domain-mappings create \
+     --service=aurapulse-web \
+     --domain=app.example.com \
+     --region=asia-south1
+   ```
+2. Update DNS records with the DNS Resource Records (CNAME / A) returned by the command.
+3. Update `ALLOWED_ORIGIN` on the backend service to include `https://app.example.com`.
+

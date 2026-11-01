@@ -8,35 +8,67 @@
 [![Google Places API New](https://img.shields.io/badge/Google%20Maps-Places%20API%20(New)-34A853?style=for-the-badge&logo=googlemaps&logoColor=white)](https://developers.google.com/maps/documentation/places/web-service/op-overview)
 [![Next.js 15](https://img.shields.io/badge/Next.js-15%20App%20Router-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Python%203.12-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![Pytest 54/54 Passing](https://img.shields.io/badge/Pytest-54%2F54%20Passing%20(100%25)-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](#-5-automated-testing--verification)
+[![Pytest 59/59 Passing](https://img.shields.io/badge/Pytest-59%2F59%20Passing%20(100%25)-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](#-6-automated-testing--verification)
+[![Vitest 13/13 Passing](https://img.shields.io/badge/Vitest-13%2F13%20Passing-brightgreen?style=for-the-badge&logo=vitest&logoColor=white)](#-6-automated-testing--verification)
+[![Playwright 4/4 Passing](https://img.shields.io/badge/Playwright-4%2F4%20Passing-brightgreen?style=for-the-badge&logo=playwright&logoColor=white)](#-6-automated-testing--verification)
 
 ---
+
+> [!NOTE]
+> **Note on live deployment**: A public demo URL has not been provisioned yet. To run the app locally, follow the Quick Start below. When deployed to Cloud Run, follow [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ## ⚡ Quick Navigation for Judges
-* **Live Demo**: [LIVE_DEMO_URL_PLACEHOLDER]
-* **Demo Video Walkthrough**: [DEMO_VIDEO_URL_PLACEHOLDER]
 * **Cloud Run Deployment Guide**: [`docs/DEPLOY.md`](docs/DEPLOY.md)
 * **GitHub Repository**: [https://github.com/NikhilPande008/AuraPulse-AI.git](https://github.com/NikhilPande008/AuraPulse-AI.git)
+* **Demo Video Walkthrough**: [TODO: Record demo video post-deployment]
 
 ---
 
-## ⚡ 1. Judge Quick-Start (First 30 Seconds)
+## ⚡ 1. Judge Quick-Start & Local Run
 
-AuraPulse AI bridges the gap between aesthetic inspiration and real-world event resilience. To evaluate the live dashboard with zero friction:
+AuraPulse AI bridges the gap between aesthetic inspiration and real-world event resilience.
 
-1. **Launch the Dashboard**: Open [http://localhost:3000](http://localhost:3000).
-2. **Instant One-Click Presets or Real Gemini Planning**:
+### Step 1: Clone & Install
+```bash
+git clone https://github.com/NikhilPande008/AuraPulse-AI.git
+cd "AuraPulse AI"
+
+# Backend virtualenv & dependencies
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r backend/requirements.txt
+
+# Frontend dependencies
+cd frontend && npm ci && cd ..
+```
+
+### Step 2: Run Locally
+In Terminal 1 (Backend Gateway on port 8000):
+```bash
+source .venv/bin/activate
+uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000 --reload
+```
+
+In Terminal 2 (Frontend App on port 3000):
+```bash
+cd frontend
+npm run dev
+```
+
+Open **[http://localhost:3000](http://localhost:3000)** in your browser. Next.js automatically proxies `/api/*` requests to the FastAPI backend.
+
+### Step 3: Evaluate Core Workflows (First 30 Seconds)
+1. **Instant One-Click Presets or Real Gemini Planning**:
    * Click any of the 3 pre-calibrated demo cards at the top of the interface:
      * 🌸 **Meadow Wedding**: Pune | 300 Pax | ₹15,00,000 | Pampas arch, 2,000 ft Edison festoons, farm-to-table banquet.
      * ⚡ **Cyberpunk Birthday**: Mumbai | 60 Pax | ₹2,50,000 | Violet & electric cyan wash, wireless Astera tubes, DJ synthwave rig.
      * 🪔 **Diwali Mela**: Pune | 800 Pax | ₹5,00,000 | Marigold yellow, zero-plastic food stalls, Puneri Dhol Tasha troupe.
    * Or upload an image and input custom parameters (`event_date`, `city`, `headcount`, `budget`, `culture_region`) to generate a plan via **Gemini 2.5 Flash**.
-3. **Trigger Real-Time Contingency**:
+2. **Trigger Real-Time Contingency**:
    * Click **`🌧️ Rain Storm Alert`**: Watch the engine automatically inject an emergency German Pagoda marquee into the BOQ, lock Tier-1 items, move outdoor schedule blocks, and trim Tier-3 discretionary florals to offset budget impact.
    * Click **`💸 Cut 20% Budget`**: Observe mathematical surgical trimming of Tier-3 lines while preserving Tier-1 guest safety, power, and food.
-4. **Chat with AI Co-Pilot**:
+3. **Chat with AI Co-Pilot**:
    * Use natural language in the Co-Pilot bar: *"Reduce budget by 15%"*, *"Add live saxophone player"*, or *"Swap menu for Maharashtrian cuisine"*. The co-pilot invokes structured tool calls (`scale_budget`, `add_item`, `remove_item`, `set_event_date`) and outputs visual diffs.
-5. **Authentic Google Calendar & iCal Export**:
+4. **Authentic Google Calendar & iCal Export**:
    * Click **"📅 Download iCal (.ics)"** to export standard RFC-5545 calendar files with milestone due dates and day-of schedule blocks (`Asia/Kolkata`).
    * Click **"🔗 Add to Google Calendar"** for zero-permission web intent synchronization.
 
@@ -107,7 +139,16 @@ flowchart TD
 
 ---
 
-## 🛠️ 4. Local Development Guide
+## ⚠️ 4. Known Limitations & Design Boundaries
+
+1. **Budget Compression Limits (>40%)**: When budget reductions exceed 40%, the contingency engine reports an explicit shortfall warning because Tier-1 Critical deliverables (food safety, emergency weather shelter, primary electrical generators) are locked and protected from arbitrary cuts by design.
+2. **Google Places Grounding Key Requirement**: Google Maps Places API requires an active `GOOGLE_MAPS_API_KEY` with Places API (New) enabled. When unconfigured, the UI honestly renders an empty vendor catalog with an inactive badge (`Places Grounding: Inactive`), adhering strictly to zero fabricated vendors.
+3. **Google Sheets OAuth / Service Account**: Google Sheets workbook export requires a service account JSON with Google Sheets API access. In the absence of credentials, the endpoint returns an explicit `503 SHEETS_NOT_CONFIGURED` error rather than silent failure.
+4. **Deterministic Offline Fallback**: When `GEMINI_API_KEY` is unconfigured, the system enters a deterministic rule-based offline fallback mode that serves pre-validated event architectures, backwards planning schedules, and mathematical diff computations without crashing.
+
+---
+
+## 🛠️ 5. Local Development Guide
 
 ### Prerequisites
 * Python 3.12+ (or Python 3.14)
@@ -145,67 +186,124 @@ Open **[http://localhost:3000](http://localhost:3000)** in your browser. Next.js
 
 ---
 
-## 🧪 5. Automated Testing & Verification
+## 🧪 6. Automated Testing & Verification
 
-AuraPulse AI enforces comprehensive test coverage across data schemas, dynamic backwards timelines, Gemini generation, contingency solvers, Places API grounding, and RFC-5545 calendar exports:
+AuraPulse AI enforces comprehensive test coverage across backend business logic, dynamic backwards timelines, Gemini generation, contingency solvers, Places API grounding, Vitest frontend unit tests, and Playwright end-to-end accessibility scans:
 
+### Backend Pytest Suite (59/59 Passing)
 ```bash
-$ pytest backend/tests -v -p no:cacheprovider
-
+$ pytest backend/tests -v -m "not live"
 ============================= test session starts ==============================
-backend/tests/test_api_endpoints.py::test_health_endpoint PASSED         [  2%]
-backend/tests/test_api_endpoints.py::test_deconstruct_endpoint PASSED    [  5%]
-backend/tests/test_api_endpoints.py::test_simulate_contingency_endpoint PASSED [  7%]
-backend/tests/test_api_endpoints.py::test_vendor_discovery_endpoint PASSED [ 10%]
-backend/tests/test_api_endpoints.py::test_sheets_export_endpoint PASSED  [ 12%]
-backend/tests/test_batch2_features.py::test_timeline_backwards_calculation PASSED [ 15%]
-backend/tests/test_batch2_features.py::test_budget_scaling PASSED        [ 17%]
-backend/tests/test_batch2_features.py::test_validation_boundaries PASSED [ 20%]
-backend/tests/test_batch2_features.py::test_no_implicit_preset_fallback_and_503_error PASSED [ 22%]
-backend/tests/test_batch2_features.py::test_copilot_tool_budget_cut_endpoint PASSED [ 25%]
-backend/tests/test_batch2_features.py::test_copilot_language_awareness_marathi_hindi PASSED [ 27%]
-backend/tests/test_batch2_features.py::test_mocked_gemini_custom_plan_generation PASSED [ 30%]
-backend/tests/test_batch2_features.py::test_supply_failure_with_empty_vendor_list_no_500 PASSED [ 32%]
-backend/tests/test_batch2_features.py::test_weather_contingency_respects_ceiling_or_warns PASSED [ 35%]
-backend/tests/test_batch2_features.py::test_copilot_apply_tool_calls_server_side PASSED [ 37%]
-backend/tests/test_batch2_features.py::test_custom_preset_routes_to_gemini_not_fixture PASSED [ 40%]
-backend/tests/test_batch2_features.py::test_health_reports_gemini_configured_flag PASSED [ 42%]
-backend/tests/test_batch2_features.py::test_rate_limit_returns_429 PASSED [ 45%]
-backend/tests/test_batch2_features.py::test_plan_request_string_and_array_limits PASSED [ 47%]
-backend/tests/test_batch2_features.py::test_budget_compression_reports_shortfall PASSED [ 50%]
-backend/tests/test_contingency.py::test_weather_risk_contingency PASSED  [ 52%]
-backend/tests/test_contingency.py::test_budget_compression_contingency PASSED [ 55%]
-backend/tests/test_contingency.py::test_timeline_slippage_contingency PASSED [ 57%]
-backend/tests/test_edge_cases.py::test_copilot_endpoint_cultural_cuisine_swap PASSED [ 60%]
-backend/tests/test_edge_cases.py::test_copilot_endpoint_floral_cut_and_sax PASSED [ 62%]
-backend/tests/test_edge_cases.py::test_copilot_party_games_birthday PASSED [ 65%]
-backend/tests/test_edge_cases.py::test_copilot_cultural_sakhar_puda_milestone PASSED [ 67%]
-backend/tests/test_edge_cases.py::test_budget_scale_boundary_small_vs_luxury PASSED [ 70%]
-backend/tests/test_edge_cases.py::test_headcount_scaling_invariants PASSED [ 72%]
-backend/tests/test_edge_cases.py::test_backwards_date_leap_year_and_short_horizon PASSED [ 75%]
-backend/tests/test_integrations.py::test_places_api_new_parsing PASSED   [ 77%]
-backend/tests/test_integrations.py::test_places_api_honest_fallback_unconfigured PASSED [ 80%]
-backend/tests/test_integrations.py::test_rfc5545_calendar_export_ics PASSED [ 82%]
-backend/tests/test_integrations.py::test_calendar_ics_api_endpoint PASSED [ 85%]
-backend/tests/test_google_calendar_web_intent PASSED                     [ 87%]
-backend/tests/test_integrations.py::test_google_sheets_export_formulas PASSED [ 90%]
-backend/tests/test_integrations.py::test_ics_escaping_folding_and_crlf PASSED [ 92%]
-backend/tests/test_schemas.py::test_boq_item_strict_validation PASSED    [ 95%]
-backend/tests/test_schemas.py::test_master_event_plan_structure PASSED   [ 97%]
-backend/tests/test_schemas.py::test_crisis_trigger_model PASSED          [100%]
+backend/tests/test_api_endpoints.py::test_health_endpoint PASSED         [  1%]
+backend/tests/test_api_endpoints.py::test_deconstruct_endpoint PASSED    [  3%]
+backend/tests/test_api_endpoints.py::test_simulate_contingency_endpoint PASSED [  5%]
+backend/tests/test_api_endpoints.py::test_vendor_discovery_endpoint PASSED [  6%]
+backend/tests/test_api_endpoints.py::test_sheets_export_endpoint PASSED  [  8%]
+backend/tests/test_batch2_features.py::test_timeline_backwards_calculation PASSED [ 10%]
+backend/tests/test_batch2_features.py::test_budget_scaling PASSED        [ 11%]
+backend/tests/test_batch2_features.py::test_validation_boundaries PASSED [ 13%]
+backend/tests/test_batch2_features.py::test_no_implicit_preset_fallback_and_503_error PASSED [ 15%]
+backend/tests/test_batch2_features.py::test_copilot_tool_budget_cut_endpoint PASSED [ 16%]
+backend/tests/test_batch2_features.py::test_copilot_language_awareness_marathi_hindi PASSED [ 18%]
+backend/tests/test_batch2_features.py::test_mocked_gemini_custom_plan_generation PASSED [ 20%]
+backend/tests/test_batch2_features.py::test_supply_failure_with_empty_vendor_list_no_500 PASSED [ 22%]
+backend/tests/test_batch2_features.py::test_weather_contingency_respects_ceiling_or_warns PASSED [ 23%]
+backend/tests/test_batch2_features.py::test_copilot_apply_tool_calls_server_side PASSED [ 25%]
+backend/tests/test_batch2_features.py::test_custom_preset_routes_to_gemini_not_fixture PASSED [ 27%]
+backend/tests/test_batch2_features.py::test_health_reports_gemini_configured_flag PASSED [ 28%]
+backend/tests/test_batch2_features.py::test_rate_limit_returns_429 PASSED [ 30%]
+backend/tests/test_batch2_features.py::test_plan_request_string_and_array_limits PASSED [ 32%]
+backend/tests/test_batch2_features.py::test_budget_compression_reports_shortfall PASSED [ 33%]
+backend/tests/test_contingency.py::test_weather_risk_contingency PASSED  [ 35%]
+backend/tests/test_contingency.py::test_budget_compression_contingency PASSED [ 37%]
+backend/tests/test_contingency.py::test_timeline_slippage_contingency PASSED [ 38%]
+backend/tests/test_edge_cases.py::test_copilot_endpoint_cultural_cuisine_swap PASSED [ 40%]
+backend/tests/test_edge_cases.py::test_copilot_endpoint_floral_cut_and_sax PASSED [ 42%]
+backend/tests/test_edge_cases.py::test_copilot_party_games_birthday PASSED [ 44%]
+backend/tests/test_edge_cases.py::test_copilot_cultural_sakhar_puda_milestone PASSED [ 45%]
+backend/tests/test_edge_cases.py::test_budget_scale_boundary_small_vs_luxury PASSED [ 47%]
+backend/tests/test_edge_cases.py::test_headcount_scaling_invariants PASSED [ 49%]
+backend/tests/test_edge_cases.py::test_backwards_date_leap_year_and_short_horizon PASSED [ 50%]
+backend/tests/test_headcount.py::test_add_50_guests_increases_from_300_to_350 PASSED [ 52%]
+backend/tests/test_headcount.py::test_set_guests_to_250_is_absolute PASSED [ 54%]
+backend/tests/test_headcount.py::test_change_headcount_out_of_range_warns PASSED [ 55%]
+backend/tests/test_headcount.py::test_copilot_dispatches_change_headcount PASSED [ 57%]
+backend/tests/test_headcount.py::test_hindi_and_marathi_headcount_updates PASSED [ 59%]
+backend/tests/test_integrations.py::test_places_api_new_parsing PASSED   [ 61%]
+backend/tests/test_integrations.py::test_places_api_honest_fallback_unconfigured PASSED [ 62%]
+backend/tests/test_integrations.py::test_rfc5545_calendar_export_ics PASSED [ 64%]
+backend/tests/test_integrations.py::test_calendar_ics_api_endpoint PASSED [ 66%]
+backend/tests/test_integrations.py::test_google_calendar_web_intent PASSED [ 67%]
+backend/tests/test_integrations.py::test_google_sheets_export_formulas PASSED [ 69%]
+backend/tests/test_integrations.py::test_ics_escaping_folding_and_crlf PASSED [ 71%]
+backend/tests/test_no_hardcoded_dates.py::test_no_hardcoded_dates_in_production_code PASSED [ 72%]
+backend/tests/test_no_hardcoded_dates.py::test_preset_without_date_gets_future_event_date_and_milestones PASSED [ 74%]
+backend/tests/test_offline_copilot_batch4.py::test_offline_declines_injection_and_off_topic PASSED [ 76%]
+backend/tests/test_offline_copilot_batch4.py::test_offline_parses_absolute_date_move PASSED [ 77%]
+backend/tests/test_offline_copilot_batch4.py::test_offline_parses_relative_two_weeks_earlier PASSED [ 79%]
+backend/tests/test_offline_copilot_batch4.py::test_offline_rejects_past_date_move PASSED [ 81%]
+backend/tests/test_offline_copilot_batch4.py::test_offline_declines_college_essay PASSED [ 83%]
+backend/tests/test_offline_copilot_batch4.py::test_offline_declines_hindi_homework PASSED [ 84%]
+backend/tests/test_offline_copilot_batch4.py::test_hindi_add_50_guests_300_to_350 PASSED [ 86%]
+backend/tests/test_offline_copilot_batch4.py::test_marathi_add_50_guests_300_to_350 PASSED [ 88%]
+backend/tests/test_offline_copilot_batch4.py::test_hindi_remove_50_guests_300_to_250 PASSED [ 89%]
+backend/tests/test_schemas.py::test_boq_item_strict_validation PASSED    [ 91%]
+backend/tests/test_schemas.py::test_master_event_plan_structure PASSED   [ 93%]
+backend/tests/test_schemas.py::test_crisis_trigger_model PASSED          [ 94%]
+backend/tests/test_security_batch3.py::test_spoofed_leftmost_xff_does_not_bypass_limit PASSED [ 96%]
+backend/tests/test_security_batch3.py::test_limiter_prunes_old_entries PASSED [ 98%]
+backend/tests/test_security_batch3.py::test_copilot_system_prompt_in_config_not_contents PASSED [100%]
 
-======================== 54 passed, 1 skipped in 0.64s (100% Green) ========================
+================== 59 passed, 1 deselected, 1 warning in 0.75s ==================
 ```
 
-Frontend production build check:
+### Frontend Vitest Unit Suite (13/13 Passing)
 ```bash
+$ cd frontend && npx vitest run
+ ✓ src/__tests__/dates.test.ts (5)
+ ✓ src/__tests__/InlineError.test.tsx (3)
+ ✓ src/__tests__/Intake.test.tsx (3)
+ ✓ src/__tests__/Tabs.test.tsx (1)
+ ✓ src/__tests__/Persistence.test.tsx (1)
+
+ Test Files  5 passed (5)
+      Tests  13 passed (13)
+```
+
+### Playwright End-to-End & WCAG 2.1 AA Accessibility (4/4 Passing)
+```bash
+$ cd frontend && npx playwright test
+Running 4 tests using 4 workers
+  ✓ 1. Core Flow: generates plan, cuts budget by 20% via copilot, and exports .ics (1.2s)
+  ✓ 2. Error Path: displays 503 error alert and visible Retry button on generation failure (0.9s)
+  ✓ 3. Keyboard Navigation: tablist responds to arrow keys with roving focus and aria-selected (1.0s)
+  ✓ 4. Accessibility: page passes WCAG 2.1 AA scan with color-contrast enabled (1.2s)
+  4 passed (7.6s)
+```
+
+### Static Typecheck, Lint & Production Build
+```bash
+$ ruff check backend
+All checks passed!
+
+$ cd frontend && npm run lint
+✔ No ESLint warnings or errors
+
+$ cd frontend && npx tsc --noEmit
+# 0 errors
+
+$ cd frontend && npm run build
+✓ Compiled successfully in 546ms
+✓ Generating static pages (4/4)
+✓ Finalizing page optimization
+```
 $ cd frontend && npm run build
 # ✓ Compiled successfully (zero TypeScript or ESLint errors)
 ```
 
 ---
 
-## 📁 6. Repository Layout
+## 📁 7. Repository Layout
 
 ```
 AuraPulse-AI/
@@ -231,7 +329,7 @@ AuraPulse-AI/
 │   │       ├── google_maps.py            # Google Maps Places API (New) client
 │   │       ├── google_calendar.py        # RFC-5545 .ics & web intent generator
 │   │       └── google_sheets.py          # Formula-driven workbook generator
-│   ├── tests/                            # 54 automated pytest tests
+│   ├── tests/                            # 59 automated pytest tests
 │   ├── requirements.txt
 │   ├── requirements-dev.txt
 │   └── pyproject.toml
@@ -250,11 +348,14 @@ AuraPulse-AI/
 │   │   │   ├── DiffVisualizer.tsx        # Cost delta & rationales (+Added, ~Modified, -Removed)
 │   │   │   ├── VendorFinder.tsx          # Places API grounding & attribution links
 │   │   │   └── ExportActions.tsx         # RFC-5545 .ics download & Google Calendar intents
+│   │   ├── __tests__/                    # Vitest unit test suite (5 test files, 13 tests)
 │   │   └── lib/
 │   │       └── api.ts                    # Typed API client
+│   ├── e2e/                              # Playwright e2e tests & fixtures
 │   ├── package.json
 │   └── tsconfig.json
 ├── docs/
+│   ├── DEPLOY.md                         # Google Cloud Run deployment guide
 │   └── submission/
 │       ├── TECHNICAL_BLOG.md             # In-depth architectural article
 │       ├── LINKEDIN_POST.md              # Build-in-public social announcement
@@ -264,7 +365,7 @@ AuraPulse-AI/
 
 ---
 
-## 🏆 7. Hack2Skill Google PromptWars Submission Pack
+## 🏆 8. Hack2Skill Google PromptWars Submission Pack
 
 * **Deployment Guide**: [`docs/DEPLOY.md`](docs/DEPLOY.md)
 * **Technical Blog**: [`docs/submission/TECHNICAL_BLOG.md`](docs/submission/TECHNICAL_BLOG.md)

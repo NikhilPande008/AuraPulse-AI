@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import {
   Upload,
   Sparkles,
@@ -272,7 +273,7 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
               onClick={handleManualDeconstruct}
               className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-medium text-xs transition-colors focus-visible:ring-2 focus-visible:ring-white cursor-pointer"
             >
-              Try again
+              Retry
             </button>
             <button
               type="button"
@@ -312,9 +313,11 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
                   }`}
                 >
                   <div className="relative h-28 w-full overflow-hidden">
-                    <img
+                    <Image
                       src={preset.thumbnail}
                       alt={preset.name}
+                      width={400}
+                      height={200}
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute top-2 left-2">
@@ -371,6 +374,7 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
             {customImageBase64 ? (
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- data: URL preview; next/image can't optimise it */}
                   <img src={customImageBase64} alt="Custom upload" className="h-10 w-14 object-cover rounded-lg border border-purple-500/50" />
                   <div className="text-left">
                     <p className="text-xs font-semibold text-emerald-400 flex items-center gap-1">
@@ -390,14 +394,6 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
             ) : (
               <label
                 htmlFor="moodboard-file-input"
-                tabIndex={0}
-                role="button"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    document.getElementById("moodboard-file-input")?.click();
-                  }
-                }}
                 className="cursor-pointer block focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg p-2"
               >
                 <Upload className="w-5 h-5 mx-auto text-slate-400 mb-1" aria-hidden="true" />
@@ -527,6 +523,7 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
             </div>
             <input
               id="budget-slider"
+              aria-label="Budget ceiling in INR"
               type="range"
               min="20000"
               max="50000000"
@@ -594,6 +591,7 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
 
             <div className="p-4 space-y-3">
               <div className="relative aspect-video w-full rounded-xl overflow-hidden border border-slate-800 bg-black">
+                {/* eslint-disable-next-line @next/next/no-img-element -- data: URL preview; next/image can't optimise it */}
                 <img
                   src={studioResult.image_url}
                   alt={studioResult.prompt}
@@ -606,7 +604,7 @@ export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoadin
                   Concept Prompt:
                 </span>
                 <p className="text-xs text-slate-200 font-sans leading-relaxed">
-                  "{studioResult.prompt}"
+                  &ldquo;{studioResult.prompt}&rdquo;
                 </p>
               </div>
 

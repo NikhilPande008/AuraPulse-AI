@@ -34,6 +34,36 @@ export default function Dashboard() {
   const [liveAnnouncement, setLiveAnnouncement] = useState<string>("");
   const isHydrated = useRef(false);
 
+  const tabKeys: Array<"boq" | "schedule" | "vendors" | "export"> = ["boq", "schedule", "vendors", "export"];
+  const handleTabKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const currentIndex = tabKeys.indexOf(activeTab);
+    if (currentIndex === -1) return;
+
+    let targetIndex = -1;
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+      e.preventDefault();
+      targetIndex = (currentIndex + 1) % tabKeys.length;
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+      e.preventDefault();
+      targetIndex = (currentIndex - 1 + tabKeys.length) % tabKeys.length;
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      targetIndex = 0;
+    } else if (e.key === "End") {
+      e.preventDefault();
+      targetIndex = tabKeys.length - 1;
+    }
+
+    if (targetIndex !== -1) {
+      const targetTab = tabKeys[targetIndex];
+      setActiveTab(targetTab);
+      const tabElement = document.getElementById(`tab-workspace-${targetTab}`);
+      if (tabElement) {
+        tabElement.focus();
+      }
+    }
+  };
+
   // Restore state from localStorage if available
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -294,6 +324,7 @@ export default function Dashboard() {
           <div
             role="tablist"
             aria-label="Event plan workspaces"
+            onKeyDown={handleTabKeyDown}
             className="flex items-center border-b border-slate-800 gap-2"
           >
             <button
@@ -301,6 +332,7 @@ export default function Dashboard() {
               id="tab-workspace-boq"
               aria-controls="panel-workspace-boq"
               aria-selected={activeTab === "boq"}
+              tabIndex={activeTab === "boq" ? 0 : -1}
               onClick={() => setActiveTab("boq")}
               className={`px-4 py-2.5 text-xs font-bold font-mono transition-all border-b-2 cursor-pointer ${
                 activeTab === "boq"
@@ -315,6 +347,7 @@ export default function Dashboard() {
               id="tab-workspace-schedule"
               aria-controls="panel-workspace-schedule"
               aria-selected={activeTab === "schedule"}
+              tabIndex={activeTab === "schedule" ? 0 : -1}
               onClick={() => setActiveTab("schedule")}
               className={`px-4 py-2.5 text-xs font-bold font-mono transition-all border-b-2 cursor-pointer ${
                 activeTab === "schedule"
@@ -329,6 +362,7 @@ export default function Dashboard() {
               id="tab-workspace-vendors"
               aria-controls="panel-workspace-vendors"
               aria-selected={activeTab === "vendors"}
+              tabIndex={activeTab === "vendors" ? 0 : -1}
               onClick={() => setActiveTab("vendors")}
               className={`px-4 py-2.5 text-xs font-bold font-mono transition-all border-b-2 cursor-pointer ${
                 activeTab === "vendors"
@@ -343,6 +377,7 @@ export default function Dashboard() {
               id="tab-workspace-export"
               aria-controls="panel-workspace-export"
               aria-selected={activeTab === "export"}
+              tabIndex={activeTab === "export" ? 0 : -1}
               onClick={() => setActiveTab("export")}
               className={`px-4 py-2.5 text-xs font-bold font-mono transition-all border-b-2 cursor-pointer ${
                 activeTab === "export"

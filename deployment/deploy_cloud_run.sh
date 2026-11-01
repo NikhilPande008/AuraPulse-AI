@@ -102,10 +102,15 @@ if [ "${USE_SECRET_MANAGER}" = "true" ]; then
   # Grant secretAccessor role to runtime service account
   echo "✔ Ensuring ${RUNTIME_SA} has roles/secretmanager.secretAccessor..."
   for secret_name in GEMINI_API_KEY GOOGLE_MAPS_API_KEY; do
-    gcloud secrets add-iam-policy-binding "${secret_name}" \
+    if ! iam_err=$(gcloud secrets add-iam-policy-binding "${secret_name}" \
       --project="${PROJECT_ID}" \
       --member="serviceAccount:${RUNTIME_SA}" \
-      --role="roles/secretmanager.secretAccessor" >/dev/null 2>&1 || true
+      --role="roles/secretmanager.secretAccessor" 2>&1 >/dev/null); then
+      echo "⚠️ WARNING: Could not grant roles/secretmanager.secretAccessor to ${RUNTIME_SA} on ${secret_name}."
+      echo "   Details: ${iam_err}"
+      echo "   If the revision crashes with permission denied, run this as a project owner:"
+      echo "     gcloud secrets add-iam-policy-binding \"${secret_name}\" --project=\"${PROJECT_ID}\" --member=\"serviceAccount:${RUNTIME_SA}\" --role=\"roles/secretmanager.secretAccessor\""
+    fi
   done
 
   DEPLOY_FLAGS+=(

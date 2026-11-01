@@ -9,6 +9,7 @@ ARG ALLOW_LOCAL_BACKEND=false
 RUN if [ -z "$BACKEND_URL" ] && [ "$ALLOW_LOCAL_BACKEND" != "true" ]; then \
       echo "ERROR: pass --build-arg BACKEND_URL=https://<api>"; exit 1; fi
 ENV BACKEND_URL=$BACKEND_URL
+ENV BUILD_STANDALONE=true
 RUN npm run build
 
 FROM node:20-alpine AS runner

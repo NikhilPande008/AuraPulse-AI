@@ -94,3 +94,73 @@ async def test_offline_rejects_past_date_move():
     assert res_rel["mode"] == "offline_rules"
     assert res_rel["diff"] is None
     assert "in the past" in res_rel["copilot_reply"] or "Error" in res_rel["copilot_reply"]
+
+
+@pytest.mark.asyncio
+async def test_offline_declines_college_essay():
+    plan = create_preset_meadow_wedding()
+    res = await chat_copilot(
+        event_plan=plan,
+        user_prompt="Write a college essay about Shakespeare's Hamlet"
+    )
+    assert res["mode"] == "offline_rules"
+    assert res.get("declined") is True
+    assert "exclusively in event planning" in res["copilot_reply"]
+
+
+@pytest.mark.asyncio
+async def test_offline_declines_hindi_homework():
+    plan = create_preset_meadow_wedding()
+    res = await chat_copilot(
+        event_plan=plan,
+        user_prompt="मेरा गणित का होमवर्क पूरा कर दो"
+    )
+    assert res["mode"] == "offline_rules"
+    assert res.get("declined") is True
+    assert "कार्यक्रम" in res["copilot_reply"]
+
+
+@pytest.mark.asyncio
+async def test_hindi_add_50_guests_300_to_350():
+    plan = create_preset_meadow_wedding()
+    plan.headcount = 300
+
+    res = await chat_copilot(
+        event_plan=plan,
+        user_prompt="50 मेहमान और जोड़ो"
+    )
+    assert res["mode"] == "offline_rules"
+    assert res["updated_plan"].headcount == 350
+    assert res["diff"] is not None
+    assert "350" in res["copilot_reply"]
+
+
+@pytest.mark.asyncio
+async def test_marathi_add_50_guests_300_to_350():
+    plan = create_preset_meadow_wedding()
+    plan.headcount = 300
+
+    res = await chat_copilot(
+        event_plan=plan,
+        user_prompt="50 पाहुणे वाढवा"
+    )
+    assert res["mode"] == "offline_rules"
+    assert res["updated_plan"].headcount == 350
+    assert res["diff"] is not None
+    assert "350" in res["copilot_reply"]
+
+
+@pytest.mark.asyncio
+async def test_hindi_remove_50_guests_300_to_250():
+    plan = create_preset_meadow_wedding()
+    plan.headcount = 300
+
+    res = await chat_copilot(
+        event_plan=plan,
+        user_prompt="50 मेहमान कम करो"
+    )
+    assert res["mode"] == "offline_rules"
+    assert res["updated_plan"].headcount == 250
+    assert res["diff"] is not None
+    assert "250" in res["copilot_reply"]
+

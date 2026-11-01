@@ -71,6 +71,8 @@ lerna-debug.log*
 out/
 */out/
 .vercel
+test-results/
+playwright-report/
 
 # TypeScript build output
 *.tsbuildinfo

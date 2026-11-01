@@ -793,7 +793,21 @@ def _execute_deterministic_copilot(
             "stock price", "cryptocurrency", "bitcoin", "tell me a joke"
         ]
     )
-    if is_injection_or_off_topic:
+
+    event_context_words = [
+        "event", "wedding", "birthday", "party", "anniversary", "reception",
+        "conference", "sangeet", "mehendi", "haldi", "शादी", "विवाह",
+        "जन्मदिन", "कार्यक्रम", "लग्न", "सोहळा", "समारंभ", "उत्सव", "मेळावा"
+    ]
+    has_event_context = any(w in prompt_lower for w in event_context_words)
+
+    has_off_topic_pattern = (
+        bool(re.search(r"\b(essay|homework|assignment)\b", prompt_lower))
+        or any(k in prompt_lower for k in ["निबंध", "होमवर्क", "गृहपाठ"])
+        or (bool(re.search(r"\bwrite\s+(?:a\s+)?(?:poem|story|code|program)\b", prompt_lower)) and not has_event_context)
+    )
+
+    if is_injection_or_off_topic or has_off_topic_pattern:
         if lang == "mr":
             decline_reply = "मी केवळ कार्यक्रम नियोजन, बजेट, वेळापत्रक आणि पुरवठादार व्यवस्थापनात मदत करतो. कार्यक्रमाव्यतिरिक्त इतर विनंत्या हाताळण्यात मी असमर्थ आहे."
         elif lang == "hi":
@@ -939,13 +953,27 @@ def _execute_deterministic_copilot(
     # Intent 2: Headcount Change (Relative or Absolute)
     old_hc = getattr(updated_plan, "headcount", None) or 100
 
-    rel_hc_match = (
+    rel_pos_hc_match = (
         re.search(r"(?:add|increase)\s+(\d+)\s*(?:more\s+)?(?:guests?|pax|people)?", prompt_lower)
         or re.search(r"(?:add|increase)\s+(?:guests?|pax|people|headcount)\s+by\s+(\d+)", prompt_lower)
         or re.search(r"(\d+)\s*(?:more\s+)?(?:guests?|pax|people)\s*(?:add|increase)", prompt_lower)
-        or re.search(r"(\d+)\s*(?:मेहमान|अतिथि|पाहुणे)\s*(?:जोड़ो|बढ़ाओ|वाढवा|जोडा|अधिक)", prompt_lower)
-        or re.search(r"(?:मेहमान|अतिथि|पाहुणे)\s*(\d+)\s*(?:जोड़ो|बढ़ाओ|वाढवा|जोडा)", prompt_lower)
-        or re.search(r"(?:जोड़ो|बढ़ाओ|वाढवा|जोडा)\s*(\d+)\s*(?:मेहमान|अतिथि|पाहुणे)", prompt_lower)
+        or re.search(r"(\d+)\s*(?:मेहमान|अतिथि)\s*(?:और\s*)?(?:जोड़ो|बढ़ाओ|जोड़ो|बढ़ाओ)", prompt_lower)
+        or re.search(r"(\d+)\s+और\s+(?:मेहमान|अतिथि)", prompt_lower)
+        or re.search(r"(\d+)\s+(?:लोग|व्यक्ति)\s+और", prompt_lower)
+        or re.search(r"(\d+)\s*(?:पाहुणे)\s*(?:वाढवा|जोडा)", prompt_lower)
+        or re.search(r"(?:जोड़ो|बढ़ाओ|जोड़ो|बढ़ाओ)\s*(\d+)\s*(?:मेहमान|अतिथि|लोग)", prompt_lower)
+        or re.search(r"(?:वाढवा|जोडा)\s*(\d+)\s*(?:पाहुणे)", prompt_lower)
+        or re.search(r"(\d+)\s*(?:मेहमान|अतिथि|पाहुणे)\s*(?:अधिक)", prompt_lower)
+    )
+
+    rel_neg_hc_match = (
+        re.search(r"(?:reduce|cut|remove|decrease)\s+(\d+)\s*(?:guests?|pax|people)?", prompt_lower)
+        or re.search(r"(?:reduce|cut|remove|decrease)\s+(?:guests?|pax|people|headcount)\s+by\s+(\d+)", prompt_lower)
+        or re.search(r"(\d+)\s*(?:guests?|pax|people)\s*(?:less|fewer|reduce|cut|remove)", prompt_lower)
+        or re.search(r"(\d+)\s*(?:मेहमान|अतिथि|लोग)\s*कम(?:\s*(?:करो|करें|कीजिए))?", prompt_lower)
+        or re.search(r"(?:कम\s*(?:करो|करें|कीजिए))\s*(\d+)\s*(?:मेहमान|अतिथि|लोग)?", prompt_lower)
+        or re.search(r"(\d+)\s*(?:पाहुणे|लोक)\s*कमी(?:\s*(?:करा))?", prompt_lower)
+        or re.search(r"(?:कमी\s*करा)\s*(\d+)\s*(?:पाहुणे|लोक)?", prompt_lower)
     )
 
     abs_hc_match = (
@@ -959,9 +987,12 @@ def _execute_deterministic_copilot(
     )
 
     target_hc: Optional[int] = None
-    if rel_hc_match:
-        delta = int(rel_hc_match.group(1))
+    if rel_pos_hc_match:
+        delta = int(rel_pos_hc_match.group(1))
         target_hc = old_hc + delta
+    elif rel_neg_hc_match:
+        delta = int(rel_neg_hc_match.group(1))
+        target_hc = old_hc - delta
     elif abs_hc_match:
         target_hc = int(abs_hc_match.group(1))
 

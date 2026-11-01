@@ -86,7 +86,7 @@ async def generate_visual_alternative(
     Returns:
         Dict containing image_url, generation metadata, status, and source attribution.
     """
-    api_key = str(settings.GEMINI_API_KEY)
+    api_key = settings.gemini_api_key()
     if api_key:
         generated = await _generate_with_imagen(prompt_description, aspect_ratio, event_theme, api_key)
         if generated is not None:

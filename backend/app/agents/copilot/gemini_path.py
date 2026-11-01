@@ -2,7 +2,6 @@
 
 import json
 import logging
-import os
 from typing import Any
 
 import google.api_core.exceptions
@@ -10,11 +9,10 @@ import httpx
 
 from ...config import settings
 from ...core.constants import COPILOT_TIMEOUT
-from ...llm.client import GeminiError
+from ...llm.client import GeminiError, generate
 from ...prompts import load_prompt
 from ...schemas.contingency import ContingencyDiff
 from ...schemas.event_plan import MasterEventPlan
-from .. import copilot as copilot_pkg
 from .dispatch import TOOL_REGISTRY
 from .models import CopilotResult
 from .offline import _generate_suggested_ideas
@@ -38,8 +36,7 @@ except (ImportError, KeyError):
 
 def is_gemini_available() -> bool:
     """Checks if Gemini client and API key are configured."""
-    key = getattr(copilot_pkg, "settings", settings).GEMINI_API_KEY or os.getenv("GEMINI_API_KEY", "")
-    return bool(key and genai)
+    return bool(settings.gemini_api_key() and genai)
 
 
 def _build_plan_context(event_plan: MasterEventPlan) -> dict[str, Any]:
@@ -152,8 +149,8 @@ async def run_gemini_path(
             temperature=0.2,
         )
 
-        response = await copilot_pkg.generate(
-            model=getattr(copilot_pkg, "settings", settings).GEMINI_FLASH_MODEL,
+        response = await generate(
+            model=settings.GEMINI_FLASH_MODEL,
             contents=contents,
             config=config,
             timeout=COPILOT_TIMEOUT,

@@ -2,6 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
+from pydantic import SecretStr
 
 from backend.app.agents.aura_vision import create_baseline_wedding_plan
 from backend.app.integrations.google_calendar import (
@@ -40,7 +41,7 @@ async def test_places_api_new_parsing():
     mock_resp.json = MagicMock(return_value=mock_places_response)
 
     with patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=mock_resp):
-        with patch("backend.app.config.settings.GOOGLE_MAPS_API_KEY", "mock_key_123"):
+        with patch("backend.app.config.settings.GOOGLE_MAPS_API_KEY", SecretStr("mock_key_123")):
             data = await fetch_verified_vendors(query="sound and light rental", city="Nashik", min_rating=4.5)
             assert data["is_configured"] is True
             assert data["status"] == "ACTIVE"
@@ -62,7 +63,7 @@ async def test_places_api_honest_fallback_unconfigured():
     an empty vendor list is returned with status 'SIMULATED' and is_configured: false.
     Never marks unverified or mock vendors with is_verified: True.
     """
-    with patch("backend.app.config.settings.GOOGLE_MAPS_API_KEY", ""):
+    with patch("backend.app.config.settings.GOOGLE_MAPS_API_KEY", SecretStr("")):
         data = await fetch_verified_vendors(query="decor", city="Pune")
         assert data["is_configured"] is False
         assert data["status"] == "SIMULATED"

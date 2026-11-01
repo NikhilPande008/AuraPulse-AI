@@ -2,6 +2,7 @@ import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from pydantic import SecretStr
 
 from backend.app.agents.copilot import chat_copilot
 from backend.app.fixtures.sample_plans import create_preset_meadow_wedding
@@ -63,8 +64,8 @@ async def test_copilot_system_prompt_in_config_not_contents():
     mock_response.function_calls = []
 
     with (
-        patch("backend.app.agents.copilot.settings.GEMINI_API_KEY", "mock_key"),
-        patch("backend.app.agents.copilot.generate", new_callable=AsyncMock) as mock_generate,
+        patch("backend.app.config.settings.GEMINI_API_KEY", SecretStr("mock_key")),
+        patch("backend.app.agents.copilot.gemini_path.generate", new_callable=AsyncMock) as mock_generate,
     ):
         mock_generate.return_value = mock_response
 

@@ -61,7 +61,7 @@ async def fetch_verified_vendors(query: str, city: str, min_rating: float = 4.0)
     Returns:
         Dict with vendor records, is_configured flag, and status ('ACTIVE' or 'SIMULATED').
     """
-    api_key = str(settings.GOOGLE_MAPS_API_KEY)
+    api_key = settings.google_maps_api_key()
     if not api_key:
         logger.info("Google Maps API key not configured. Returning unconfigured status.")
         return _unconfigured_response()

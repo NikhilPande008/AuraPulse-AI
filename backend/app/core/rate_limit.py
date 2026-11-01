@@ -1,11 +1,11 @@
 """Rate limiting and client IP extraction infrastructure."""
 
-import os
 import time
 from collections import defaultdict
 
 from fastapi import Request
 
+from ..config import settings
 from .constants import RATE_LIMIT_PER_DAY, RATE_LIMIT_PER_MINUTE
 
 
@@ -22,10 +22,7 @@ def get_client_ip(request: Request) -> str:
     if xff:
         parts = [p.strip() for p in xff.split(",") if p.strip()]
         if parts:
-            try:
-                trusted_hops = int(os.getenv("TRUSTED_PROXY_HOPS", "1"))
-            except ValueError:
-                trusted_hops = 1
+            trusted_hops = settings.TRUSTED_PROXY_HOPS
             idx = max(0, len(parts) - trusted_hops)
             return parts[idx]
     if request.client and request.client.host:

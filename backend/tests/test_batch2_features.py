@@ -10,6 +10,7 @@ from backend.app.agents.copilot import (
     chat_copilot,
     execute_scale_budget,
 )
+from backend.app.config import settings
 from backend.app.fixtures.sample_plans import create_preset_meadow_wedding
 from backend.app.main import app
 from backend.app.schemas import (
@@ -434,7 +435,7 @@ def test_health_reports_gemini_configured_flag():
 
 def test_rate_limit_returns_429(monkeypatch):
     """Verify that exceeding 10 requests per minute triggers 429 RATE_LIMITED."""
-    monkeypatch.setenv("DISABLE_RATE_LIMIT", "false")
+    monkeypatch.setattr(settings, "DISABLE_RATE_LIMIT", False)
     plan = create_preset_meadow_wedding()
     payload = {"event_plan": plan.model_dump(), "user_prompt": "Quick check"}
 

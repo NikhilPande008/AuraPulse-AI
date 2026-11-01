@@ -3,6 +3,7 @@
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
+from pydantic import SecretStr
 
 from backend.app.fixtures.sample_plans import create_preset_meadow_wedding
 from backend.app.llm.client import (
@@ -68,7 +69,7 @@ def test_gemini_bad_output_maps_to_502():
 
 def test_studio_render_sanitizes_errors():
     """POST /api/v1/studio/render-alternative falls back gracefully without leaking tracebacks."""
-    with patch("backend.app.config.settings.GEMINI_API_KEY", ""):
+    with patch("backend.app.config.settings.GEMINI_API_KEY", SecretStr("")):
         resp = client.post(
             "/api/v1/studio/render-alternative",
             json={

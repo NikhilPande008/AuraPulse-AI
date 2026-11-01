@@ -4,7 +4,6 @@ import asyncio
 import base64
 import json
 import logging
-import os
 from enum import Enum, auto
 from typing import Any
 
@@ -83,7 +82,7 @@ def get_genai_client() -> object | None:
     if not _GENAI_AVAILABLE or genai is None:
         logger.error("google-genai package is not installed.")
         return None
-    api_key = str(settings.GEMINI_API_KEY) or os.getenv("GEMINI_API_KEY", "")
+    api_key = settings.gemini_api_key()
     if not api_key:
         logger.error("GEMINI_API_KEY is not configured.")
         return None

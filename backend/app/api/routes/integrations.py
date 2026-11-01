@@ -27,7 +27,7 @@ router = APIRouter(prefix="/api/v1/integrations", tags=["Integrations"])
 
 def _extract_vendor_data(data: object) -> tuple[list[dict[str, Any]], bool, str]:
     vendors = data.get("vendors", []) if isinstance(data, dict) else (data if isinstance(data, list) else [])
-    is_cfg = data.get("is_configured", False) if isinstance(data, dict) else bool(settings.GOOGLE_MAPS_API_KEY)
+    is_cfg = data.get("is_configured", False) if isinstance(data, dict) else bool(settings.google_maps_api_key())
     status_val = (
         data.get("status", "ACTIVE" if is_cfg else "SIMULATED")
         if isinstance(data, dict)

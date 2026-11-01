@@ -1,7 +1,5 @@
 """AuraPulse AI: FastAPI Application Gateway."""
 
-import os
-
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -26,7 +24,7 @@ app.middleware("http")(rate_limiting_middleware)
 
 # CORS Configuration
 allowed_origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
-custom_origin = os.getenv("ALLOWED_ORIGIN")
+custom_origin = settings.ALLOWED_ORIGIN
 if custom_origin:
     allowed_origins.extend([o.strip() for o in custom_origin.split(",") if o.strip()])
 

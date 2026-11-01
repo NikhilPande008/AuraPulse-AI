@@ -382,7 +382,7 @@ async def _generate_crisis_narrative(
     boq_diffs_len: int,
     schedule_diffs_len: int,
 ) -> str | None:
-    api_key = settings.GEMINI_API_KEY
+    api_key = settings.gemini_api_key()
     if not (api_key and _GENAI_AVAILABLE):
         return None
     try:

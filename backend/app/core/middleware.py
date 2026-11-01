@@ -1,11 +1,11 @@
 """HTTP middleware components for payload size enforcement and rate limiting."""
 
-import os
 from collections.abc import Awaitable, Callable
 
 from fastapi import Request, Response, status
 from fastapi.responses import JSONResponse
 
+from ..config import settings
 from .constants import MAX_BODY_BYTES
 from .rate_limit import AI_RATE_LIMITED_PATHS, get_client_ip, rate_limiter
 
@@ -50,7 +50,7 @@ async def rate_limiting_middleware(request: Request, call_next: Callable[[Reques
     if (
         request.url.path in AI_RATE_LIMITED_PATHS
         and (request.method == "POST" or request.url.path == "/api/v1/integrations/vendors")
-        and os.getenv("DISABLE_RATE_LIMIT", "false").lower() != "true"
+        and not settings.DISABLE_RATE_LIMIT
     ):
         client_ip = get_client_ip(request)
         if not rate_limiter.check_and_record(client_ip):

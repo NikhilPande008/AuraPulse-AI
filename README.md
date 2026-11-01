@@ -1,20 +1,21 @@
 # AuraPulse AI: Autonomous Multimodal Event Planning & Reactive Contingency Engine
 
 > **Hack2Skill Google PromptWars — Challenge 5: GenAI-Powered Planning Assistant**  
-> *Version: v2.1.0-PROD | Platform: Google Antigravity*
+> *Version: 2.2.0 | Platform: Google Antigravity*
 
 [![Hack2Skill Google PromptWars](https://img.shields.io/badge/Hack2Skill-Google%20PromptWars%20(Challenge%205)-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://hack2skill.com)
 [![Google Gemini 2.5 Flash](https://img.shields.io/badge/Google%20Gemini-2.5%20Flash-8E75C4?style=for-the-badge&logo=googlebard&logoColor=white)](https://ai.google.dev)
 [![Google Places API New](https://img.shields.io/badge/Google%20Maps-Places%20API%20(New)-34A853?style=for-the-badge&logo=googlemaps&logoColor=white)](https://developers.google.com/maps/documentation/places/web-service/op-overview)
 [![Next.js 15](https://img.shields.io/badge/Next.js-15%20App%20Router-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Python%203.12-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![Pytest 40/40 Passing](https://img.shields.io/badge/Pytest-40%2F40%20Passing%20(100%25)-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](#-5-automated-testing--verification)
+[![Pytest 54/54 Passing](https://img.shields.io/badge/Pytest-54%2F54%20Passing%20(100%25)-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](#-5-automated-testing--verification)
 
 ---
 
 ## ⚡ Quick Navigation for Judges
 * **Live Demo**: [LIVE_DEMO_URL_PLACEHOLDER]
 * **Demo Video Walkthrough**: [DEMO_VIDEO_URL_PLACEHOLDER]
+* **Cloud Run Deployment Guide**: [`docs/DEPLOY.md`](docs/DEPLOY.md)
 * **GitHub Repository**: [https://github.com/NikhilPande008/AuraPulse-AI.git](https://github.com/NikhilPande008/AuraPulse-AI.git)
 
 ---
@@ -43,7 +44,7 @@ AuraPulse AI bridges the gap between aesthetic inspiration and real-world event 
 
 ## 🏛️ 2. Architectural Topology & 3 Core Layers
 
-AuraPulse AI is architected across 3 clean, production-grade layers using strictly typed Pydantic v2 schemas:
+AuraPulse AI is architected across 3 clean, resilient layers using strictly typed Pydantic v2 schemas:
 
 ```
 +-----------------------------------------------------------------------------------+
@@ -193,7 +194,7 @@ backend/tests/test_schemas.py::test_boq_item_strict_validation PASSED    [ 95%]
 backend/tests/test_schemas.py::test_master_event_plan_structure PASSED   [ 97%]
 backend/tests/test_schemas.py::test_crisis_trigger_model PASSED          [100%]
 
-======================== 40 passed in 0.57s (100% Green) ========================
+======================== 54 passed, 1 skipped in 0.64s (100% Green) ========================
 ```
 
 Frontend production build check:
@@ -230,8 +231,10 @@ AuraPulse-AI/
 │   │       ├── google_maps.py            # Google Maps Places API (New) client
 │   │       ├── google_calendar.py        # RFC-5545 .ics & web intent generator
 │   │       └── google_sheets.py          # Formula-driven workbook generator
-│   ├── tests/                            # 40 automated pytest tests
-│   └── requirements.txt
+│   ├── tests/                            # 54 automated pytest tests
+│   ├── requirements.txt
+│   ├── requirements-dev.txt
+│   └── pyproject.toml
 ├── frontend/
 │   ├── src/
 │   │   ├── app/                          # Next.js 15 App Router
@@ -263,6 +266,7 @@ AuraPulse-AI/
 
 ## 🏆 7. Hack2Skill Google PromptWars Submission Pack
 
+* **Deployment Guide**: [`docs/DEPLOY.md`](docs/DEPLOY.md)
 * **Technical Blog**: [`docs/submission/TECHNICAL_BLOG.md`](docs/submission/TECHNICAL_BLOG.md)
 * **LinkedIn Post**: [`docs/submission/LINKEDIN_POST.md`](docs/submission/LINKEDIN_POST.md)
 * **Submission Metadata**: [`docs/submission/SUBMISSION_METADATA.json`](docs/submission/SUBMISSION_METADATA.json)

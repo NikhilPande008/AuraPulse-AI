@@ -5,15 +5,16 @@ COPY package*.json ./
 RUN npm ci
 COPY . .
 ARG BACKEND_URL
+ARG ALLOW_LOCAL_BACKEND=false
+RUN if [ -z "$BACKEND_URL" ] && [ "$ALLOW_LOCAL_BACKEND" != "true" ]; then \
+      echo "ERROR: pass --build-arg BACKEND_URL=https://<api>"; exit 1; fi
 ENV BACKEND_URL=$BACKEND_URL
-RUN if [ "$NODE_ENV" = "production" ] && [ -z "$BACKEND_URL" ]; then \
-      echo "ERROR: BACKEND_URL build argument is required when building for production." && exit 1; \
-    fi
 RUN npm run build
 
 FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./

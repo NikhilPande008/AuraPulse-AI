@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Sparkles, Send, Loader2, Lightbulb, CheckCircle2, MessageSquare, ArrowRight, RefreshCw } from "lucide-react";
 import { MasterEventPlan, chatCopilot, CopilotResponse, ContingencyDiff } from "../lib/api";
+import InlineError from "./InlineError";
 
 interface AICopilotBarProps {
   plan: MasterEventPlan;
@@ -15,6 +16,7 @@ export default function AICopilotBar({ plan, onPlanUpdate, onDiffGenerated }: AI
   const [isLoading, setIsLoading] = useState(false);
   const [lastResponse, setLastResponse] = useState<CopilotResponse | null>(null);
   const [history, setHistory] = useState<Array<{ role: string; content: string }>>([]);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const quickPrompts = [
     { label: "📉 Cut Budget by 20%", query: "Cut budget by 20% across non-critical items" },
@@ -30,6 +32,7 @@ export default function AICopilotBar({ plan, onPlanUpdate, onDiffGenerated }: AI
     if (!textToSend.trim() || isLoading) return;
 
     setIsLoading(true);
+    setErrorMsg(null);
     const updatedHistory = [...history, { role: "user", content: textToSend }].slice(-6);
     try {
       const res = await chatCopilot(plan, textToSend, updatedHistory);
@@ -46,7 +49,7 @@ export default function AICopilotBar({ plan, onPlanUpdate, onDiffGenerated }: AI
       setPrompt("");
     } catch (err) {
       console.error("Co-Pilot error:", err);
-      alert("Co-Pilot encountered an issue. Please try again.");
+      setErrorMsg("Co-Pilot encountered an issue. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -58,7 +61,7 @@ export default function AICopilotBar({ plan, onPlanUpdate, onDiffGenerated }: AI
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4 pb-3 border-b border-indigo-500/20">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 uppercase font-mono flex items-center gap-1.5">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 uppercase font-mono flex items-center gap-1.5">
               <Sparkles className="w-3 h-3 text-indigo-400" />
               GenAI Ideas & Budget Co-Pilot
             </span>
@@ -80,9 +83,18 @@ export default function AICopilotBar({ plan, onPlanUpdate, onDiffGenerated }: AI
         )}
       </div>
 
+      {errorMsg && (
+        <InlineError
+          message={errorMsg}
+          onRetry={() => handleSendPrompt()}
+          onDismiss={() => setErrorMsg(null)}
+          className="mb-4"
+        />
+      )}
+
       {/* Quick Prompt Chips */}
       <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 scrollbar-thin">
-        <span className="text-[11px] font-mono text-indigo-300/80 uppercase shrink-0">Quick Prompts:</span>
+        <span className="text-xs font-mono text-indigo-300/80 uppercase shrink-0">Quick Prompts:</span>
         {quickPrompts.map((qp, idx) => (
           <button
             key={idx}
@@ -133,15 +145,20 @@ export default function AICopilotBar({ plan, onPlanUpdate, onDiffGenerated }: AI
       {lastResponse && (
         <div aria-live="polite" className="mt-4 p-4 rounded-xl bg-slate-900/90 border border-indigo-500/40 shadow-inner">
           <div className="flex items-start justify-between gap-3 mb-2">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
                 <Sparkles className="w-3.5 h-3.5" />
               </span>
               <span className="text-xs font-semibold text-indigo-300 font-mono">
                 AuraPulse Co-Pilot Response
               </span>
+              {lastResponse.mode === "offline_rules" && (
+                <span className="text-xs font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30">
+                  Offline rules mode (Gemini not configured)
+                </span>
+              )}
             </div>
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+            <span className="text-xs font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
               <CheckCircle2 className="w-3 h-3" /> Live BOQ & Plan Mutated
             </span>
           </div>

@@ -1,6 +1,8 @@
 import logging
+from typing import Any, Dict, List
+
 import httpx
-from typing import List, Dict, Any, Optional
+
 from ..config import settings
 
 logger = logging.getLogger("aurapulse.integrations.google_maps")

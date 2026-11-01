@@ -1,0 +1,21 @@
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "B", "I"]
+ignore = [
+    "E501",  # Line too long (handled by line-length/formatter)
+    "B008",  # Do not perform function call in argument defaults (FastAPI Depends/Query pattern)
+    "B904",  # Within an `except` clause, raise exceptions with `raise ... from err`
+    "E402",  # Module level import not at top of file
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+markers = [
+    "live: live API integration tests requiring GEMINI_API_KEY",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]

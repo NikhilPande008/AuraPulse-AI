@@ -1,27 +1,23 @@
-import os
 import copy
 import uuid
-import json
-import asyncio
 from datetime import datetime
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Optional, Tuple
 
+from ..config import settings
+from ..integrations.google_maps import fetch_verified_vendors
+from ..llm.client import generate
 from ..schemas import (
-    MasterEventPlan,
+    BOQDiffItem,
     BOQItem,
-    ScheduleBlock,
-    PriorityTier,
+    ContingencyDiff,
     CrisisTrigger,
     CrisisTriggerType,
     DiffAction,
-    BOQDiffItem,
+    MasterEventPlan,
+    PriorityTier,
     ScheduleDiffItem,
-    ContingencyDiff,
 )
-from ..config import settings
-from ..integrations.google_maps import fetch_verified_vendors
-from ..services.budget import recompute_totals, rebalance_to_ceiling
-from ..llm.client import generate, get_genai_client
+from ..services.budget import rebalance_to_ceiling, recompute_totals
 
 try:
     from google import genai
@@ -242,7 +238,6 @@ async def evaluate_contingency(
             "AuraPulse immediately engaged Google Maps Places API to locate verified top-rated replacement vendors in the target locality."
         )
 
-        vendors: List[Dict[str, Any]] = []
         try:
             result = await fetch_verified_vendors(
                 query=f"{cat} contractor", city=updated_plan.location_city, min_rating=4.0

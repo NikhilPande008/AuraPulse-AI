@@ -1,12 +1,13 @@
 import pytest
+
+from backend.app.agents.aura_vision import create_baseline_wedding_plan
+from backend.app.agents.pulse_engine import evaluate_contingency
 from backend.app.schemas import (
     CrisisTrigger,
     CrisisTriggerType,
     DiffAction,
     PriorityTier,
 )
-from backend.app.agents.aura_vision import create_baseline_wedding_plan
-from backend.app.agents.pulse_engine import evaluate_contingency
 
 
 @pytest.mark.asyncio

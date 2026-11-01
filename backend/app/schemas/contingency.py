@@ -1,7 +1,9 @@
 from enum import Enum
-from typing import List, Optional, Annotated
-from pydantic import BaseModel, Field, ConfigDict, BeforeValidator
-from .event_plan import MasterEventPlan, BOQItem, ScheduleBlock
+from typing import Annotated, List, Optional
+
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
+
+from .event_plan import BOQItem, MasterEventPlan, ScheduleBlock
 
 
 class CrisisTriggerType(str, Enum):

@@ -1,7 +1,9 @@
 import uuid
-from datetime import datetime, date, timedelta, timezone
-from typing import List, Dict, Any, Optional
+from datetime import date, datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
+
 from ..schemas import MasterEventPlan
+from ..services.timeline import default_event_date
 
 
 def _escape_text(text: str) -> str:
@@ -196,12 +198,14 @@ def sync_schedule_to_google_calendar(
     calendar_id: str,
     event_title: str,
     schedule_blocks: List[Dict[str, Any]],
-    event_date_prefix: str = "2026-11-15"
+    event_date_prefix: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Public schedule exporter for run-of-show blocks.
     Replaced silent service-account write with zero-permission client intent links.
     """
+    if not event_date_prefix:
+        event_date_prefix = default_event_date(90)
     synced_events = []
     for block in schedule_blocks:
         st = block.get("start_time_iso", "10:00")

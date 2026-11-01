@@ -1,16 +1,16 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
 from fastapi.testclient import TestClient
 
-from backend.app.main import app
-from backend.app.integrations.google_maps import fetch_verified_vendors
-from backend.app.integrations.google_sheets import export_event_to_google_sheets
+from backend.app.agents.aura_vision import create_baseline_wedding_plan
 from backend.app.integrations.google_calendar import (
     generate_calendar_ics,
     generate_google_calendar_web_intent,
-    sync_schedule_to_google_calendar,
 )
-from backend.app.agents.aura_vision import create_baseline_wedding_plan
+from backend.app.integrations.google_maps import fetch_verified_vendors
+from backend.app.integrations.google_sheets import export_event_to_google_sheets
+from backend.app.main import app
 
 client = TestClient(app)
 
@@ -131,6 +131,7 @@ def test_google_calendar_web_intent():
 def test_google_sheets_export_formulas():
     """Without credentials, Sheets export raises instead of returning a fake SUCCESS link."""
     import pytest
+
     from backend.app.integrations.google_sheets import SheetsNotConfiguredError
     plan = create_baseline_wedding_plan()
     boq_dicts = [item.model_dump() for item in plan.boq]

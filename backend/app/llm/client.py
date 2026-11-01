@@ -1,24 +1,19 @@
-import os
-import json
-import uuid
-import base64
 import asyncio
+import base64
+import json
 import logging
-from typing import Optional, Dict, Any, List
+import os
+from typing import Any, List, Optional
+
 from fastapi import HTTPException
+
 from ..config import settings
 from ..schemas import (
     MasterEventPlan,
-    BOQItem,
-    ScheduleBlock,
-    PriorityTier,
-    PlanningMilestone,
-    VendorChecklistItem,
     PlanRequest,
-    EventIdea,
 )
+from ..services.budget import rebalance_to_ceiling, recompute_totals
 from ..services.timeline import build_milestones
-from ..services.budget import recompute_totals, rebalance_to_ceiling
 
 logger = logging.getLogger("aurapulse.llm")
 
@@ -129,7 +124,7 @@ def _detect_image_mime(b64_str: str) -> str:
     clean_b64 = b64_str.split(",")[-1] if "," in b64_str else b64_str
     try:
         raw_bytes = base64.b64decode(clean_b64)
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=422, detail="Invalid base64 encoding for moodboard image")
 
     if len(raw_bytes) > 4 * 1024 * 1024:
@@ -192,7 +187,7 @@ Language Context: {request.language}
 
 Generate complete event plan matching these exact parameters."""
 
-    contents: List[Any] = [system_instruction, user_data_payload]
+    contents: List[Any] = [user_data_payload]
 
     # 3. Decode & attach image if provided
     if request.image_base64:
@@ -204,6 +199,7 @@ Generate complete event plan matching these exact parameters."""
 
     # 4. Invoke model via retry-enabled wrapper
     config = types.GenerateContentConfig(
+        system_instruction=system_instruction,
         response_mime_type="application/json",
         response_schema=MasterEventPlan,
         temperature=0.2,

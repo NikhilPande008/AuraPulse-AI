@@ -14,21 +14,21 @@ export default function BoqTable({ plan, onItemUpdate }: BoqTableProps) {
     switch (priority) {
       case "Critical":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-500/15 text-rose-300 border border-rose-500/30">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/15 text-rose-300 border border-rose-500/30">
             <Lock className="w-3 h-3 text-rose-400" />
             Tier-1 Critical
           </span>
         );
       case "Operational":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30">
             <Layers className="w-3 h-3 text-amber-400" />
             Tier-2 Operational
           </span>
         );
       case "Discretionary":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
             <Sparkles className="w-3 h-3 text-cyan-400" />
             Tier-3 Discretionary
           </span>
@@ -42,19 +42,19 @@ export default function BoqTable({ plan, onItemUpdate }: BoqTableProps) {
     switch (status) {
       case "ACTIVE":
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-mono font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
             <CheckCircle2 className="w-3 h-3" /> ACTIVE
           </span>
         );
       case "MODIFIED":
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-amber-500/15 text-amber-300 border border-amber-500/30">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-mono font-medium bg-amber-500/15 text-amber-300 border border-amber-500/30">
             <AlertTriangle className="w-3 h-3" /> MODIFIED
           </span>
         );
       case "DROPPED":
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-rose-500/15 text-rose-300 border border-rose-500/30 line-through">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-mono font-medium bg-rose-500/15 text-rose-300 border border-rose-500/30 line-through">
             <XCircle className="w-3 h-3" /> DROPPED
           </span>
         );
@@ -72,7 +72,7 @@ export default function BoqTable({ plan, onItemUpdate }: BoqTableProps) {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-5 border-b border-slate-800">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 uppercase font-mono">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 uppercase font-mono">
               Component 2.1 • Bill of Quantities
             </span>
             <span className="text-xs text-slate-400 font-mono">Strict Pydantic Validation</span>
@@ -86,14 +86,14 @@ export default function BoqTable({ plan, onItemUpdate }: BoqTableProps) {
         {/* Financial Stat Pills */}
         <div className="flex items-center gap-3">
           <div className="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-right">
-            <p className="text-[10px] text-slate-400 uppercase font-mono">Budget Ceiling</p>
+            <p className="text-xs text-slate-400 uppercase font-mono">Budget Ceiling</p>
             <p className="text-sm font-mono font-bold text-slate-200">
               ₹{plan.total_budget_limit.toLocaleString("en-IN")}
             </p>
           </div>
 
           <div className="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-right">
-            <p className="text-[10px] text-slate-400 uppercase font-mono">Current Estimated</p>
+            <p className="text-xs text-slate-400 uppercase font-mono">Current Estimated</p>
             <p className="text-sm font-mono font-bold text-purple-400">
               ₹{plan.current_estimated_total.toLocaleString("en-IN")}
             </p>
@@ -104,7 +104,7 @@ export default function BoqTable({ plan, onItemUpdate }: BoqTableProps) {
               ? "bg-rose-950/30 border-rose-500/30 text-rose-300"
               : "bg-emerald-950/30 border-emerald-500/30 text-emerald-300"
           }`}>
-            <p className="text-[10px] uppercase font-mono">{isOverBudget ? "Over Budget" : "Reserve Buffer"}</p>
+            <p className="text-xs uppercase font-mono">{isOverBudget ? "Over Budget" : "Reserve Buffer"}</p>
             <p className="text-sm font-mono font-bold">
               {isOverBudget ? "-" : "+"}₹{Math.abs(budgetDelta).toLocaleString("en-IN")}
             </p>
@@ -115,7 +115,7 @@ export default function BoqTable({ plan, onItemUpdate }: BoqTableProps) {
       {/* Responsive Table */}
       <div className="overflow-x-auto rounded-xl border border-slate-800">
         <table className="w-full text-left text-xs">
-          <thead className="bg-slate-900/90 text-slate-400 font-mono text-[11px] uppercase tracking-wider border-b border-slate-800">
+          <thead className="bg-slate-900/90 text-slate-400 font-mono text-xs uppercase tracking-wider border-b border-slate-800">
             <tr>
               <th className="py-3 px-4">Line Item / Specification</th>
               <th className="py-3 px-4">Category</th>
@@ -146,15 +146,15 @@ export default function BoqTable({ plan, onItemUpdate }: BoqTableProps) {
                   }`}
                 >
                   <td className="py-3 px-4 max-w-xs">
-                    <p className={`font-semibold text-slate-100 ${isDropped ? "line-through text-slate-500" : ""}`}>
+                    <p className={`font-semibold text-slate-100 ${isDropped ? "line-through text-slate-400" : ""}`}>
                       {item.name}
                     </p>
-                    <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">
+                    <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">
                       {item.specification}
                     </p>
                   </td>
                   <td className="py-3 px-4 whitespace-nowrap">
-                    <span className="px-2 py-0.5 rounded text-[11px] bg-slate-800 text-slate-300 font-medium border border-slate-700/50">
+                    <span className="px-2 py-0.5 rounded text-xs bg-slate-800 text-slate-300 font-medium border border-slate-700/50">
                       {item.category}
                     </span>
                   </td>

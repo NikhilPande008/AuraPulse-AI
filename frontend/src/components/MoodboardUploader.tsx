@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import { deconstructMoodboard, MasterEventPlan, renderStudioAlternative } from "../lib/api";
 
+import { tomorrow, defaultEventDate } from "@/lib/dates";
+
 interface MoodboardUploaderProps {
   onPlanLoaded: (plan: MasterEventPlan) => void;
   isLoading: boolean;
@@ -66,14 +68,14 @@ export const DEMO_PRESETS = [
 ];
 
 export default function MoodboardUploader({ onPlanLoaded, isLoading, setIsLoading }: MoodboardUploaderProps) {
-  const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split("T")[0];
+  const tomorrowStr = tomorrow();
   const [activePresetId, setActivePresetId] = useState<string | null>(DEMO_PRESETS[0].id);
   const [selectedPreset, setSelectedPreset] = useState(DEMO_PRESETS[0]);
   const [headcount, setHeadcount] = useState(DEMO_PRESETS[0].headcount);
   const [locality, setLocality] = useState(DEMO_PRESETS[0].city);
   const [budget, setBudget] = useState(DEMO_PRESETS[0].budget);
   const [eventType, setEventType] = useState(DEMO_PRESETS[0].type);
-  const [eventDate, setEventDate] = useState("2026-11-15");
+  const [eventDate, setEventDate] = useState(defaultEventDate());
   const [cultureRegion, setCultureRegion] = useState("Maharashtrian / Contemporary");
   const [theme, setTheme] = useState("Pastel Peach & Sage");
   const [customImageBase64, setCustomImageBase64] = useState<string | null>(null);

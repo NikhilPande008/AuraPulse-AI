@@ -1,25 +1,23 @@
 import json
+from datetime import date, timedelta
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from datetime import date, datetime, timedelta
-from unittest.mock import AsyncMock, patch, MagicMock
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
-from backend.app.main import app
-from backend.app.schemas import (
-    PlanRequest,
-    DeconstructRequest,
-    MasterEventPlan,
-    BOQItem,
-    PriorityTier,
-    MilestonePhase,
-)
-from backend.app.services.timeline import build_milestones, get_backwards_date
 from backend.app.agents.copilot import (
-    execute_scale_budget,
     chat_copilot,
+    execute_scale_budget,
 )
 from backend.app.fixtures.sample_plans import create_preset_meadow_wedding
+from backend.app.main import app
+from backend.app.schemas import (
+    MilestonePhase,
+    PlanRequest,
+    PriorityTier,
+)
+from backend.app.services.timeline import build_milestones, get_backwards_date
 
 client = TestClient(app)
 
@@ -233,7 +231,6 @@ async def test_mocked_gemini_custom_plan_generation():
     CR-08: Verifies asynchronous Gemini plan generation with schema validation
     when processing a custom input (Marathi wedding in Nashik for ₹12L).
     """
-    from backend.app.schemas import EventIdea, ScheduleBlock
     from backend.app.llm.client import generate_event_plan
 
     fake_plan_data = {

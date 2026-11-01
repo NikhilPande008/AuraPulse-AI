@@ -1,5 +1,5 @@
-import pytest
 from fastapi.testclient import TestClient
+
 from backend.app.main import app
 from backend.app.schemas import CrisisTriggerType
 
@@ -12,9 +12,9 @@ def test_health_endpoint():
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "healthy"
-    assert "version" in data
+    assert data["version"] == "2.2.0"
     assert "engine_flash" in data
-    assert "engine_pro" in data
+    assert "engine_pro" not in data
 
 
 def test_deconstruct_endpoint():

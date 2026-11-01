@@ -1,6 +1,7 @@
-import os
 import pytest
+
 from backend.app.config import settings
+
 
 @pytest.fixture(autouse=True)
 def test_environment(monkeypatch):

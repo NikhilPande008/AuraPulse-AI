@@ -150,7 +150,7 @@ export default function VendorFinder({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-800">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase font-mono">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase font-mono">
               Challenge 5 Core • Vendor Operations
             </span>
             <span className="text-xs text-slate-400 font-mono">Google Maps Grounded Pipeline</span>
@@ -235,7 +235,7 @@ export default function VendorFinder({
           {/* Interactive Checklist Table */}
           <div className="overflow-x-auto rounded-xl border border-slate-800">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-900/90 text-slate-400 font-mono text-[11px] uppercase tracking-wider border-b border-slate-800">
+              <thead className="bg-slate-900/90 text-slate-400 font-mono text-xs uppercase tracking-wider border-b border-slate-800">
                 <tr>
                   <th className="py-3 px-4">Category</th>
                   <th className="py-3 px-4">Vendor & Specification</th>
@@ -248,14 +248,14 @@ export default function VendorFinder({
                 {localChecklist.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-800/30 transition-colors">
                     <td className="py-3 px-4 whitespace-nowrap">
-                      <span className="px-2 py-0.5 rounded text-[11px] bg-slate-800 text-slate-300 border border-slate-700/60 font-medium">
+                      <span className="px-2 py-0.5 rounded text-xs bg-slate-800 text-slate-300 border border-slate-700/60 font-medium">
                         {item.category}
                       </span>
                     </td>
                     <td className="py-3 px-4">
                       <p className="font-semibold text-slate-100">{item.vendor_name}</p>
                       {item.google_maps_place_id && (
-                        <span className="text-[10px] text-cyan-400 font-mono flex items-center gap-1 mt-0.5">
+                        <span className="text-xs text-cyan-400 font-mono flex items-center gap-1 mt-0.5">
                           <MapPin className="w-3 h-3" /> Grounded on Google Maps
                         </span>
                       )}
@@ -339,7 +339,7 @@ export default function VendorFinder({
                 <p className="font-semibold text-amber-200">
                   Live Google Maps Places grounding inactive (API key not configured). Add custom vendors manually or provide a Maps API key.
                 </p>
-                <p className="text-[11px] text-amber-300/80">
+                <p className="text-xs text-amber-300/80">
                   Places API (New) endpoint: <code className="text-white">places.googleapis.com/v1/places:searchText</code>. Unverified mock businesses and phone numbers are strictly prohibited.
                 </p>
               </div>
@@ -363,12 +363,12 @@ export default function VendorFinder({
                     )}
                   </div>
 
-                  <span className="text-[10px] font-mono text-cyan-400 px-2 py-0.5 rounded bg-cyan-950/60 border border-cyan-800/40 inline-block mb-2">
+                  <span className="text-xs font-mono text-cyan-400 px-2 py-0.5 rounded bg-cyan-950/60 border border-cyan-800/40 inline-block mb-2">
                     {v.category || "Verified Local Supplier"}
                   </span>
 
                   <p className="text-xs text-slate-400 flex items-start gap-1.5 mb-2">
-                    <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0 mt-0.5" />
+                    <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
                     <span className="line-clamp-2">{v.address}</span>
                   </p>
 
@@ -384,7 +384,7 @@ export default function VendorFinder({
                       href={v.google_maps_uri}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-[11px] font-mono text-cyan-400 hover:text-cyan-300 hover:underline mb-2"
+                      className="inline-flex items-center gap-1 text-xs font-mono text-cyan-400 hover:text-cyan-300 hover:underline mb-2"
                     >
                       <span>View on Google Maps</span>
                       <ExternalLink className="w-3 h-3" />
@@ -393,13 +393,13 @@ export default function VendorFinder({
                 </div>
 
                 <div className="pt-3 border-t border-slate-800 flex items-center justify-between gap-2">
-                  <span className="flex items-center gap-1 text-emerald-400 font-mono text-[11px]">
+                  <span className="flex items-center gap-1 text-emerald-400 font-mono text-xs">
                     <ShieldCheck className="w-3.5 h-3.5" /> Google Verified
                   </span>
                   <button
                     type="button"
                     onClick={() => handleAddVendorFromMaps(v)}
-                    className="px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-semibold flex items-center gap-1 transition-all cursor-pointer"
+                    className="px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer"
                   >
                     <Plus className="w-3 h-3" /> Add to Checklist
                   </button>

@@ -1,44 +1,42 @@
-import os
-import json
-import time
 import asyncio
 import logging
+import os
+import time
 from collections import defaultdict
-from typing import Optional, List, Dict, Any
-from fastapi import FastAPI, HTTPException, Request, Query, Response, status
+from typing import Dict, List, Optional
+
+from fastapi import FastAPI, HTTPException, Query, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger("aurapulse")
 
-from .config import settings
-from .schemas import (
-    MasterEventPlan,
-    CrisisTrigger,
-    ContingencyDiff,
-    SimulationRequest,
-    PlanRequest,
-    DeconstructRequest,
-)
 from .agents import (
+    chat_copilot,
     deconstruct_moodboard,
     evaluate_contingency,
     generate_visual_alternative,
-    chat_copilot,
 )
+from .config import settings
 from .integrations import (
-    fetch_verified_vendors,
     export_event_to_google_sheets,
-    sync_schedule_to_google_calendar,
+    fetch_verified_vendors,
     generate_calendar_ics,
+    sync_schedule_to_google_calendar,
 )
 from .integrations.google_sheets import (
-    SheetsNotConfiguredError,
     SheetsExportError,
+    SheetsNotConfiguredError,
     is_sheets_configured,
 )
-from .llm.client import GeminiUnavailable, GeminiQuota, GeminiBadOutput
+from .llm.client import GeminiBadOutput, GeminiQuota, GeminiUnavailable
+from .schemas import (
+    ContingencyDiff,
+    DeconstructRequest,
+    MasterEventPlan,
+    SimulationRequest,
+)
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -69,15 +67,56 @@ async def limit_body_size_middleware(request: Request, call_next):
 
 
 # 2. In-Memory Sliding-Window Rate Limiter
+def get_client_ip(request: Request) -> str:
+    """Extracts client IP using TRUSTED_PROXY_HOPS from the right of X-Forwarded-For."""
+    xff = request.headers.get("x-forwarded-for")
+    if xff:
+        parts = [p.strip() for p in xff.split(",") if p.strip()]
+        if parts:
+            try:
+                trusted_hops = int(os.getenv("TRUSTED_PROXY_HOPS", "1"))
+            except ValueError:
+                trusted_hops = 1
+            idx = max(0, len(parts) - trusted_hops)
+            return parts[idx]
+    if request.client and request.client.host:
+        return request.client.host
+    return "127.0.0.1"
+
+
 class SlidingWindowLimiter:
     def __init__(self, per_minute: int = 10, per_day: int = 100):
         self.per_minute = per_minute
         self.per_day = per_day
         self._minute_buckets: Dict[str, List[float]] = defaultdict(list)
         self._day_buckets: Dict[str, List[float]] = defaultdict(list)
+        self._last_prune = time.time()
+
+    def prune(self, now: Optional[float] = None) -> None:
+        """Prunes timestamps older than active windows and removes empty keys from memory."""
+        if now is None:
+            now = time.time()
+        min_cutoff = now - 60.0
+        day_cutoff = now - 86400.0
+
+        empty_min = [k for k, v in self._minute_buckets.items() if not any(t > min_cutoff for t in v)]
+        for k in empty_min:
+            del self._minute_buckets[k]
+        for k in list(self._minute_buckets.keys()):
+            self._minute_buckets[k] = [t for t in self._minute_buckets[k] if t > min_cutoff]
+
+        empty_day = [k for k, v in self._day_buckets.items() if not any(t > day_cutoff for t in v)]
+        for k in empty_day:
+            del self._day_buckets[k]
+        for k in list(self._day_buckets.keys()):
+            self._day_buckets[k] = [t for t in self._day_buckets[k] if t > day_cutoff]
 
     def check_and_record(self, key: str) -> bool:
         now = time.time()
+        if now - self._last_prune > 60.0:
+            self.prune(now)
+            self._last_prune = now
+
         # Clean minute window
         min_cutoff = now - 60.0
         self._minute_buckets[key] = [t for t in self._minute_buckets[key] if t > min_cutoff]
@@ -107,10 +146,7 @@ async def rate_limiting_middleware(request: Request, call_next):
     if request.url.path in AI_RATE_LIMITED_PATHS and request.method == "POST":
         # Allow disabling rate limiting in test suite if requested
         if os.getenv("DISABLE_RATE_LIMIT", "false").lower() != "true":
-            client_ip = (
-                request.headers.get("x-forwarded-for", "").split(",")[0].strip()
-                or (request.client.host if request.client else "127.0.0.1")
-            )
+            client_ip = get_client_ip(request)
             if not rate_limiter.check_and_record(client_ip):
                 return JSONResponse(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -228,7 +264,6 @@ def health_check():
         "status": "healthy",
         "version": settings.VERSION,
         "engine_flash": settings.GEMINI_FLASH_MODEL,
-        "engine_pro": settings.GEMINI_PRO_MODEL,
         "gemini_configured": bool(settings.GEMINI_API_KEY),
         "places_configured": bool(settings.GOOGLE_MAPS_API_KEY),
         "sheets_configured": is_sheets_configured(),

@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { CloudRain, DollarSign, Clock, AlertOctagon, Play, RefreshCw, Zap } from "lucide-react";
 import { CrisisTrigger, MasterEventPlan, simulateContingency, ContingencyDiff } from "../lib/api";
+import InlineError from "./InlineError";
 
 interface ContingencyControlsProps {
   plan: MasterEventPlan;
@@ -18,16 +19,18 @@ export default function ContingencyControls({
   setIsSimulating,
 }: ContingencyControlsProps) {
   const [activePreset, setActivePreset] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const runPreset = async (presetId: string, trigger: CrisisTrigger) => {
     setActivePreset(presetId);
     setIsSimulating(true);
+    setErrorMsg(null);
     try {
       const diff = await simulateContingency(plan, trigger);
       onDiffGenerated(diff);
     } catch (err) {
       console.error(err);
-      alert("Failed to simulate contingency.");
+      setErrorMsg("Failed to simulate contingency. Please try again.");
     } finally {
       setIsSimulating(false);
     }
@@ -38,7 +41,7 @@ export default function ContingencyControls({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5 pb-4 border-b border-slate-800">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase font-mono">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase font-mono">
               Agent 3.B • Pulse Dynamic Engine
             </span>
             <span className="text-xs text-slate-400 font-mono">Gemini 2.5 Pro Reasoner</span>
@@ -56,6 +59,14 @@ export default function ContingencyControls({
           </div>
         )}
       </div>
+
+      {errorMsg && (
+        <InlineError
+          message={errorMsg}
+          onDismiss={() => setErrorMsg(null)}
+          className="mb-4"
+        />
+      )}
 
       {/* Preset Action Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -80,14 +91,14 @@ export default function ContingencyControls({
             <div className="h-9 w-9 rounded-lg bg-cyan-500/15 text-cyan-400 flex items-center justify-center">
               <CloudRain className="w-5 h-5" />
             </div>
-            <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-cyan-950 border border-cyan-800/60 text-cyan-300">
+            <span className="text-xs font-mono uppercase px-2 py-0.5 rounded bg-cyan-950 border border-cyan-800/60 text-cyan-300">
               Weather Risk
             </span>
           </div>
           <h3 className="text-sm font-bold text-white group-hover:text-cyan-300 transition-colors">
             🌧️ Rain Storm Alert
           </h3>
-          <p className="text-[11px] text-slate-400 mt-1 leading-snug">
+          <p className="text-xs text-slate-400 mt-1 leading-snug">
             Injects emergency German Pagoda marquee, reroutes outdoor schedule, trims discretionary florals.
           </p>
         </button>
@@ -113,14 +124,14 @@ export default function ContingencyControls({
             <div className="h-9 w-9 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center">
               <DollarSign className="w-5 h-5" />
             </div>
-            <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-amber-950 border border-amber-800/60 text-amber-300">
+            <span className="text-xs font-mono uppercase px-2 py-0.5 rounded bg-amber-950 border border-amber-800/60 text-amber-300">
               Compression
             </span>
           </div>
           <h3 className="text-sm font-bold text-white group-hover:text-amber-300 transition-colors">
             💸 Cut 20% Budget
           </h3>
-          <p className="text-[11px] text-slate-400 mt-1 leading-snug">
+          <p className="text-xs text-slate-400 mt-1 leading-snug">
             Preserves Tier-1 critical safety and catering; surgically scales and trims Tier-3 luxury line items.
           </p>
         </button>
@@ -146,14 +157,14 @@ export default function ContingencyControls({
             <div className="h-9 w-9 rounded-lg bg-indigo-500/15 text-indigo-400 flex items-center justify-center">
               <Clock className="w-5 h-5" />
             </div>
-            <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-indigo-950 border border-indigo-800/60 text-indigo-300">
+            <span className="text-xs font-mono uppercase px-2 py-0.5 rounded bg-indigo-950 border border-indigo-800/60 text-indigo-300">
               Slippage
             </span>
           </div>
           <h3 className="text-sm font-bold text-white group-hover:text-indigo-300 transition-colors">
             ⏰ Baraat Delayed 1 Hr
           </h3>
-          <p className="text-[11px] text-slate-400 mt-1 leading-snug">
+          <p className="text-xs text-slate-400 mt-1 leading-snug">
             Graph cascades subsequent ceremony milestones while maintaining buffet kitchen fresh-holding protocols.
           </p>
         </button>
@@ -179,14 +190,14 @@ export default function ContingencyControls({
             <div className="h-9 w-9 rounded-lg bg-rose-500/15 text-rose-400 flex items-center justify-center">
               <AlertOctagon className="w-5 h-5" />
             </div>
-            <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-rose-950 border border-rose-800/60 text-rose-300">
+            <span className="text-xs font-mono uppercase px-2 py-0.5 rounded bg-rose-950 border border-rose-800/60 text-rose-300">
               Supply Fail
             </span>
           </div>
           <h3 className="text-sm font-bold text-white group-hover:text-rose-300 transition-colors">
             🚨 Caterer Cancelled
           </h3>
-          <p className="text-[11px] text-slate-400 mt-1 leading-snug">
+          <p className="text-xs text-slate-400 mt-1 leading-snug">
             Queries Google Maps Places API for verified backup caterer and hot-swaps lines with verified ratings.
           </p>
         </button>

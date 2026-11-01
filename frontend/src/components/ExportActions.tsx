@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { MasterEventPlan, exportToSheets, exportCalendarIcs } from "../lib/api";
 import { FileSpreadsheet, Calendar, Download, ExternalLink, RefreshCw, CheckCircle2, ArrowUpRight, Clock, ShieldCheck } from "lucide-react";
 
+import { defaultEventDate } from "@/lib/dates";
+
 interface ExportActionsProps {
   plan: MasterEventPlan;
 }
@@ -109,7 +111,7 @@ export default function ExportActions({ plan }: ExportActionsProps) {
   };
 
   const getGoogleCalendarWebIntentUrl = () => {
-    const todayPlus90 = new Date(Date.now() + 90 * 86400000).toISOString().split("T")[0];
+    const todayPlus90 = defaultEventDate(90);
     const evDate = plan.event_date || todayPlus90;
     const cleanDate = evDate.replace(/-/g, "");
     const startTime = "090000";
@@ -143,7 +145,7 @@ export default function ExportActions({ plan }: ExportActionsProps) {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-800">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase font-mono">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase font-mono">
               Workspace & Temporal Export Engine
             </span>
             <span className="text-xs text-slate-400 font-mono">Sheets API v4 & RFC-5545 iCalendar</span>
@@ -203,15 +205,15 @@ export default function ExportActions({ plan }: ExportActionsProps) {
                 <FileSpreadsheet className="w-4 h-4" /> Google Sheets API v4
               </span>
               {sheetResult && sheetResult.spreadsheet_url ? (
-                <span className="text-[10px] font-mono text-emerald-300 bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-500/40 flex items-center gap-1 font-bold">
+                <span className="text-xs font-mono text-emerald-300 bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-500/40 flex items-center gap-1 font-bold">
                   <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Exported ({sheetResult.items_exported} Rows)
                 </span>
               ) : sheetError || (sheetResult && sheetResult.status === "NOT_CONFIGURED") ? (
-                <span className="text-[10px] font-mono text-amber-300 bg-amber-950/60 px-2.5 py-0.5 rounded-full border border-amber-700/50">
+                <span className="text-xs font-mono text-amber-300 bg-amber-950/60 px-2.5 py-0.5 rounded-full border border-amber-700/50">
                   Not Configured
                 </span>
               ) : (
-                <span className="text-[10px] font-mono text-slate-500">Requires service-account credentials</span>
+                <span className="text-xs font-mono text-slate-400">Requires service-account credentials</span>
               )}
             </div>
             <p className="text-xs text-slate-300">
@@ -220,16 +222,16 @@ export default function ExportActions({ plan }: ExportActionsProps) {
 
             {sheetResult && sheetResult.spreadsheet_url && (
               <div className="mt-3 p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono space-y-1.5 text-slate-400">
-                <p><span className="text-slate-500">Workbook Title:</span> <span className="text-slate-200 font-medium">{sheetResult.spreadsheet_title}</span></p>
-                <p><span className="text-slate-500">Grand Total Formula:</span> <span className="text-cyan-400 font-bold">{sheetResult.grand_total_formula}</span></p>
-                <p><span className="text-slate-500">Priority SUMIF:</span> <span className="text-amber-300 font-bold">{sheetResult.priority_formulas?.["Critical Tier Formula"] || "=SUMIF(...)"}</span></p>
-                <p><span className="text-slate-500">Total Lines:</span> <span className="text-emerald-400 font-bold">{sheetResult.total_rows_created} formatted rows</span></p>
+                <p><span className="text-slate-400">Workbook Title:</span> <span className="text-slate-200 font-medium">{sheetResult.spreadsheet_title}</span></p>
+                <p><span className="text-slate-400">Grand Total Formula:</span> <span className="text-cyan-400 font-bold">{sheetResult.grand_total_formula}</span></p>
+                <p><span className="text-slate-400">Priority SUMIF:</span> <span className="text-amber-300 font-bold">{sheetResult.priority_formulas?.["Critical Tier Formula"] || "=SUMIF(...)"}</span></p>
+                <p><span className="text-slate-400">Total Lines:</span> <span className="text-emerald-400 font-bold">{sheetResult.total_rows_created} formatted rows</span></p>
               </div>
             )}
             {sheetResult && sheetResult.status === "NOT_CONFIGURED" && (
               <div className="mt-3 p-3 rounded-lg bg-amber-950/30 border border-amber-800/50 text-xs font-mono text-amber-300">
                 <p className="font-semibold">Google Sheets export inactive</p>
-                <p className="text-[11px] text-amber-300/80 mt-1">{sheetResult.message || "Backend service-account credentials are not configured."}</p>
+                <p className="text-xs text-amber-300/80 mt-1">{sheetResult.message || "Backend service-account credentials are not configured."}</p>
               </div>
             )}
           </div>
@@ -246,9 +248,9 @@ export default function ExportActions({ plan }: ExportActionsProps) {
               <ArrowUpRight className="w-4 h-4" />
             </a>
           ) : (
-            <div className="mt-3 pt-3 border-t border-slate-800/80 text-[11px] font-mono space-y-1">
+            <div className="mt-3 pt-3 border-t border-slate-800/80 text-xs font-mono space-y-1">
               {sheetError && <p className="text-amber-300">{sheetError}</p>}
-              <p className="text-slate-500">
+              <p className="text-slate-400">
                 No credentials? Use &quot;Download CSV&quot; and import into Google Sheets (File → Import).
                 {csvDownloaded && <span className="text-teal-300"> CSV downloaded ✓</span>}
               </p>
@@ -264,11 +266,11 @@ export default function ExportActions({ plan }: ExportActionsProps) {
                 <Calendar className="w-4 h-4" /> RFC-5545 & Web Intent Calendar
               </span>
               {icsDownloaded ? (
-                <span className="text-[10px] font-mono text-cyan-300 bg-cyan-950/80 px-2.5 py-0.5 rounded-full border border-cyan-500/40 flex items-center gap-1 font-bold">
+                <span className="text-xs font-mono text-cyan-300 bg-cyan-950/80 px-2.5 py-0.5 rounded-full border border-cyan-500/40 flex items-center gap-1 font-bold">
                   <CheckCircle2 className="w-3 h-3 text-cyan-400" /> iCal .ics Downloaded
                 </span>
               ) : (
-                <span className="text-[10px] font-mono text-slate-500">Ready for Export</span>
+                <span className="text-xs font-mono text-slate-400">Ready for Export</span>
               )}
             </div>
             <p className="text-xs text-slate-300">
@@ -276,17 +278,17 @@ export default function ExportActions({ plan }: ExportActionsProps) {
             </p>
 
             <div className="mt-3 p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono space-y-1.5 text-slate-400">
-              <p><span className="text-slate-500">Target Timezone:</span> <span className="text-slate-200 font-medium">Asia/Kolkata (IST • UTC+05:30)</span></p>
-              <p><span className="text-slate-500">Milestone Events:</span> <span className="text-cyan-400 font-bold">{plan.planning_milestones?.length || 0} All-Day Milestones</span></p>
-              <p><span className="text-slate-500">Run-of-Show Blocks:</span> <span className="text-indigo-400 font-bold">{plan.schedule.length} Hourly Timed Blocks</span></p>
+              <p><span className="text-slate-400">Target Timezone:</span> <span className="text-slate-200 font-medium">Asia/Kolkata (IST • UTC+05:30)</span></p>
+              <p><span className="text-slate-400">Milestone Events:</span> <span className="text-cyan-400 font-bold">{plan.planning_milestones?.length || 0} All-Day Milestones</span></p>
+              <p><span className="text-slate-400">Run-of-Show Blocks:</span> <span className="text-indigo-400 font-bold">{plan.schedule.length} Hourly Timed Blocks</span></p>
               <div className="pt-1 flex flex-wrap gap-1.5">
-                <span className="px-2 py-0.5 rounded bg-blue-950/60 text-blue-300 border border-blue-800/60 text-[10px]">
+                <span className="px-2 py-0.5 rounded bg-blue-950/60 text-blue-300 border border-blue-800/60 text-xs">
                   RFC-5545 Standard
                 </span>
-                <span className="px-2 py-0.5 rounded bg-indigo-950/60 text-indigo-300 border border-indigo-800/60 text-[10px]">
+                <span className="px-2 py-0.5 rounded bg-indigo-950/60 text-indigo-300 border border-indigo-800/60 text-xs">
                   Direct Web Intent
                 </span>
-                <span className="px-2 py-0.5 rounded bg-emerald-950/60 text-emerald-300 border border-emerald-800/60 text-[10px]">
+                <span className="px-2 py-0.5 rounded bg-emerald-950/60 text-emerald-300 border border-emerald-800/60 text-xs">
                   Zero OAuth Friction
                 </span>
               </div>
@@ -315,7 +317,7 @@ export default function ExportActions({ plan }: ExportActionsProps) {
             </a>
           </div>
           {icsError && (
-            <p className="mt-2 text-[11px] font-mono text-rose-300" role="alert">
+            <p className="mt-2 text-xs font-mono text-rose-300" role="alert">
               {icsError}
             </p>
           )}

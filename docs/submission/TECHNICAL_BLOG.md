@@ -3,7 +3,8 @@
 **System Classification**: Autonomous Multimodal Event Planning & Reactive Contingency Engine  
 **Platform**: Google Antigravity  
 **Hackathon Target**: Hack2Skill Google PromptWars (Challenge 5: GenAI-Powered Planning Assistant)  
-**Architecture Version**: `v2.1.0-PROD`
+**Architecture Version**: `2.2.0`
+**Deployment Architecture**: Google Cloud Run (Containerized Backend & Frontend) via `docs/DEPLOY.md`
 
 ---
 
@@ -15,13 +16,13 @@ Events—whether destination weddings, milestone birthdays, or vibrant community
 2. **Timeline Disconnect**: Milestones set without temporal reference to the event date lead to missed booking windows. Deadlines set in the past or scheduled haphazardly create operational bottlenecks.
 3. **Contingency Paralysis**: When a real-time crisis hits—such as sudden torrential downpour, an unexpected 20% budget cut, or supplier cancellations—organizers lack deterministic mathematical models to rebalance budgets, shift timelines, and source verified local replacements in minutes.
 
-**AuraPulse AI** solves this by unifying **Multimodal Gemini 2.5 Flash Vision & Generation**, a **Dynamic Backwards Planning Timeline**, **Function-Calling Conversational Replanning**, and **Google Services (Places API New, RFC-5545 iCal & Google Calendar Web Intents)** into a resilient, production-grade event operating system.
+**AuraPulse AI** solves this by unifying **Multimodal Gemini 2.5 Flash Vision & Generation**, a **Dynamic Backwards Planning Timeline**, **Function-Calling Conversational Replanning**, and **Google Services (Places API New, RFC-5545 iCal & Google Calendar Web Intents)** into a resilient, hardened event operating system.
 
 ---
 
 ## 2. Architectural Deep Dive: 3 Core Layers
 
-AuraPulse AI coordinates 3 decoupled, production-grade layers using strictly typed Pydantic v2 data contracts:
+AuraPulse AI coordinates 3 decoupled, resilient layers using strictly typed Pydantic v2 data contracts:
 
 ```
 +-----------------------------------------------------------------------------------+
@@ -109,7 +110,7 @@ Building AuraPulse AI with **Google Antigravity** provided rapid agentic develop
 
 1. **Full-Stack Monorepo Cohesion**: Synchronously developed FastAPI endpoints, Next.js 15 UI components, and TypeScript API clients.
 2. **Strict Verification Culture**: Continuous headless test runs and validation passes caught subtle schema mismatches and API payload edge cases before final delivery.
-3. **Transparent Architectural Evolution**: Transitioned smoothly from early experimental mocks to a hardened, authentic v2.1-PROD architecture backed by 40 passing unit and integration tests.
+3. **Transparent Architectural Evolution**: Transitioned smoothly from early experimental mocks to a hardened, authentic 2.2.0 architecture backed by 54 passing unit and integration tests.
 
 ---
 

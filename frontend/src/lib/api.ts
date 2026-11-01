@@ -1,3 +1,5 @@
+import { addDays, defaultEventDate } from "./dates";
+
 export interface BOQItem {
   item_id: string;
   category: string;
@@ -49,6 +51,7 @@ export interface MasterEventPlan {
   currency: string;
   total_budget_limit: number;
   current_estimated_total: number;
+  headcount?: number;
   event_date?: string;
   culture_region?: string;
   theme?: string;
@@ -103,7 +106,11 @@ export interface CopilotResponse {
   updated_plan: MasterEventPlan;
   suggested_ideas: string[];
   diff?: ContingencyDiff;
+  mode?: string;
+  declined?: boolean;
 }
+
+const fallbackDefaultDate = defaultEventDate(90);
 
 export const FALLBACK_PRESET_1: MasterEventPlan = {
   event_id: "evt_fallback_meadow",
@@ -113,6 +120,8 @@ export const FALLBACK_PRESET_1: MasterEventPlan = {
   currency: "INR",
   total_budget_limit: 1500000,
   current_estimated_total: 1420000,
+  headcount: 300,
+  event_date: fallbackDefaultDate,
   boq: [
     {
       item_id: "boq_meadow_01",
@@ -285,7 +294,7 @@ export const FALLBACK_PRESET_1: MasterEventPlan = {
       phase: "T-6 Months",
       title: "Lock Meadow Estate & Barnhouse Booking",
       description: "Finalize signed agreement for private hillside meadow property with wet weather backup barn.",
-      due_date: "2026-05-15",
+      due_date: addDays(fallbackDefaultDate, -180),
       category: "Venue",
       completed: true
     },
@@ -294,7 +303,7 @@ export const FALLBACK_PRESET_1: MasterEventPlan = {
       phase: "T-3 Months",
       title: "Farm-to-Table Menu Tasting & Live Station Sign-off",
       description: "Culinary tasting of woodfired sourdough pizza, pasta, and organic local wines with head chef.",
-      due_date: "2026-08-15",
+      due_date: addDays(fallbackDefaultDate, -90),
       category: "Catering",
       completed: true
     },
@@ -303,7 +312,7 @@ export const FALLBACK_PRESET_1: MasterEventPlan = {
       phase: "T-1 Month",
       title: "Pampas Floral Arch & Festoon Lighting Mockup",
       description: "Visual review of dried palm installations, peach hydrangeas, and warm Edison stringing geometry.",
-      due_date: "2026-10-15",
+      due_date: addDays(fallbackDefaultDate, -30),
       category: "Decor",
       completed: false
     },
@@ -312,7 +321,7 @@ export const FALLBACK_PRESET_1: MasterEventPlan = {
       phase: "T-2 Weeks",
       title: "Dispatch Linen Digital Invitations & RSVP Lock",
       description: "Confirm final dietary requirements (vegan/gluten-free) and headcounts for 300 guests.",
-      due_date: "2026-11-01",
+      due_date: addDays(fallbackDefaultDate, -14),
       category: "Attire & Invites",
       completed: false
     },
@@ -321,7 +330,7 @@ export const FALLBACK_PRESET_1: MasterEventPlan = {
       phase: "T-1 Week",
       title: "Microclimate Check & Generator Earthing Inspection",
       description: "Review 7-day weather forecast, test 82.5 kVA silent genset, and review rain contingency protocol.",
-      due_date: "2026-11-08",
+      due_date: addDays(fallbackDefaultDate, -7),
       category: "Logistics",
       completed: false
     },
@@ -330,7 +339,7 @@ export const FALLBACK_PRESET_1: MasterEventPlan = {
       phase: "Day-Of",
       title: "Bride Meadow Entry & Sunset Vow Exchange",
       description: "Check flower crown bar setup, acoustic trio soundcheck, and golden hour ceremonial cue.",
-      due_date: "2026-11-15",
+      due_date: fallbackDefaultDate,
       category: "Rituals",
       completed: false
     }

@@ -1,21 +1,21 @@
 import logging
-from typing import Optional, List, Dict, Any
+from typing import List, Optional
+
 from fastapi import HTTPException
 
+from ..fixtures.sample_plans import (
+    SAMPLE_PRESETS,
+    create_baseline_wedding_plan,
+    create_preset_cyberpunk_birthday,
+    create_preset_diwali_mela,
+    create_preset_meadow_wedding,
+)
+from ..llm.client import generate_event_plan
 from ..schemas import (
     MasterEventPlan,
     PlanRequest,
-    DeconstructRequest,
 )
-from ..fixtures.sample_plans import (
-    create_preset_meadow_wedding,
-    create_preset_cyberpunk_birthday,
-    create_preset_diwali_mela,
-    create_baseline_wedding_plan,
-    SAMPLE_PRESETS,
-)
-from ..services.timeline import get_backwards_date, build_milestones
-from ..llm.client import generate_event_plan
+from ..services.timeline import build_milestones, default_event_date, get_backwards_date
 
 logger = logging.getLogger("aurapulse.aura_vision")
 
@@ -58,7 +58,7 @@ async def deconstruct_moodboard(
     # 1. Strict Preset Matching ONLY
     if moodboard_preset and moodboard_preset in SAMPLE_PRESETS:
         preset_builder = SAMPLE_PRESETS[moodboard_preset]
-        plan = preset_builder(event_date=event_date or "2026-11-15")
+        plan = preset_builder(event_date=event_date or default_event_date())
         if event_date:
             plan.event_date = event_date
             plan.planning_milestones = build_milestones(

@@ -1,33 +1,26 @@
 import uuid
-from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, List
+from typing import Optional
+
 from ..schemas import (
-    MasterEventPlan,
     BOQItem,
-    ScheduleBlock,
+    MasterEventPlan,
     PriorityTier,
-    PlanningMilestone,
-    MilestonePhase,
-    MilestoneCategory,
+    ScheduleBlock,
     VendorChecklistItem,
     VendorStatus,
 )
-
-def get_backwards_date(base_date_str: str, days_before: int) -> str:
-    """Helper to calculate milestone due dates backwards from event date."""
-    try:
-        dt = datetime.strptime(base_date_str, "%Y-%m-%d")
-        target = dt - timedelta(days=days_before)
-        return target.strftime("%Y-%m-%d")
-    except Exception as e:
-        raise ValueError(f"Invalid date string '{base_date_str}'; expected YYYY-MM-DD") from e
+from ..services.timeline import build_milestones, default_event_date
 
 
-def create_preset_meadow_wedding(event_date: str = "2026-11-15") -> MasterEventPlan:
+def create_preset_meadow_wedding(event_date: Optional[str] = None) -> MasterEventPlan:
     """Preset 1: Boho Sunset Meadow Wedding (Pune, 300 Pax, ₹15,00,000)"""
+    if not event_date:
+        event_date = default_event_date(90)
     return MasterEventPlan(
         event_id=f"evt_{uuid.uuid4().hex[:8]}",
         event_type="wedding",
+        event_date=event_date,
+        headcount=300,
         title="Boho Sunset Meadow Wedding (Pastel Peach & Sage)",
         location_city="Pune",
         currency="INR",
@@ -199,62 +192,7 @@ def create_preset_meadow_wedding(event_date: str = "2026-11-15") -> MasterEventP
                 is_outdoor=False
             ),
         ],
-        planning_milestones=[
-            PlanningMilestone(
-                id="ms_m01",
-                phase=MilestonePhase.T_MINUS_6_MONTHS,
-                title="Lock Meadow Estate & Barnhouse Booking",
-                description="Finalize signed agreement for private hillside meadow property with wet weather backup barn.",
-                due_date=get_backwards_date(event_date, 180),
-                category=MilestoneCategory.VENUE,
-                completed=True
-            ),
-            PlanningMilestone(
-                id="ms_m02",
-                phase=MilestonePhase.T_MINUS_3_MONTHS,
-                title="Farm-to-Table Menu Tasting & Live Station Sign-off",
-                description="Culinary tasting of woodfired sourdough pizza, pasta, and organic local wines with head chef.",
-                due_date=get_backwards_date(event_date, 90),
-                category=MilestoneCategory.CATERING,
-                completed=True
-            ),
-            PlanningMilestone(
-                id="ms_m03",
-                phase=MilestonePhase.T_MINUS_1_MONTH,
-                title="Pampas Floral Arch & Festoon Lighting Mockup",
-                description="Visual review of dried palm installations, peach hydrangeas, and warm Edison stringing geometry.",
-                due_date=get_backwards_date(event_date, 30),
-                category=MilestoneCategory.DECOR,
-                completed=False
-            ),
-            PlanningMilestone(
-                id="ms_m04",
-                phase=MilestonePhase.T_MINUS_2_WEEKS,
-                title="Dispatch Linen Digital Invitations & RSVP Lock",
-                description="Confirm final dietary requirements (vegan/gluten-free) and headcounts for 300 guests.",
-                due_date=get_backwards_date(event_date, 14),
-                category=MilestoneCategory.ATTIRE_INVITES,
-                completed=False
-            ),
-            PlanningMilestone(
-                id="ms_m05",
-                phase=MilestonePhase.T_MINUS_1_WEEK,
-                title="Microclimate Check & Generator Earthing Inspection",
-                description="Review 7-day weather forecast, test 82.5 kVA silent genset, and review rain contingency protocol.",
-                due_date=get_backwards_date(event_date, 7),
-                category=MilestoneCategory.LOGISTICS,
-                completed=False
-            ),
-            PlanningMilestone(
-                id="ms_m06",
-                phase=MilestonePhase.DAY_OF,
-                title="Bride Meadow Entry & Sunset Vow Exchange",
-                description="Check flower crown bar setup, acoustic trio soundcheck, and golden hour ceremonial cue.",
-                due_date=event_date,
-                category=MilestoneCategory.RITUALS,
-                completed=False
-            ),
-        ],
+        planning_milestones=build_milestones(event_date=event_date, event_type="wedding"),
         vendor_checklist=[
             VendorChecklistItem(
                 id="vc_m01",
@@ -305,11 +243,15 @@ def create_preset_meadow_wedding(event_date: str = "2026-11-15") -> MasterEventP
     )
 
 
-def create_preset_cyberpunk_birthday(event_date: str = "2026-11-15") -> MasterEventPlan:
+def create_preset_cyberpunk_birthday(event_date: Optional[str] = None) -> MasterEventPlan:
     """Preset 2: Cyberpunk Neon 30th Birthday (Mumbai, 60 Pax, ₹2,50,000)"""
+    if not event_date:
+        event_date = default_event_date(90)
     return MasterEventPlan(
         event_id=f"evt_{uuid.uuid4().hex[:8]}",
         event_type="birthday",
+        event_date=event_date,
+        headcount=60,
         title="Cyberpunk Neon 30th Birthday (Violet & Electric Cyan)",
         location_city="Mumbai",
         currency="INR",
@@ -448,44 +390,7 @@ def create_preset_cyberpunk_birthday(event_date: str = "2026-11-15") -> MasterEv
                 is_outdoor=False
             ),
         ],
-        planning_milestones=[
-            PlanningMilestone(
-                id="ms_c01",
-                phase=MilestonePhase.T_MINUS_1_MONTH,
-                title="Lock Industrial Rooftop Loft (Worli Seaface)",
-                description="Sign 6-hour exclusive venue rental with private elevator access and sound permit.",
-                due_date=get_backwards_date(event_date, 30),
-                category=MilestoneCategory.VENUE,
-                completed=True
-            ),
-            PlanningMilestone(
-                id="ms_c02",
-                phase=MilestonePhase.T_MINUS_2_WEEKS,
-                title="Molecular Mocktail & Gourmet Sliders Menu Tasting",
-                description="Approve 4 signature cocktails with dry ice smoke cues and vegan slider options.",
-                due_date=get_backwards_date(event_date, 14),
-                category=MilestoneCategory.CATERING,
-                completed=True
-            ),
-            PlanningMilestone(
-                id="ms_c03",
-                phase=MilestonePhase.T_MINUS_1_WEEK,
-                title="Custom Neon Signage Fabrication & Astera Pixel Mapping",
-                description="Inspect '30 & UNSTOPPABLE' acrylic sign and pre-program wireless DMX light show.",
-                due_date=get_backwards_date(event_date, 7),
-                category=MilestoneCategory.DECOR,
-                completed=False
-            ),
-            PlanningMilestone(
-                id="ms_c04",
-                phase=MilestonePhase.DAY_OF,
-                title="Subwoofer Tuning, UV Blacklight Focus & DJ Tech Check",
-                description="Final decibel calibration, smoke machine fluid levels check, and UV body paint artist setup.",
-                due_date=event_date,
-                category=MilestoneCategory.LOGISTICS,
-                completed=False
-            ),
-        ],
+        planning_milestones=build_milestones(event_date=event_date, event_type="birthday"),
         vendor_checklist=[
             VendorChecklistItem(
                 id="vc_c01",
@@ -527,11 +432,15 @@ def create_preset_cyberpunk_birthday(event_date: str = "2026-11-15") -> MasterEv
     )
 
 
-def create_preset_diwali_mela(event_date: str = "2026-11-15") -> MasterEventPlan:
+def create_preset_diwali_mela(event_date: Optional[str] = None) -> MasterEventPlan:
     """Preset 3: Eco-Friendly Society Diwali Mela (Pune, 800 Pax, ₹5,00,000)"""
+    if not event_date:
+        event_date = default_event_date(90)
     return MasterEventPlan(
         event_id=f"evt_{uuid.uuid4().hex[:8]}",
         event_type="community_festival",
+        event_date=event_date,
+        headcount=800,
         title="Eco-Friendly Society Diwali Mela (Zero Plastic & Heritage)",
         location_city="Pune",
         currency="INR",
@@ -691,53 +600,7 @@ def create_preset_diwali_mela(event_date: str = "2026-11-15") -> MasterEventPlan
                 is_outdoor=True
             ),
         ],
-        planning_milestones=[
-            PlanningMilestone(
-                id="ms_dm01",
-                phase=MilestonePhase.T_MINUS_3_MONTHS,
-                title="Society General Body Clearance & Ward Permissions",
-                description="Pass society resolution for open courtyard mela and obtain local ward noise/fire NOCs.",
-                due_date=get_backwards_date(event_date, 90),
-                category=MilestoneCategory.VENUE,
-                completed=True
-            ),
-            PlanningMilestone(
-                id="ms_dm02",
-                phase=MilestonePhase.T_MINUS_1_MONTH,
-                title="25 Artisan Stall Allotments & Zero-Plastic Guidelines",
-                description="Screen community craft applications and mandate 100% biodegradable leaf plates.",
-                due_date=get_backwards_date(event_date, 30),
-                category=MilestoneCategory.LOGISTICS,
-                completed=True
-            ),
-            PlanningMilestone(
-                id="ms_dm03",
-                phase=MilestonePhase.T_MINUS_2_WEEKS,
-                title="Bulk Marigold Order & 500 Terracotta Diyas Procurement",
-                description="Procure organic local marigolds from wholesale mandi and tested safe earthen diyas.",
-                due_date=get_backwards_date(event_date, 14),
-                category=MilestoneCategory.DECOR,
-                completed=False
-            ),
-            PlanningMilestone(
-                id="ms_dm04",
-                phase=MilestonePhase.T_MINUS_1_WEEK,
-                title="Emergency Fire Safety Inspection & DG Load Test",
-                description="Audit 6x ABC fire safety points, paramedic first aid kit, and silent DG line stability.",
-                due_date=get_backwards_date(event_date, 7),
-                category=MilestoneCategory.LOGISTICS,
-                completed=False
-            ),
-            PlanningMilestone(
-                id="ms_dm05",
-                phase=MilestonePhase.DAY_OF,
-                title="Puneri Dhol Tasha Procession & Courtyard Diya Lighting",
-                description="Grand evening opening ceremony, cultural dance competition, and green clean-up handover.",
-                due_date=event_date,
-                category=MilestoneCategory.RITUALS,
-                completed=False
-            ),
-        ],
+        planning_milestones=build_milestones(event_date=event_date, event_type="community_festival"),
         vendor_checklist=[
             VendorChecklistItem(
                 id="vc_dm01",
@@ -796,6 +659,7 @@ def create_baseline_wedding_plan(
 ) -> MasterEventPlan:
     """Default baseline plan calibrated to user constraints."""
     base = create_preset_meadow_wedding()
+    base.headcount = headcount
     base.location_city = city
     base.title = f"Destination {event_type.capitalize()} ({headcount} Guests)"
     base.total_budget_limit = budget

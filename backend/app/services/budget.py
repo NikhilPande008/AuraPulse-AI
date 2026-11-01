@@ -1,11 +1,11 @@
 import copy
-from typing import List, Tuple, Optional
+from typing import List, Tuple
+
 from ..schemas import (
-    MasterEventPlan,
-    BOQItem,
-    PriorityTier,
     BOQDiffItem,
     DiffAction,
+    MasterEventPlan,
+    PriorityTier,
 )
 
 

@@ -1,29 +1,26 @@
+import json
+import logging
 import os
 import re
 import uuid
-import json
-import asyncio
-import logging
-from datetime import datetime, date
-from typing import Dict, Any, List, Optional, Tuple
+from datetime import date, datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
 
+from ..config import settings
+from ..llm.client import generate
 from ..schemas import (
-    MasterEventPlan,
+    BOQDiffItem,
     BOQItem,
-    ScheduleBlock,
-    PlanningMilestone,
-    PriorityTier,
+    ContingencyDiff,
     CrisisTrigger,
     CrisisTriggerType,
-    ContingencyDiff,
-    BOQDiffItem,
-    ScheduleDiffItem,
     DiffAction,
+    MasterEventPlan,
+    PlanningMilestone,
+    PriorityTier,
 )
-from ..services.timeline import build_milestones, get_backwards_date
-from ..services.budget import recompute_totals, rebalance_to_ceiling
-from ..llm.client import get_genai_client, generate, GeminiError
-from ..config import settings
+from ..services.budget import rebalance_to_ceiling, recompute_totals
+from ..services.timeline import build_milestones, default_event_date, get_backwards_date
 
 logger = logging.getLogger("aurapulse.copilot")
 
@@ -237,12 +234,10 @@ def execute_remove_item(
     """Tool: remove_item"""
     new_plan = plan.model_copy(deep=True)
     target_item = None
-    target_idx = -1
 
-    for idx, it in enumerate(new_plan.boq):
+    for _, it in enumerate(new_plan.boq):
         if it.item_id == item_id or it.name.lower() == item_id.lower() or item_id.lower() in it.name.lower():
             target_item = it
-            target_idx = idx
             break
 
     if not target_item or target_item.status == "DROPPED":
@@ -381,7 +376,10 @@ def execute_set_headcount(
     plan: MasterEventPlan,
     new_headcount: int
 ) -> Tuple[MasterEventPlan, ContingencyDiff]:
-    """Tool: set_headcount"""
+    """Tool: set_headcount with 1..10000 range validation and budget ceiling rebalance."""
+    if new_headcount < 1 or new_headcount > 10000:
+        raise ValueError(f"Headcount must be between 1 and 10000 (received {new_headcount})")
+
     new_plan = plan.model_copy(deep=True)
     old_headcount = getattr(new_plan, "headcount", None) or 100
     if old_headcount <= 0:
@@ -413,11 +411,17 @@ def execute_set_headcount(
 
     recompute_totals(new_plan)
 
+    shortfall_note = ""
+    if new_plan.current_estimated_total > new_plan.total_budget_limit:
+        new_plan, shortfall, drops = rebalance_to_ceiling(new_plan, new_plan.total_budget_limit)
+        if shortfall > 0:
+            shortfall_note = f" Note: Spending ceiling exceeded by ₹{shortfall:,.2f}; non-critical lines adjusted."
+
     diff = ContingencyDiff(
         diff_id=f"diff_hc_{uuid.uuid4().hex[:6]}",
         trigger=CrisisTrigger(trigger_type=CrisisTriggerType.BUDGET_COMPRESSION, description=f"Headcount changed to {new_headcount}"),
         timestamp_iso=datetime.now().isoformat(),
-        summary_narrative=f"Updated headcount from {old_headcount} to {new_headcount} guests. Per-person catering and guest items scaled proportionally.",
+        summary_narrative=f"Updated headcount from {old_headcount} to {new_headcount} guests. Per-person catering and guest items scaled proportionally.{shortfall_note}",
         original_total_inr=plan.current_estimated_total,
         new_total_inr=new_plan.current_estimated_total,
         budget_delta_inr=round(new_plan.current_estimated_total - plan.current_estimated_total, 2),
@@ -427,6 +431,16 @@ def execute_set_headcount(
         actionable_mitigations=[f"Update venue banquet manager for {new_headcount} headcount lock"],
     )
     return new_plan, diff
+
+
+def execute_change_headcount(
+    plan: MasterEventPlan,
+    delta: int
+) -> Tuple[MasterEventPlan, ContingencyDiff]:
+    """Tool: change_headcount by relative delta (positive or negative)."""
+    old_headcount = getattr(plan, "headcount", None) or 100
+    new_headcount = old_headcount + delta
+    return execute_set_headcount(plan, new_headcount)
 
 
 def execute_decline_off_topic(reason: str) -> str:
@@ -456,16 +470,20 @@ def set_event_date(new_date: str) -> str:
     """Sets a new target event date (YYYY-MM-DD) and dynamically recalculates backwards milestones."""
     return f"set_event_date({new_date})"
 
-def set_headcount(count: int) -> str:
-    """Updates headcount (1 to 10000) and scales per-guest line items proportionally."""
-    return f"set_headcount({count})"
+def set_headcount(new_total: int) -> str:
+    """Updates headcount (1 to 10000) to an absolute total and scales per-guest line items proportionally."""
+    return f"set_headcount({new_total})"
+
+def change_headcount(delta: int) -> str:
+    """Changes headcount by a relative delta (positive or negative) and scales per-guest line items proportionally."""
+    return f"change_headcount({delta})"
 
 def decline_off_topic(reason: str) -> str:
     """Declines an off-topic query unrelated to event planning or budgeting."""
     return f"decline_off_topic({reason})"
 
 
-COPILOT_TOOLS = [scale_budget, add_item, remove_item, update_item, set_event_date, set_headcount, decline_off_topic]
+COPILOT_TOOLS = [scale_budget, add_item, remove_item, update_item, set_event_date, set_headcount, change_headcount, decline_off_topic]
 
 
 # --- Multi-Language & Keyword Helpers (CR-07) ---
@@ -540,9 +558,14 @@ def apply_tool_call(
         return p, None, f"Set event date to {new_date}."
 
     elif tool_name == "set_headcount":
-        cnt = int(args.get("count") or args.get("headcount") or 100)
+        cnt = int(args.get("new_total") or args.get("count") or args.get("headcount") or 100)
         p, d = execute_set_headcount(plan, cnt)
         return p, d, f"Set headcount to {cnt}."
+
+    elif tool_name == "change_headcount":
+        delta = int(args.get("delta") or 0)
+        p, d = execute_change_headcount(plan, delta)
+        return p, d, f"Changed headcount by {delta}."
 
     elif tool_name == "decline_off_topic":
         reason = str(args.get("reason", "Query is off-topic."))
@@ -611,7 +634,7 @@ async def chat_copilot(
                 "milestones": [{"title": m.title, "due_date": m.due_date} for m in (event_plan.planning_milestones or [])[:8]],
             }
 
-            contents: List[Any] = [system_instruction]
+            contents: List[Any] = []
 
             # Role turns for multi-turn history
             for h in (history or [])[-6:]:
@@ -632,6 +655,7 @@ async def chat_copilot(
             ))
 
             config = types.GenerateContentConfig(
+                system_instruction=system_instruction,
                 tools=COPILOT_TOOLS,
                 automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
                 temperature=0.2,
@@ -691,9 +715,12 @@ async def chat_copilot(
                         if re.match(r"^\d{4}-\d{2}-\d{2}$", new_date):
                             updated_plan = execute_set_event_date(updated_plan, new_date)
                     elif fn_name == "set_headcount":
-                        count = int(fn_args.get("count", 100))
+                        count = int(fn_args.get("new_total") or fn_args.get("count", 100))
                         if 1 <= count <= 10000:
                             updated_plan, active_diff = execute_set_headcount(updated_plan, count)
+                    elif fn_name == "change_headcount":
+                        delta = int(fn_args.get("delta", 0))
+                        updated_plan, active_diff = execute_change_headcount(updated_plan, delta)
                     elif fn_name == "decline_off_topic":
                         reply_reason = execute_decline_off_topic(str(fn_args.get("reason", "Out of scope")))
                         return {
@@ -731,24 +758,145 @@ async def chat_copilot(
         lang=lang,
     )
 
+    is_declined = "I specialize exclusively in event planning" in reply or "मी केवळ कार्यक्रम नियोजन" in reply or "मैं विशेष रूप से कार्यक्रम योजना" in reply
+
     return {
         "copilot_reply": reply,
         "updated_plan": updated_plan,
         "suggested_ideas": ideas,
         "diff": active_diff.model_dump() if active_diff else None,
         "mode": "offline_rules",
+        "declined": is_declined,
     }
 
 
 def _execute_deterministic_copilot(
     event_plan: MasterEventPlan,
     user_prompt: str,
-    prompt_lower: str,
-    lang: str,
+    prompt_lower: Optional[str] = None,
+    lang: Optional[str] = None,
 ) -> Tuple[MasterEventPlan, Optional[ContingencyDiff], str, List[str]]:
     """Deterministic tool execution engine supporting English, Hindi, and Marathi."""
+    if lang is None:
+        lang = _detect_language(user_prompt)
+    if prompt_lower is None:
+        prompt_lower = user_prompt.lower().translate(DEVANAGARI_DIGITS)
     updated_plan = event_plan.model_copy(deep=True)
     active_diff: Optional[ContingencyDiff] = None
+
+    # 0. Protection against prompt injections and off-topic queries
+    is_injection_or_off_topic = any(
+        k in prompt_lower for k in [
+            "ignore previous", "system prompt", "jailbreak", "developer mode",
+            "pretend you are", "disregard all", "write a python", "write python",
+            "solve this math", "who is the president", "capital of france",
+            "stock price", "cryptocurrency", "bitcoin", "tell me a joke"
+        ]
+    )
+    if is_injection_or_off_topic:
+        if lang == "mr":
+            decline_reply = "मी केवळ कार्यक्रम नियोजन, बजेट, वेळापत्रक आणि पुरवठादार व्यवस्थापनात मदत करतो. कार्यक्रमाव्यतिरिक्त इतर विनंत्या हाताळण्यात मी असमर्थ आहे."
+        elif lang == "hi":
+            decline_reply = "मैं विशेष रूप से कार्यक्रम योजना, बजट, समय-सीमा और विक्रेता प्रबंधन में सहायता करता हूँ। मैं कार्यक्रम से बाहर के अनुरोधों में सहायता करने में असमर्थ हूँ।"
+        else:
+            decline_reply = "I specialize exclusively in event planning, budgeting, timeline scheduling, and vendor logistics. I cannot assist with requests outside of organizing your event."
+        return updated_plan, None, decline_reply, []
+
+    # Intent 0: Date Moves (Relative & Absolute)
+    word_to_num = {
+        "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
+        "एक": 1, "दो": 2, "तीन": 3, "चार": 4, "पाच": 5,
+        "दोन": 2,
+    }
+    rel_date_match = (
+        re.search(r"(?:move|shift|reschedule)?\s*(?:it\s+)?(?:by\s+)?(\d+|one|two|three|four)\s+(weeks?|days?|months?)\s+(earlier|prior|before|ahead|later|after)", prompt_lower)
+        or re.search(r"(\d+|one|two|three|four)\s+(weeks?|days?|months?)\s+(earlier|prior|before|ahead|later|after)", prompt_lower)
+        or re.search(r"(\d+|दो|दोन|एक|तीन|चार)\s*(?:सप्ताह|हफ्ते|आठवडे)\s*(?:पहले|आधी|बाद|नंतर)", prompt_lower)
+        or re.search(r"(?:पहले|आधी|बाद|नंतर)\s*(\d+|दो|दोन|एक|तीन|चार)\s*(?:सप्ताह|हफ्ते|आठवडे)", prompt_lower)
+    )
+    abs_date_match = (
+        re.search(r"(?:move|shift|change|set|reschedule|तारीख|दिनांक)\s+(?:event\s+)?(?:date\s+)?(?:to\s+|ला\s+|को\s+)?(\d{4}-\d{2}-\d{2})", prompt_lower)
+        or (re.search(r"(\d{4}-\d{2}-\d{2})", prompt_lower.strip()) if re.match(r"^.*(\d{4}-\d{2}-\d{2}).*$", prompt_lower.strip()) else None)
+    )
+
+    target_date_str: Optional[str] = None
+    curr_date_str = updated_plan.event_date or default_event_date(90)
+    try:
+        curr_dt = datetime.strptime(curr_date_str, "%Y-%m-%d").date()
+    except Exception:
+        curr_dt = date.today() + timedelta(days=90)
+
+    if rel_date_match:
+        raw_cnt = rel_date_match.group(1)
+        cnt = word_to_num.get(raw_cnt, int(raw_cnt) if raw_cnt.isdigit() else 2)
+        full_match_text = rel_date_match.group(0)
+        is_earlier = any(w in full_match_text for w in ["earlier", "prior", "before", "ahead", "आधी", "पहले"])
+        is_month = "month" in full_match_text or "महिने" in full_match_text
+        is_day = "day" in full_match_text or "दिवस" in full_match_text or "दिन" in full_match_text
+
+        if is_month:
+            delta_days = cnt * 30
+        elif is_day:
+            delta_days = cnt
+        else:
+            delta_days = cnt * 7  # default weeks
+
+        if is_earlier:
+            target_dt = curr_dt - timedelta(days=delta_days)
+        else:
+            target_dt = curr_dt + timedelta(days=delta_days)
+        target_date_str = target_dt.strftime("%Y-%m-%d")
+
+    elif abs_date_match:
+        target_date_str = abs_date_match.group(1)
+        try:
+            target_dt = datetime.strptime(target_date_str, "%Y-%m-%d").date()
+        except Exception:
+            target_dt = None
+
+    if target_date_str and target_dt:
+        if target_dt <= date.today():
+            if lang == "mr":
+                warn_reply = f"त्रुटी: कार्यक्रमाची तारीख {target_date_str} वर हलवता येणार नाही कारण ही तारीख भूतकाळातील आहे. कृपया भविष्यातील तारीख निवडा."
+            elif lang == "hi":
+                warn_reply = f"त्रुटि: कार्यक्रम की तिथि {target_date_str} को नहीं बदला जा सकता क्योंकि यह तारीख बीत चुकी है। कृपया भविष्य की तारीख चुनें।"
+            else:
+                warn_reply = f"Error: Cannot move event date to {target_date_str} because it is in the past or today. Please choose a future date."
+            return updated_plan, None, warn_reply, ["Choose a future event date"]
+
+        updated_plan = execute_set_event_date(updated_plan, target_date_str)
+        active_diff = ContingencyDiff(
+            diff_id=f"diff_date_{uuid.uuid4().hex[:6]}",
+            trigger=CrisisTrigger(trigger_type=CrisisTriggerType.TIMELINE_SLIPPAGE, description=f"Event date shifted to {target_date_str}"),
+            timestamp_iso=datetime.now().isoformat(),
+            summary_narrative=f"Rescheduled event date from {curr_date_str} to {target_date_str}. All planning milestones recalculated backwards from the new date.",
+            original_total_inr=updated_plan.current_estimated_total,
+            new_total_inr=updated_plan.current_estimated_total,
+            budget_delta_inr=0.0,
+            boq_diffs=[],
+            schedule_diffs=[],
+            updated_plan=updated_plan,
+            actionable_mitigations=[f"Notify all booked vendors about the rescheduled date: {target_date_str}"],
+        )
+        if lang == "mr":
+            reply = f"कार्यक्रमाची तारीख बदलून {target_date_str} केली आहे. रिव्हर्स माइलस्टोन्स आणि वेळापत्रक पुन्हा मोजण्यात आले आहे."
+            ideas = [
+                f"नवीन तारखेसाठी ({target_date_str}) हॉल आणि केटररची उपलब्धता तपासा",
+                "निमंत्रण पत्रिकांवर नवीन तारीख अद्यतनित करा",
+            ]
+        elif lang == "hi":
+            reply = f"कार्यक्रम की तिथि बदलकर {target_date_str} कर दी गई है। सभी मील के पत्थर और समय-सीमा नए सिरे से निर्धारित किए गए हैं।"
+            ideas = [
+                f"नई तिथि ({target_date_str}) के लिए स्थल और केटरर की पुष्टि करें",
+                "डिजिटल निमंत्रण में संशोधित तिथि अपडेट करें",
+            ]
+        else:
+            reply = f"Rescheduled event date to {target_date_str}. Backwards milestones and timeline have been dynamically recalculated."
+            ideas = [
+                f"Confirm venue and primary vendor availability for {target_date_str}",
+                "Issue revised RSVP notices with updated celebration date",
+            ]
+        return updated_plan, active_diff, reply, ideas
 
     # Intent 1: Budget Cut / Scale
     cut_match = (
@@ -788,16 +936,64 @@ def _execute_deterministic_copilot(
             ]
         return updated_plan, active_diff, reply, ideas
 
-    # Intent 2: Headcount Change
-    hc_match = re.search(r"(?:add|increase|change|set)\s+(?:headcount\s+to\s+|guests?\s+to\s+|guests?\s+by\s+)?(\d+)\s*(?:guests?|pax|people)", prompt_lower)
-    if hc_match:
-        new_hc = int(hc_match.group(1))
-        updated_plan, active_diff = execute_set_headcount(updated_plan, new_hc)
-        reply = f"Updated guest headcount to {new_hc} pax. Per-head catering quantities adjusted proportionally."
-        ideas = [
-            f"Confirm venue banquet seating arrangement for {new_hc} guests",
-            "Recalculate guest welcome gift quantities",
-        ]
+    # Intent 2: Headcount Change (Relative or Absolute)
+    old_hc = getattr(updated_plan, "headcount", None) or 100
+
+    rel_hc_match = (
+        re.search(r"(?:add|increase)\s+(\d+)\s*(?:more\s+)?(?:guests?|pax|people)?", prompt_lower)
+        or re.search(r"(?:add|increase)\s+(?:guests?|pax|people|headcount)\s+by\s+(\d+)", prompt_lower)
+        or re.search(r"(\d+)\s*(?:more\s+)?(?:guests?|pax|people)\s*(?:add|increase)", prompt_lower)
+        or re.search(r"(\d+)\s*(?:मेहमान|अतिथि|पाहुणे)\s*(?:जोड़ो|बढ़ाओ|वाढवा|जोडा|अधिक)", prompt_lower)
+        or re.search(r"(?:मेहमान|अतिथि|पाहुणे)\s*(\d+)\s*(?:जोड़ो|बढ़ाओ|वाढवा|जोडा)", prompt_lower)
+        or re.search(r"(?:जोड़ो|बढ़ाओ|वाढवा|जोडा)\s*(\d+)\s*(?:मेहमान|अतिथि|पाहुणे)", prompt_lower)
+    )
+
+    abs_hc_match = (
+        re.search(r"(?:set|change)\s+(?:headcount\s+to\s+|guests?\s+to\s+|guests?\s*=\s*|pax\s+to\s+)(\d+)", prompt_lower)
+        or re.search(r"(?:headcount|guests?|pax)\s*(?:to|=)\s*(\d+)", prompt_lower)
+        or re.search(r"(?:set|change)\s+(?:headcount|guests?|pax)\s+(\d+)", prompt_lower)
+        or re.search(r"(?:set|change)\s+(\d+)\s*(?:guests?|pax|people)", prompt_lower)
+        or re.search(r"(\d+)\s*(?:मेहमान|अतिथि|पाहुणे)\s*(?:करो|करें|करा)", prompt_lower)
+        or re.search(r"(?:मेहमान|अतिथि|पाहुणे|हेडकाउंट)\s*(\d+)\s*(?:करो|करें|करा)", prompt_lower)
+        or re.search(r"(?:मेहमान|अतिथि|पाहुणे|हेडकाउंट)\s*(?:संख्या\s*)?(\d+)", prompt_lower)
+    )
+
+    target_hc: Optional[int] = None
+    if rel_hc_match:
+        delta = int(rel_hc_match.group(1))
+        target_hc = old_hc + delta
+    elif abs_hc_match:
+        target_hc = int(abs_hc_match.group(1))
+
+    if target_hc is not None:
+        if target_hc < 1 or target_hc > 10000:
+            if lang == "mr":
+                warn_reply = f"चेतावणी: पाहुण्यांची संख्या १ ते १०,००० च्या दरम्यान असावी (प्रयत्न: {target_hc}). सध्याची संख्या {old_hc} पाहुणे तशीच ठेवली आहे."
+            elif lang == "hi":
+                warn_reply = f"चेतावनी: अतिथियों की संख्या 1 और 10,000 के बीच होनी चाहिए (प्रयास: {target_hc})। वर्तमान अतिथि संख्या {old_hc} यथावत रखी गई है।"
+            else:
+                warn_reply = f"Warning: Guest headcount must be between 1 and 10,000 (attempted: {target_hc}). Plan remains at {old_hc} guests."
+            return updated_plan, None, warn_reply, ["Enter a valid guest count between 1 and 10,000"]
+
+        updated_plan, active_diff = execute_set_headcount(updated_plan, target_hc)
+        if lang == "mr":
+            reply = f"पाहुण्यांची संख्या {old_hc} वरून {target_hc} पर्यंत अद्यतनित केली आहे. केटरिंग आणि इतर बाबी त्यानुसार समायोजित केल्या आहेत."
+            ideas = [
+                f"{target_hc} पाहुण्यांसाठी बैठक व्यवस्था आणि हॉल क्षमता तपासा",
+                "सुधारित संख्येनुसार रिटर्न गिफ्ट्सची संख्या समायोजित करा",
+            ]
+        elif lang == "hi":
+            reply = f"अतिथियों की संख्या {old_hc} से बदलकर {target_hc} कर दी गई है। प्रति व्यक्ति खानपान की मात्रा उसी अनुसार समायोजित की गई है।"
+            ideas = [
+                f"{target_hc} अतिथियों के लिए हॉल बैठक व्यवस्था की पुष्टि करें",
+                "संशोधित संख्या के अनुसार स्वागत उपहारों की गणना करें",
+            ]
+        else:
+            reply = f"Updated guest headcount from {old_hc} to {target_hc} pax. Per-head catering quantities adjusted proportionally."
+            ideas = [
+                f"Confirm venue banquet seating arrangement for {target_hc} guests",
+                "Recalculate guest welcome gift quantities",
+            ]
         return updated_plan, active_diff, reply, ideas
 
     # Intent 3: Cultural / Regional Catering Swap
@@ -901,7 +1097,7 @@ def _execute_deterministic_copilot(
                     phase="T-1 Month",
                     title="Sakhar Puda Ritual & Pooja Samagri Audit",
                     description="Conduct formal engagement ceremony, purchase auspicious items and verify priest checklist",
-                    due_date=get_backwards_date(updated_plan.event_date or "2026-11-15", 30),
+                    due_date=get_backwards_date(updated_plan.event_date or default_event_date(90), 30),
                     category="Rituals",
                     completed=False
                 )

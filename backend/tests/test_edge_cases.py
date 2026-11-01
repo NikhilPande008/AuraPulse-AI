@@ -1,22 +1,21 @@
-import pytest
 from datetime import datetime
+
+import pytest
 from fastapi.testclient import TestClient
-from backend.app.main import app
-from backend.app.schemas import (
-    MasterEventPlan,
-    BOQItem,
-    ScheduleBlock,
-    PriorityTier,
-    PlanningMilestone,
-    VendorChecklistItem,
-)
+
 from backend.app.agents.aura_vision import (
-    get_backwards_date,
-    create_preset_meadow_wedding,
     create_preset_cyberpunk_birthday,
     create_preset_diwali_mela,
+    create_preset_meadow_wedding,
+    get_backwards_date,
 )
-from backend.app.agents.copilot import chat_copilot
+from backend.app.main import app
+from backend.app.schemas import (
+    BOQItem,
+    MasterEventPlan,
+    PriorityTier,
+    ScheduleBlock,
+)
 
 client = TestClient(app)
 
@@ -53,6 +52,7 @@ def test_copilot_endpoint_floral_cut_and_sax():
     data = response.json()
     
     updated = data["updated_plan"]
+    assert updated["current_estimated_total"] != initial_total
     # Check that saxophonist item exists in BOQ
     assert any("sax" in item["name"].lower() for item in updated["boq"])
     # Mathematical invariant

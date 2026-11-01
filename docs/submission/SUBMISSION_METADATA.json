@@ -2,20 +2,23 @@
   "project_name": "AuraPulse AI",
   "tagline": "Autonomous multimodal event planning and reactive contingency engine powered by Google Gemini and Places API.",
   "challenge": "Challenge 5: GenAI-powered planning assistant",
-  "version": "v2.1.0-PROD",
+  "version": "2.2.0",
   "competition": {
     "name": "Google PromptWars",
     "organizer": "Hack2Skill & Google",
     "track": "Challenge 5: GenAI-powered planning assistant"
   },
   "repository_url": "https://github.com/NikhilPande008/AuraPulse-AI.git",
+  "deployment_guide": "docs/DEPLOY.md",
+  "demo_url": "https://aurapulse-web-PLACEHOLDER.run.app",
+  "demo_video_url": "https://youtu.be/PLACEHOLDER_DEMO",
   "google_technologies": [
     "Google Gemini 2.5 Flash",
     "Google Maps Places API (New)",
     "Google Calendar Web Intents",
     "Google Cloud Run"
   ],
-  "test_suite": "40/40 Pytest automated tests passing",
+  "test_suite": "54/54 Pytest automated tests passing",
   "frontend_framework": "Next.js 15 App Router with Tailwind CSS",
   "backend_framework": "FastAPI with Python 3.12 and Pydantic v2",
   "key_features": [

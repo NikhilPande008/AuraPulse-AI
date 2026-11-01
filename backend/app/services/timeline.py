@@ -1,11 +1,17 @@
 import uuid
-from datetime import datetime, date, timedelta
+from datetime import date, datetime, timedelta
 from typing import List, Optional
+
 from ..schemas import (
-    PlanningMilestone,
-    MilestonePhase,
     MilestoneCategory,
+    MilestonePhase,
+    PlanningMilestone,
 )
+
+
+def default_event_date(days_ahead: int = 90) -> str:
+    """Return an ISO formatted date string for `days_ahead` days from today."""
+    return (date.today() + timedelta(days=days_ahead)).isoformat()
 
 
 def get_backwards_date(base_date_str: str, days_before: int) -> str:
@@ -43,8 +49,8 @@ def build_milestones(
     """
     today = date.today()
     if not event_date:
-        ev_dt = today + timedelta(days=90)
-        event_date = ev_dt.strftime("%Y-%m-%d")
+        event_date = default_event_date(90)
+        ev_dt = datetime.strptime(event_date, "%Y-%m-%d").date()
     else:
         try:
             ev_dt = datetime.strptime(event_date, "%Y-%m-%d").date()

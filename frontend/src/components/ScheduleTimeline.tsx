@@ -112,7 +112,7 @@ export default function ScheduleTimeline({
     };
     const c = colors[category] || "bg-slate-800 text-slate-300 border-slate-700";
     return (
-      <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${c}`}>
+      <span className={`text-xs font-mono px-2 py-0.5 rounded border ${c}`}>
         {category}
       </span>
     );
@@ -124,7 +124,7 @@ export default function ScheduleTimeline({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-800">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 uppercase font-mono">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 uppercase font-mono">
               Challenge 5 Core • Temporal Engine
             </span>
             <span className="text-xs text-slate-400 font-mono">Backwards Roadmap & Run-of-Show</span>
@@ -227,11 +227,11 @@ export default function ScheduleTimeline({
                       <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-purple-300">
                         {phase} Horizon
                       </h3>
-                      <span className="text-[10px] text-slate-500 font-mono">
+                      <span className="text-xs text-slate-400 font-mono">
                         (Deadline: {items[0]?.due_date})
                       </span>
                     </div>
-                    <span className="text-[10px] font-mono text-slate-400">
+                    <span className="text-xs font-mono text-slate-400">
                       {items.filter((i) => i.completed).length}/{items.length} Ready
                     </span>
                   </div>
@@ -251,7 +251,7 @@ export default function ScheduleTimeline({
                           {ms.completed ? (
                             <CheckSquare className="w-4 h-4 text-emerald-400" />
                           ) : (
-                            <Square className="w-4 h-4 text-slate-500" />
+                            <Square className="w-4 h-4 text-slate-400" />
                           )}
                         </div>
 
@@ -266,12 +266,12 @@ export default function ScheduleTimeline({
                             </p>
                             <div className="flex items-center gap-2">
                               {getCategoryBadge(ms.category)}
-                              <span className="text-[10px] font-mono text-slate-400">
+                              <span className="text-xs font-mono text-slate-400">
                                 Due: {ms.due_date}
                               </span>
                             </div>
                           </div>
-                          <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                          <p className="text-xs text-slate-400 mt-1 leading-relaxed">
                             {ms.description}
                           </p>
                         </div>
@@ -320,12 +320,12 @@ export default function ScheduleTimeline({
                     </div>
 
                     {block.is_outdoor ? (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                      <span className="inline-flex items-center gap-1 text-xs font-mono px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">
                         <Sun className="w-3 h-3 text-amber-400" />
                         Outdoor Zone (Weather Watch)
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                      <span className="inline-flex items-center gap-1 text-xs font-mono px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
                         <Shield className="w-3 h-3 text-indigo-400" />
                         Covered / Indoor Zone
                       </span>

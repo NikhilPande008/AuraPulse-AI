@@ -27,7 +27,7 @@ export default function RootLayout({
               <div>
                 <div className="flex items-center space-x-2">
                   <span className="text-base font-bold tracking-tight text-white">AuraPulse AI</span>
-                  <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20 font-semibold">
+                  <span className="text-xs uppercase font-mono px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20 font-semibold">
                     v2.1.0
                   </span>
                 </div>

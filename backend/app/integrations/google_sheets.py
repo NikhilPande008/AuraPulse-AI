@@ -1,10 +1,11 @@
 import os
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List
+
 from ..config import settings
 
 try:
-    from googleapiclient.discovery import build
     from google.oauth2 import service_account
+    from googleapiclient.discovery import build
 except ImportError:
     build = None
     service_account = None

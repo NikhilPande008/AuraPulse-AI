@@ -1,15 +1,14 @@
 import pytest
 from pydantic import ValidationError
+
+from backend.app.agents.aura_vision import create_baseline_wedding_plan
 from backend.app.schemas import (
-    PriorityTier,
     BOQItem,
-    ScheduleBlock,
-    MasterEventPlan,
     CrisisTrigger,
     CrisisTriggerType,
-    ContingencyDiff,
+    MasterEventPlan,
+    PriorityTier,
 )
-from backend.app.agents.aura_vision import create_baseline_wedding_plan
 
 
 def test_boq_item_strict_validation():

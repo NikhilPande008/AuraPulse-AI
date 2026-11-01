@@ -187,7 +187,7 @@ export default function Dashboard() {
           <span className="text-xs font-mono font-semibold text-white">
             Backend: {healthStatus ? "Online" : "Unreachable"}
           </span>
-          <span className="text-xs text-slate-500 hidden sm:inline">•</span>
+          <span className="text-xs text-slate-400 hidden sm:inline">•</span>
           <span className="text-xs text-slate-400 font-mono hidden sm:inline">
             Version: {healthStatus?.version || "v2.1.0"}
           </span>

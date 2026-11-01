@@ -1,9 +1,9 @@
 import re
 
-from backend.app.agents.copilot.models import CopilotResult
-from backend.app.agents.copilot.offline import messages
-from backend.app.agents.copilot.offline.handlers.base import IntentHandler
-from backend.app.schemas.event_plan import MasterEventPlan
+from .....schemas.event_plan import MasterEventPlan
+from ...models import CopilotResult
+from .. import messages
+from .base import IntentHandler
 
 
 class DeclineIntentHandler(IntentHandler):

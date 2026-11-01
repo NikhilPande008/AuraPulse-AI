@@ -65,7 +65,7 @@ export default function IntakeForm({
       <legend className="sr-only">Event Parameters & Live Tuning</legend>
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider font-mono flex items-center gap-2">
-          <Sliders className="w-3.5 h-3.5 text-cyan-400" />
+          <Sliders className="w-3.5 h-3.5 text-cyan-400" aria-hidden="true" />
           Event Parameters & Live Tuning
         </span>
         <span className="text-xs text-slate-400 font-mono">
@@ -99,7 +99,7 @@ export default function IntakeForm({
         <div>
           <label htmlFor="event-date-input" className="block text-xs font-mono text-slate-400 mb-1">
             <span className="flex items-center gap-1">
-              <Calendar className="w-3 h-3 text-purple-400" /> Target Event Date
+              <Calendar className="w-3 h-3 text-purple-400" aria-hidden="true" /> Target Event Date
             </span>
           </label>
           <input
@@ -116,7 +116,7 @@ export default function IntakeForm({
         <div>
           <label htmlFor="headcount-input" className="block text-xs font-mono text-slate-400 mb-1">
             <span className="flex items-center gap-1">
-              <Users className="w-3 h-3 text-cyan-400" /> Headcount (Guests)
+              <Users className="w-3 h-3 text-cyan-400" aria-hidden="true" /> Headcount (Guests)
             </span>
           </label>
           <input
@@ -135,7 +135,7 @@ export default function IntakeForm({
         <div>
           <label htmlFor="locality-input" className="block text-xs font-mono text-slate-400 mb-1">
             <span className="flex items-center gap-1">
-              <MapPin className="w-3 h-3 text-emerald-400" /> City / Locality
+              <MapPin className="w-3 h-3 text-emerald-400" aria-hidden="true" /> City / Locality
             </span>
           </label>
           <input
@@ -152,7 +152,8 @@ export default function IntakeForm({
         <div>
           <label htmlFor="budget-input" className="block text-xs font-mono text-slate-400 mb-1">
             <span className="flex items-center gap-1">
-              <IndianRupee className="w-3 h-3 text-amber-400" /> Total Budget (INR)
+              <IndianRupee className="w-3 h-3 text-amber-400" aria-hidden="true" /> Total Budget
+              (INR)
             </span>
           </label>
           <input
@@ -171,7 +172,7 @@ export default function IntakeForm({
         <div>
           <label htmlFor="culture-input" className="block text-xs font-mono text-slate-400 mb-1">
             <span className="flex items-center gap-1">
-              <Globe className="w-3 h-3 text-indigo-400" /> Culture / Rituals
+              <Globe className="w-3 h-3 text-indigo-400" aria-hidden="true" /> Culture / Rituals
             </span>
           </label>
           <input
@@ -188,7 +189,8 @@ export default function IntakeForm({
         <div className="col-span-2">
           <label htmlFor="theme-input" className="block text-xs font-mono text-slate-400 mb-1">
             <span className="flex items-center gap-1">
-              <Palette className="w-3 h-3 text-pink-400" /> Aesthetic Theme & Color Palette
+              <Palette className="w-3 h-3 text-pink-400" aria-hidden="true" /> Aesthetic Theme &
+              Color Palette
             </span>
           </label>
           <input
@@ -215,12 +217,12 @@ export default function IntakeForm({
         >
           {isLoading ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
               <span>Architecting Plan via Gemini 2.5...</span>
             </>
           ) : (
             <>
-              <Sparkles className="w-4 h-4" />
+              <Sparkles className="w-4 h-4" aria-hidden="true" />
               <span>Generate Custom Plan via Gemini 2.5 Flash</span>
             </>
           )}

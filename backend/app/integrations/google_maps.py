@@ -92,8 +92,8 @@ async def fetch_verified_vendors(query: str, city: str, min_rating: float = 4.0)
                     "is_configured": True,
                     "status": "ACTIVE",
                 }
-            logger.warning(f"Google Places API responded with status {response.status_code}: {response.text}")
+            logger.warning("Google Places API responded with status %d: %s", response.status_code, response.text)
             return _unconfigured_response()
-    except Exception as e:  # noqa: BLE001
-        logger.warning(f"Google Places API (New) search failed: {e}")
+    except (httpx.HTTPError, ValueError, KeyError, OSError, RuntimeError) as e:
+        logger.warning("Google Places API (New) search failed: %s", e)
         return _unconfigured_response()

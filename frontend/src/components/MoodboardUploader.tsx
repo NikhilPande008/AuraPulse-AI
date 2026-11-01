@@ -192,12 +192,12 @@ export default function MoodboardUploader({
           >
             {isRenderingStudio ? (
               <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-400" />
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-400" aria-hidden="true" />
                 <span>Imagen 3 Rendering...</span>
               </>
             ) : (
               <>
-                <Camera className="w-3.5 h-3.5 text-purple-400" />
+                <Camera className="w-3.5 h-3.5 text-purple-400" aria-hidden="true" />
                 <span>Imagen 3 Decor Render</span>
               </>
             )}
@@ -211,7 +211,7 @@ export default function MoodboardUploader({
           aria-live="assertive"
           className="p-4 rounded-xl bg-red-950/60 border border-red-500/50 flex items-start gap-3 text-red-200 animate-fadeIn"
         >
-          <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+          <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" aria-hidden="true" />
           <div className="flex-1 text-xs">
             <p className="font-bold text-red-100">
               {generationError.code === "GENERATION_FAILED"

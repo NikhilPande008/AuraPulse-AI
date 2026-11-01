@@ -2,9 +2,9 @@
 
 from typing import Any
 
-from backend.app.agents.copilot.gemini_path import run_gemini_path
-from backend.app.agents.copilot.offline import run_offline
-from backend.app.schemas.event_plan import MasterEventPlan
+from ...schemas.event_plan import MasterEventPlan
+from .gemini_path import run_gemini_path
+from .offline import run_offline
 
 
 async def chat_copilot(

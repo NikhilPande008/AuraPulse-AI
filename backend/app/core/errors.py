@@ -51,7 +51,10 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
         JSONResponse with mapped status code and sanitized error payload.
     """
     logger.error(
-        f"Unhandled error handling {request.method} {request.url.path}: {exc}",
+        "Unhandled error handling %s %s: %s",
+        request.method,
+        request.url.path,
+        exc,
         exc_info=True,
     )
     if isinstance(exc, GeminiUnavailableError):

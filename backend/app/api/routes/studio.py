@@ -33,7 +33,7 @@ async def api_render_alternative(payload: VisualAlternativeRequest) -> StudioRen
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Generative Studio failed: {e}", exc_info=True)
+        logger.error("Generative Studio failed: %s", e, exc_info=True)
         raise HTTPException(
             status_code=500, detail={"code": "STUDIO_FAILED", "message": "Generative Studio rendering failed."}
         ) from e

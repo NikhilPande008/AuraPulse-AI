@@ -1,7 +1,7 @@
 """Core domain schemas for MasterEventPlan, BOQ items, and planning milestones."""
 
 from datetime import date, datetime
-from enum import StrEnum
+from enum import Enum, StrEnum
 from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, field_validator, model_validator
@@ -13,7 +13,7 @@ class PriorityTier(StrEnum):
     DISCRETIONARY = "Discretionary"  # Specialized flowers, premium props
 
 
-def _parse_priority_tier(v: Any) -> Any:
+def _parse_priority_tier(v: object) -> object:
     return PriorityTier(v) if isinstance(v, str) else v
 
 
@@ -54,7 +54,7 @@ def _sync_totals(values: dict[str, Any]) -> None:
             pass
 
 
-def _mirror_synonyms(values: Any) -> Any:
+def _mirror_synonyms(values: object) -> object:
     if isinstance(values, dict):
         _sync_priority(values)
         _sync_rates(values)
@@ -89,7 +89,7 @@ class BOQItem(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def sync_boq_fields(cls, values: Any) -> Any:
+    def sync_boq_fields(cls, values: object) -> object:
         return _mirror_synonyms(values)
 
 
@@ -105,7 +105,7 @@ class ScheduleBlock(BaseModel):
     is_outdoor: bool = Field(description="Whether activity is in an outdoor zone vulnerable to weather")
 
 
-class MilestonePhase(StrEnum):
+class MilestonePhase(str, Enum):
     DO_IMMEDIATELY = "Do Immediately"
     T_MINUS_6_MONTHS = "T-6 Months"
     T_MINUS_3_MONTHS = "T-3 Months"
@@ -115,14 +115,14 @@ class MilestonePhase(StrEnum):
     DAY_OF = "Day-Of"
 
 
-def _parse_milestone_phase(v: Any) -> Any:
+def _parse_milestone_phase(v: object) -> object:
     return MilestonePhase(v) if isinstance(v, str) else v
 
 
 MilestonePhaseType = Annotated[MilestonePhase, BeforeValidator(_parse_milestone_phase)]
 
 
-class MilestoneCategory(StrEnum):
+class MilestoneCategory(str, Enum):
     VENUE = "Venue"
     CATERING = "Catering"
     DECOR = "Decor"
@@ -131,7 +131,7 @@ class MilestoneCategory(StrEnum):
     RITUALS = "Rituals"
 
 
-def _parse_milestone_category(v: Any) -> Any:
+def _parse_milestone_category(v: object) -> object:
     return MilestoneCategory(v) if isinstance(v, str) else v
 
 
@@ -157,7 +157,7 @@ class VendorStatus(StrEnum):
     PAID = "Paid"
 
 
-def _parse_vendor_status(v: Any) -> Any:
+def _parse_vendor_status(v: object) -> object:
     return VendorStatus(v) if isinstance(v, str) else v
 
 
@@ -242,7 +242,7 @@ class PlanRequest(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def handle_legacy_fields(cls, values: Any) -> Any:
+    def handle_legacy_fields(cls, values: object) -> object:
         if isinstance(values, dict):
             # Accept locality as city alias
             if "city" not in values and "locality" in values:

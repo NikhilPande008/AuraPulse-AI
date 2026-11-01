@@ -8,7 +8,7 @@
 [![Google Places API New](https://img.shields.io/badge/Google%20Maps-Places%20API%20(New)-34A853?style=for-the-badge&logo=googlemaps&logoColor=white)](https://developers.google.com/maps/documentation/places/web-service/op-overview)
 [![Next.js 15](https://img.shields.io/badge/Next.js-15%20App%20Router-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Python%203.12-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![Pytest 59/59 Passing](https://img.shields.io/badge/Pytest-59%2F59%20Passing%20(100%25)-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](#-6-automated-testing--verification)
+[![Pytest 72/72 Passing](https://img.shields.io/badge/Pytest-72%2F72%20Passing%20(100%25)-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](#-6-automated-testing--verification)
 [![Vitest 13/13 Passing](https://img.shields.io/badge/Vitest-13%2F13%20Passing-brightgreen?style=for-the-badge&logo=vitest&logoColor=white)](#-6-automated-testing--verification)
 [![Playwright 4/4 Passing](https://img.shields.io/badge/Playwright-4%2F4%20Passing-brightgreen?style=for-the-badge&logo=playwright&logoColor=white)](#-6-automated-testing--verification)
 
@@ -24,9 +24,38 @@
 ## ⚡ Quick Navigation for Judges
 * **Live Web App**: [https://aurapulse-web-gwe45twb3q-uc.a.run.app](https://aurapulse-web-gwe45twb3q-uc.a.run.app)
 * **Demo Video Walkthrough (YouTube)**: [https://youtu.be/DQr9v43w94c](https://youtu.be/DQr9v43w94c)
-* **Demo Video File**: [`docs/submission/demo_output.mp4`](docs/submission/demo_output.mp4) (Script: [`docs/submission/DEMO_VIDEO_SCRIPT.md`](docs/submission/DEMO_VIDEO_SCRIPT.md))
 * **Cloud Run Deployment Guide**: [`docs/DEPLOY.md`](docs/DEPLOY.md)
 * **GitHub Repository**: [https://github.com/NikhilPande008/AuraPulse-AI.git](https://github.com/NikhilPande008/AuraPulse-AI.git)
+
+---
+
+## Chosen Vertical: Celebration & Event Planner (Challenge 5)
+
+AuraPulse AI is purpose-built for **Celebration & Event Planner** under Hack2Skill Google PromptWars Challenge 5. Indian event management involves high operational complexity: multi-vendor coordination, tight multi-tier budget constraints, cultural ritual milestones (Maharashtrian, Marwari, Punjabi), severe weather vulnerability, and dynamic run-of-show synchronization across hosts, venue managers, and vendors. AuraPulse AI provides an autonomous multimodal planner and reactive contingency copilot that transforms visual moodboards into itemized procurement matrices, backwards roadmaps, and deterministic contingency plans.
+
+## Approach and Logic
+
+AuraPulse AI combines **generative aesthetic extraction** with **deterministic operational constraint solving**:
+
+1. **Aesthetic Deconstruction**: Deconstructs user-uploaded Pinterest/Instagram moodboards or pre-calibrated presets using Google Gemini 2.5 Flash into typed, itemized Bill of Quantities (`BOQItem`) with unit pricing, quantity, and priority tiers (`Critical`, `Operational`, `Discretionary`).
+2. **Backwards Temporal Scheduling**: Working backwards from a user-specified event date, milestones are pegged to canonical planning horizons (`T-6 Months`, `T-3 Months`, `T-1 Month`, `T-2 Weeks`, `T-1 Week`, `Day-Of`). Short-horizon compression shifts past milestones into `"Do Immediately"` action items without fabricating past dates.
+3. **Deterministic Constraint-Preserving Contingency**: During disruptions (rain alerts, 20% budget cuts, timeline slippage, vendor failures), the Pulse Engine preserves Tier-1 Critical safety, food, and power lines, dynamically trimming Tier-3 Discretionary embellishments to balance budget deltas while enforcing strict budget ceilings.
+4. **Conversational Tool Dispatch**: Natural language user prompts are dispatched via Gemini function calling into typed tool executions (`scale_budget`, `add_item`, `remove_item`, `set_event_date`, `change_headcount`), emitting actionable atomic diffs (+Added, ~Modified, -Removed) with Hindi and Marathi language sensitivity.
+
+## How the Solution Works
+
+1. **Multimodal Vision Intake**: The user submits an event date, city, headcount, and budget ceiling, uploading a decor image or selecting a demo preset. Gemini 2.5 Flash extracts color palettes, decor elements, and cultural context, generating a typed `MasterEventPlan`.
+2. **Backwards Roadmap & Run-of-Show Generation**: The backend timeline service computes concrete calendar deadlines for critical milestones and hourly day-of schedule blocks. Run-of-show blocks track indoor vs outdoor zones for weather monitoring.
+3. **Reactive Contingency Simulation (Pulse Engine)**: The user triggers crisis scenarios (`Rain Storm Alert`, `Cut 20% Budget`, `2hr Timeline Delay`, `Caterer Cancelled`). The engine adapts the plan in milliseconds: injecting emergency structures (e.g. German Pagoda Marquee), adjusting schedules, and rebalancing costs against the budget ceiling.
+4. **Localized Vendor Grounding**: Google Maps Places API (New) performs real-time searches for verified caterers, decorators, and technicians with field masks for authentic ratings, addresses, and contacts.
+5. **Universal Workspace Export**: Planners export interactive formula-driven spreadsheets via Google Sheets API v4 (`=SUM(...)`, `=SUMIF(...)`), download standard RFC-5545 `.ics` calendars, or synchronize run-of-show directly to Google Calendar via zero-permission web intents.
+
+## Assumptions Made
+
+1. **Currency & Metropolitan Localization**: Costs are denominated in Indian Rupees (INR) with standard pricing conventions for Tier-1 and Tier-2 Indian metropolitan markets (Mumbai, Pune, Delhi, Bangalore).
+2. **Tier-1 Critical Immutability**: Core infrastructure, guest safety assets (weatherproofing marquee, electrical distribution, emergency shelter), sanitary food catering, and primary sound systems are designated as Tier-1 Critical and cannot be cut during budget compression without explicit shortfall warnings.
+3. **Zero-Hallucination Vendor Integrity**: When Google Maps Places API keys are unconfigured, AuraPulse AI never fabricates synthetic phone numbers or fictitious vendors; it renders honest unconfigured badges and fallback procurement checklists.
+4. **Zero-OAuth Friction**: Calendar export prioritizes RFC-5545 `.ics` downloads and Google Calendar web intents to ensure immediate zero-permission interoperability for clients and venue coordinators without requiring Google Cloud Workspace administrator approvals.
 
 ---
 
@@ -170,17 +199,19 @@ cp .env.example .env
 
 | Variable | Type | Default | Description |
 |---|---|---|---|
+| `PROJECT_NAME` | String | `"AuraPulse AI"` | Application service name. |
+| `VERSION` | String | `"2.2.0"` | Semantic service version. |
+| `API_V1_STR` | String | `"/api/v1"` | API v1 route prefix. |
 | `GEMINI_API_KEY` | Secret | `""` | Google Gemini API key for multimodal intake, Flash replanning, and Imagen 3. |
-| `GEMINI_FLASH_MODEL` | String | `gemini-2.5-flash` | Gemini model identifier used for event plan generation. |
+| `GEMINI_FLASH_MODEL` | String | `"gemini-2.5-flash"` | Gemini model identifier used for event plan generation. |
 | `GOOGLE_MAPS_API_KEY` | Secret | `""` | Google Maps API key for Places API (New) verified vendor search. |
 | `GOOGLE_APPLICATION_CREDENTIALS` | Path | `""` | Path to Google Service Account JSON key for live Google Sheets API v4 export. |
-| `PORT` | Integer | `8000` | Backend FastAPI server port. |
-| `HOST` | String | `127.0.0.1` | Backend host binding interface. |
 | `RATE_LIMIT_PER_MINUTE` | Integer | `10` | Sliding window request rate limit per minute per client IP. |
 | `RATE_LIMIT_PER_DAY` | Integer | `100` | Sliding window request rate limit per day per client IP. |
 | `TRUSTED_PROXY_HOPS` | Integer | `1` | Upstream proxy hops to trust when resolving client IP from `X-Forwarded-For`. |
+| `PORT` | Integer | `8000` | Port number to bind HTTP server. |
+| `HOST` | String | `"0.0.0.0"` | Host interface address to bind HTTP server. |
 | `ALLOWED_ORIGIN` | String | `""` | Additional comma-separated origins for CORS header whitelist. |
-| `DISABLE_RATE_LIMIT` | Boolean | `false` | Set to `true` to disable sliding-window rate limiting for local stress testing. |
 
 ### Step 1: Clone Repository
 ```bash
@@ -218,7 +249,7 @@ Open **[http://localhost:3000](http://localhost:3000)** in your browser. Next.js
 
 AuraPulse AI enforces comprehensive test coverage across backend business logic, dynamic backwards timelines, Gemini generation, contingency solvers, Places API grounding, Vitest frontend unit tests, and Playwright end-to-end accessibility scans:
 
-### Backend Pytest Suite (67/67 Passing)
+### Backend Pytest Suite (72/72 Passing)
 ```bash
 $ pytest backend/tests -v -m "not live"
 ============================= test session starts ==============================
@@ -282,7 +313,7 @@ backend/tests/test_security_batch3.py::test_spoofed_leftmost_xff_does_not_bypass
 backend/tests/test_security_batch3.py::test_limiter_prunes_old_entries PASSED [ 98%]
 backend/tests/test_security_batch3.py::test_copilot_system_prompt_in_config_not_contents PASSED [100%]
 
-================== 59 passed, 1 deselected, 1 warning in 0.75s ==================
+================== 72 passed, 1 deselected, 1 warning in 0.43s ==================
 ```
 
 ### Frontend Vitest Unit Suite (13/13 Passing)

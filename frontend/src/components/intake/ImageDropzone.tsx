@@ -43,7 +43,7 @@ export default function ImageDropzone({
   return (
     <div>
       <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider font-mono flex items-center gap-2 mb-2">
-        <Camera className="w-3.5 h-3.5 text-cyan-400" />
+        <Camera className="w-3.5 h-3.5 text-cyan-400" aria-hidden="true" />
         Upload Custom Moodboard / Pinterest Reference (Optional)
       </label>
 
@@ -71,7 +71,7 @@ export default function ImageDropzone({
             className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer mr-2"
             title="Remove custom image"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
       ) : (
@@ -96,7 +96,7 @@ export default function ImageDropzone({
             className="hidden"
           />
           <label htmlFor="moodboard-file" className="cursor-pointer block">
-            <Upload className="w-6 h-6 mx-auto mb-2 text-slate-400" />
+            <Upload className="w-6 h-6 mx-auto mb-2 text-slate-400" aria-hidden="true" />
             <p className="text-xs font-semibold text-white">
               Drag & drop Pinterest moodboard or decor snapshot
             </p>

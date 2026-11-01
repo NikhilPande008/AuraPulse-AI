@@ -50,7 +50,7 @@ async def rate_limiting_middleware(request: Request, call_next: Callable[[Reques
     """
     if (
         request.url.path in AI_RATE_LIMITED_PATHS
-        and request.method == "POST"
+        and (request.method == "POST" or request.url.path == "/api/v1/integrations/vendors")
         and os.getenv("DISABLE_RATE_LIMIT", "false").lower() != "true"
     ):
         client_ip = get_client_ip(request)

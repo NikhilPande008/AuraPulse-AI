@@ -29,7 +29,7 @@ async def api_simulate_contingency(request: SimulationRequest) -> ContingencyDif
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Pulse Engine evaluation failed: {e}", exc_info=True)
+        logger.error("Pulse Engine evaluation failed: %s", e, exc_info=True)
         raise HTTPException(
             status_code=500,
             detail={"code": "SIMULATION_FAILED", "message": "Contingency simulation failed."},

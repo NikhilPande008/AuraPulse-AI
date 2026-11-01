@@ -7,10 +7,13 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
+import google.api_core.exceptions
+import httpx
+
 from ..config import settings
 from ..core.constants import CRISIS_NARRATIVE_TIMEOUT, EMERGENCY_MARQUEE_COST_INR
 from ..integrations.google_maps import fetch_verified_vendors
-from ..llm.client import generate
+from ..llm.client import GeminiError, generate
 from ..schemas import (
     BOQDiffItem,
     BOQItem,
@@ -25,15 +28,19 @@ from ..schemas import (
 )
 from ..services.budget import rebalance_to_ceiling, recompute_totals
 
-try:
-    from google import genai
-    from google.genai import types
+genai: Any = None
+types: Any = None
+_GENAI_AVAILABLE = False
 
+try:
+    import google.genai as _genai
+    import google.genai.types as _types
+
+    genai = _genai
+    types = _types
     _GENAI_AVAILABLE = True
-except ImportError:
-    genai = None  # type: ignore[assignment]
-    types = None  # type: ignore[assignment]
-    _GENAI_AVAILABLE = False
+except (ImportError, KeyError):
+    pass
 
 
 @dataclass
@@ -305,7 +312,7 @@ async def _lookup_replacement_vendor(category: str, city: str) -> dict[str, Any]
         result = await fetch_verified_vendors(query=f"{category} contractor", city=city, min_rating=4.0)
         vendor_list = result.get("vendors", []) if isinstance(result, dict) else (result or [])
         return vendor_list[0] if vendor_list else None
-    except Exception:  # noqa: BLE001
+    except (httpx.HTTPError, google.api_core.exceptions.GoogleAPIError, ValueError, KeyError, OSError, RuntimeError):
         return None
 
 
@@ -395,7 +402,16 @@ async def _generate_crisis_narrative(
         )
         if hasattr(gemini_res, "text") and gemini_res.text:
             return gemini_res.text.strip()
-    except Exception:  # noqa: BLE001
+    except (
+        GeminiError,
+        google.api_core.exceptions.GoogleAPIError,
+        httpx.HTTPError,
+        TimeoutError,
+        ValueError,
+        AttributeError,
+        OSError,
+        RuntimeError,
+    ):
         pass
     return None
 

@@ -28,8 +28,8 @@ logger = logging.getLogger("aurapulse.routes.integrations")
 router = APIRouter(prefix="/api/v1/integrations", tags=["Integrations"])
 
 
-def _extract_vendor_data(data: Any) -> tuple[list[dict[str, Any]], bool, str]:
-    vendors = data.get("vendors", []) if isinstance(data, dict) else data
+def _extract_vendor_data(data: object) -> tuple[list[dict[str, Any]], bool, str]:
+    vendors = data.get("vendors", []) if isinstance(data, dict) else (data if isinstance(data, list) else [])
     is_cfg = data.get("is_configured", False) if isinstance(data, dict) else bool(settings.GOOGLE_MAPS_API_KEY)
     status_val = (
         data.get("status", "ACTIVE" if is_cfg else "SIMULATED")
@@ -69,7 +69,7 @@ async def api_get_vendors(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Vendor query failed: {e}", exc_info=True)
+        logger.error("Vendor query failed: %s", e, exc_info=True)
         raise HTTPException(
             status_code=500, detail={"code": "VENDOR_QUERY_FAILED", "message": "Failed to fetch vendors."}
         ) from e
@@ -82,12 +82,12 @@ def _raise_sheets_error(e: Exception) -> NoReturn:
             detail={"code": "SHEETS_NOT_CONFIGURED", "message": "Google Sheets API credentials not configured."},
         ) from e
     if isinstance(e, SheetsExportError):
-        logger.error(f"Google Sheets export failed: {e}", exc_info=True)
+        logger.error("Google Sheets export failed: %s", e, exc_info=True)
         raise HTTPException(
             status_code=502,
             detail={"code": "SHEETS_EXPORT_FAILED", "message": "Google Sheets export failed."},
         ) from e
-    logger.error(f"Google Sheets export failed: {e}", exc_info=True)
+    logger.error("Google Sheets export error: %s", e, exc_info=True)
     raise HTTPException(
         status_code=500, detail={"code": "SHEETS_ERROR", "message": "Google Sheets export failed."}
     ) from e
@@ -116,12 +116,12 @@ async def api_export_sheets(payload: SheetsExportRequest) -> SheetsExportRespons
         return SheetsExportResponse.model_validate(res)
     except HTTPException:
         raise
-    except Exception as e:  # noqa: BLE001
+    except (SheetsNotConfiguredError, SheetsExportError, ValueError, KeyError, OSError, RuntimeError) as e:
         _raise_sheets_error(e)
 
 
 def _raise_calendar_error(e: Exception) -> NoReturn:
-    logger.error(f"Google Calendar sync failed: {e}", exc_info=True)
+    logger.error("Google Calendar sync failed: %s", e, exc_info=True)
     err_str = str(e).lower()
     code = 503 if ("auth" in err_str or "credentials" in err_str) else 500
     raise HTTPException(
@@ -153,5 +153,5 @@ async def api_sync_calendar(payload: CalendarSyncRequest) -> CalendarSyncRespons
         return CalendarSyncResponse.model_validate(res)
     except HTTPException:
         raise
-    except Exception as e:  # noqa: BLE001
+    except (ValueError, KeyError, OSError, RuntimeError) as e:
         _raise_calendar_error(e)

@@ -149,7 +149,7 @@ async def _generate_via_gemini(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Gemini event plan generation failed: {e}", exc_info=True)
+        logger.error("Gemini event plan generation failed: %s", e, exc_info=True)
         raise HTTPException(
             status_code=503,
             detail={

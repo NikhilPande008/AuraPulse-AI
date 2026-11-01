@@ -1,16 +1,20 @@
 """Google Sheets API integration for dynamic formula-driven BOQ export."""
 
+import importlib
 import os
 from typing import Any
 
 from ..config import settings
 
+build: Any = None
+service_account: Any = None
+
 try:
-    from google.oauth2 import service_account
-    from googleapiclient.discovery import build  # type: ignore[import-untyped]
-except ImportError:
-    build = None  # type: ignore[assignment]
-    service_account = None  # type: ignore[assignment]
+    service_account = importlib.import_module("google.oauth2.service_account")
+    _discovery = importlib.import_module("googleapiclient.discovery")
+    build = getattr(_discovery, "build", None)
+except (ImportError, AttributeError):
+    pass
 
 
 class SheetsNotConfiguredError(Exception):

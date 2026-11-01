@@ -35,7 +35,7 @@ async def api_export_calendar_ics(plan: MasterEventPlan) -> Response:
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"ICS calendar export failed: {e}", exc_info=True)
+        logger.error("ICS calendar export failed: %s", e, exc_info=True)
         raise HTTPException(
             status_code=500, detail={"code": "ICS_EXPORT_FAILED", "message": "Failed to export calendar."}
         ) from e

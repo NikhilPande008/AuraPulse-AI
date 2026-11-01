@@ -27,11 +27,11 @@ export default function StudioModal({ isOpen, onClose, result }: StudioModalProp
           className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors cursor-pointer"
           aria-label="Close studio rendering"
         >
-          <X className="w-5 h-5" />
+          <X className="w-5 h-5" aria-hidden="true" />
         </button>
 
         <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-purple-400" />
+          <Sparkles className="w-5 h-5 text-purple-400" aria-hidden="true" />
           <h3 id="studio-modal-title" className="text-lg font-bold text-white">
             {result.is_generated
               ? "Google Imagen 3 Architectural Render"

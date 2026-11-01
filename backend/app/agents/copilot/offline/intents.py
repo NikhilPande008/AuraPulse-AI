@@ -1,6 +1,6 @@
 """Intent handler registry for offline deterministic conversational planning."""
 
-from backend.app.agents.copilot.offline.handlers import (
+from .handlers import (
     BudgetScaleIntentHandler,
     CateringIntentHandler,
     DateMoveIntentHandler,

@@ -8,6 +8,8 @@ import os
 from enum import Enum, auto
 from typing import Any
 
+import google.api_core.exceptions
+import httpx
 from fastapi import HTTPException
 
 from ..config import settings
@@ -22,15 +24,19 @@ from ..services.timeline import build_milestones
 
 logger = logging.getLogger("aurapulse.llm")
 
-try:
-    from google import genai
-    from google.genai import types
+genai: Any = None
+types: Any = None
+_GENAI_AVAILABLE = False
 
+try:
+    import google.genai as _genai
+    import google.genai.types as _types
+
+    genai = _genai
+    types = _types
     _GENAI_AVAILABLE = True
-except ImportError:
-    genai = None  # type: ignore[assignment]
-    types = None  # type: ignore[assignment]
-    _GENAI_AVAILABLE = False
+except (ImportError, KeyError):
+    pass
 
 
 # --- Custom Typed Exceptions ---
@@ -67,14 +73,13 @@ GeminiBadOutput = GeminiBadOutputError
 RETRY_DELAYS: tuple[float, float] = (1.0, 3.0)
 
 # Module-level lazy singleton client
-_CLIENT_INSTANCE: Any | None = None
+_CLIENT_HOLDER: dict[str, Any] = {}
 
 
-def get_genai_client() -> Any | None:
+def get_genai_client() -> object | None:
     """Unified GenAI Client lazy singleton using modern google-genai SDK."""
-    global _CLIENT_INSTANCE  # noqa: PLW0603
-    if _CLIENT_INSTANCE is not None:
-        return _CLIENT_INSTANCE
+    if "client" in _CLIENT_HOLDER:
+        return _CLIENT_HOLDER["client"]
     if not _GENAI_AVAILABLE or genai is None:
         logger.error("google-genai package is not installed.")
         return None
@@ -82,8 +87,9 @@ def get_genai_client() -> Any | None:
     if not api_key:
         logger.error("GEMINI_API_KEY is not configured.")
         return None
-    _CLIENT_INSTANCE = genai.Client(api_key=api_key)
-    return _CLIENT_INSTANCE
+    client_instance = genai.Client(api_key=api_key)
+    _CLIENT_HOLDER["client"] = client_instance
+    return client_instance
 
 
 def _classify_error(exc: Exception) -> ErrorKind:
@@ -108,11 +114,16 @@ def _raise_typed_gemini_error(exc: Exception) -> None:
 
 
 async def _attempt_generate(
-    client: Any, model: str, contents: Any, config: Any, timeout: float
-) -> tuple[Any | None, Exception | None, bool]:
+    client: object, model: str, contents: object, config: object, timeout: float
+) -> tuple[object | None, Exception | None, bool]:
     try:
+        aio = getattr(client, "aio", None)
+        runner = getattr(aio, "models", None)
+        if runner is None or not hasattr(runner, "generate_content"):
+            raise RuntimeError("Invalid GenAI client instance: missing aio.models.generate_content")
+
         response = await asyncio.wait_for(
-            client.aio.models.generate_content(
+            runner.generate_content(
                 model=model,
                 contents=contents,
                 config=config,
@@ -123,15 +134,15 @@ async def _attempt_generate(
     except TimeoutError as e:
         logger.warning("Gemini call timed out")
         return None, e, True
-    except Exception as e:  # noqa: BLE001
+    except (google.api_core.exceptions.GoogleAPIError, httpx.HTTPError, OSError, ValueError, RuntimeError) as e:
         kind = _classify_error(e)
         retryable = kind in (ErrorKind.QUOTA, ErrorKind.UNAVAILABLE, ErrorKind.TIMEOUT)
         if retryable:
-            logger.warning(f"Gemini retryable error: {e}")
+            logger.warning("Gemini retryable error: %s", e)
         return None, e, retryable
 
 
-async def generate(model: str, contents: Any, config: Any, timeout: float = 30.0) -> Any:
+async def generate(model: str, contents: object, config: object, timeout: float = 30.0) -> object:
     """Execute Gemini generation with exponential backoff and typed error mapping.
 
     Args:
@@ -277,11 +288,12 @@ async def generate_event_plan(request: PlanRequest, timeout: float = PLAN_GENERA
         logger.exception("Gemini API plan generation failed")
         raise
 
-    if not response or not response.text:
+    resp_text = getattr(response, "text", "") or ""
+    if not response or not resp_text:
         raise GeminiBadOutputError("Empty response received from Gemini generation engine")
 
     try:
-        parsed = json.loads(response.text)
+        parsed = json.loads(resp_text)
         plan = MasterEventPlan.model_validate(parsed)
     except Exception as e:
         raise GeminiBadOutputError(f"Failed to parse plan schema from Gemini response: {e}") from e

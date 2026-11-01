@@ -1,15 +1,17 @@
 """AuraPulse Co-Pilot package providing multi-turn conversational replanning and tools."""
 
-from backend.app.agents.copilot.dispatch import TOOL_REGISTRY, apply_tool_call
-from backend.app.agents.copilot.models import CopilotResponse, CopilotResult
-from backend.app.agents.copilot.offline import (
+from ...config import settings
+from ...llm.client import generate
+from .dispatch import TOOL_REGISTRY, apply_tool_call
+from .models import CopilotResponse, CopilotResult
+from .offline import (
     _execute_deterministic_copilot,
     _generate_suggested_ideas,
     run_offline,
 )
-from backend.app.agents.copilot.offline.language import _detect_language, detect_language
-from backend.app.agents.copilot.service import chat_copilot
-from backend.app.agents.copilot.tools import (
+from .offline.language import _detect_language, detect_language
+from .service import chat_copilot
+from .tools import (
     COPILOT_TOOLS,
     add_item,
     change_headcount,
@@ -28,8 +30,6 @@ from backend.app.agents.copilot.tools import (
     set_headcount,
     update_item,
 )
-from backend.app.config import settings
-from backend.app.llm.client import generate
 
 __all__ = [
     "COPILOT_TOOLS",

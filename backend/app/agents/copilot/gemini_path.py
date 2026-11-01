@@ -5,26 +5,35 @@ import logging
 import os
 from typing import Any, cast
 
-import backend.app.agents.copilot as copilot_pkg
-from backend.app.agents.copilot.dispatch import TOOL_REGISTRY
-from backend.app.agents.copilot.models import CopilotResult
-from backend.app.agents.copilot.offline import _generate_suggested_ideas
-from backend.app.agents.copilot.offline.language import detect_language
-from backend.app.agents.copilot.tools import COPILOT_TOOLS
-from backend.app.config import settings
-from backend.app.core.constants import COPILOT_TIMEOUT
-from backend.app.prompts import load_prompt
-from backend.app.schemas.contingency import ContingencyDiff
-from backend.app.schemas.event_plan import MasterEventPlan
+import google.api_core.exceptions
+import httpx
+
+from ...config import settings
+from ...core.constants import COPILOT_TIMEOUT
+from ...llm.client import GeminiError
+from ...prompts import load_prompt
+from ...schemas.contingency import ContingencyDiff
+from ...schemas.event_plan import MasterEventPlan
+from .. import copilot as copilot_pkg
+from .dispatch import TOOL_REGISTRY
+from .models import CopilotResult
+from .offline import _generate_suggested_ideas
+from .offline.language import detect_language
+from .tools import COPILOT_TOOLS
 
 logger = logging.getLogger("aurapulse.copilot.gemini")
 
+genai: Any = None
+types: Any = None
+
 try:
-    from google import genai
-    from google.genai import types
-except ImportError:
-    genai = None  # type: ignore[assignment]
-    types = None  # type: ignore[assignment]
+    import google.genai as _genai
+    import google.genai.types as _types
+
+    genai = _genai
+    types = _types
+except (ImportError, KeyError):
+    pass
 
 
 def is_gemini_available() -> bool:
@@ -77,7 +86,7 @@ def _build_contents(plan_context: dict[str, Any], user_prompt: str, history: lis
 
 
 def _execute_single_call(
-    call: Any, plan: MasterEventPlan
+    call: object, plan: MasterEventPlan
 ) -> tuple[MasterEventPlan, ContingencyDiff | None, bool, str | None]:
     fn_name = getattr(call, "name", "")
     fn_args = getattr(call, "args", {}) or {}
@@ -89,8 +98,8 @@ def _execute_single_call(
         if is_declined:
             return plan, None, True, reply
         return new_plan, diff, False, None
-    except Exception as e:  # noqa: BLE001
-        logger.warning(f"Error executing function call {fn_name}: {e}")
+    except (ValueError, TypeError, KeyError, AttributeError, RuntimeError) as e:
+        logger.warning("Error executing function call %s: %s", fn_name, e)
         return plan, None, False, None
 
 
@@ -111,7 +120,7 @@ def _dispatch_function_calls(
     return updated_plan, active_diff, False, None
 
 
-def _resolve_reply_text(response: Any, active_diff: ContingencyDiff | None, user_prompt: str) -> str:
+def _resolve_reply_text(response: object, active_diff: ContingencyDiff | None, user_prompt: str) -> str:
     """Extracts conversational response text or falls back to diff narrative."""
     reply_text = getattr(response, "text", "") or ""
     if not reply_text:
@@ -181,6 +190,17 @@ async def run_gemini_path(
             declined=False,
             mode="gemini_function_calling" if tool_executed else "gemini_chat",
         )
-    except Exception as e:  # noqa: BLE001
-        logger.warning(f"Gemini Co-Pilot bypassed to offline deterministic solver: {e}")
+    except (
+        GeminiError,
+        google.api_core.exceptions.GoogleAPIError,
+        httpx.HTTPError,
+        TimeoutError,
+        ValueError,
+        TypeError,
+        KeyError,
+        AttributeError,
+        RuntimeError,
+        OSError,
+    ) as e:
+        logger.warning("Gemini Co-Pilot bypassed to offline deterministic solver: %s", e)
         return None

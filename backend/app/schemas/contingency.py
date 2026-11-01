@@ -1,7 +1,7 @@
 """Pydantic schemas and types for crisis simulation and contingency diffs."""
 
 from enum import StrEnum
-from typing import Annotated, Any
+from typing import Annotated
 
 from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
 
@@ -15,7 +15,7 @@ class CrisisTriggerType(StrEnum):
     TIMELINE_SLIPPAGE = "TIMELINE_SLIPPAGE"
 
 
-def _parse_trigger_type(v: Any) -> Any:
+def _parse_trigger_type(v: object) -> object:
     return CrisisTriggerType(v) if isinstance(v, str) else v
 
 
@@ -42,7 +42,7 @@ class DiffAction(StrEnum):
     UNCHANGED = "UNCHANGED"
 
 
-def _parse_diff_action(v: Any) -> Any:
+def _parse_diff_action(v: object) -> object:
     return DiffAction(v) if isinstance(v, str) else v
 
 

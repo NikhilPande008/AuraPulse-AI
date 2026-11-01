@@ -45,7 +45,7 @@ async def api_deconstruct_moodboard(payload: DeconstructRequest) -> MasterEventP
     except (HTTPException, GeminiError):
         raise
     except Exception as e:
-        logger.error(f"Aura Vision deconstruction failed: {e}", exc_info=True)
+        logger.error("Aura Vision deconstruction failed: %s", e, exc_info=True)
         raise HTTPException(
             status_code=500,
             detail={"code": "GENERATION_FAILED", "message": "Failed to generate event plan from input."},
@@ -75,7 +75,7 @@ async def api_chat_copilot(payload: CopilotRequest) -> CopilotResponse:
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Chat Co-Pilot failed: {e}", exc_info=True)
+        logger.error("Chat Co-Pilot failed: %s", e, exc_info=True)
         raise HTTPException(
             status_code=500,
             detail={"code": "COPILOT_FAILED", "message": "Copilot encountered an error. Please try again."},

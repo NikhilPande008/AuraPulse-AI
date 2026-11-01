@@ -13,9 +13,8 @@ ignore = [
     "PLR0913", # Too many arguments in function definition
     "PLR0917", # Too many positional arguments
     "PLR2004", # Magic value used in comparison
-    "G004",    # Logging statement uses f-string
     "G201",    # Logging .exception(...) vs .error(..., exc_info=True)
-    "ANN401",  # Dynamically typed expressions (typing.Any) are disallowed
+    "UP042",   # Class inherits from both str and Enum (preserves exact Enum.__format__ string serialization)
     "RUF001",  # String contains ambiguous characters (Devanagari scripts intentionally supported)
     "RUF002",  # Docstring contains ambiguous characters
     "RUF003",  # Comment contains ambiguous characters
@@ -36,6 +35,7 @@ indent-style = "space"
 python_version = "3.12"
 strict = true
 plugins = ["pydantic.mypy"]
+disable_error_code = ["import-untyped"]
 
 [[tool.mypy.overrides]]
 module = [
@@ -47,6 +47,7 @@ module = [
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
+pythonpath = [".", "backend"]
 asyncio_mode = "auto"
 markers = [
     "live: live API integration tests requiring GEMINI_API_KEY",

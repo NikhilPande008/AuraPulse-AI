@@ -1,10 +1,10 @@
 import re
 
-from backend.app.agents.copilot.models import CopilotResult
-from backend.app.agents.copilot.offline import messages
-from backend.app.agents.copilot.offline.handlers.base import IntentHandler
-from backend.app.agents.copilot.tools import execute_set_headcount
-from backend.app.schemas.event_plan import MasterEventPlan
+from .....schemas.event_plan import MasterEventPlan
+from ...models import CopilotResult
+from ...tools import execute_set_headcount
+from .. import messages
+from .base import IntentHandler
 
 HC_POS_PATTERNS = (
     re.compile(r"(?:add|increase)\s+(\d+)\s*(?:more\s+)?(?:guests?|pax|people)?"),

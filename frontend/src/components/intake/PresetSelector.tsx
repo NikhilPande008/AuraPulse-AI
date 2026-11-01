@@ -78,7 +78,7 @@ export default function PresetSelector({
       <legend className="sr-only">Competition Evaluation Presets</legend>
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider font-mono flex items-center gap-2">
-          <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+          <Sparkles className="w-3.5 h-3.5 text-purple-400" aria-hidden="true" />
           Competition Evaluation Presets (One-Click Hydration)
         </span>
         <span className="text-xs text-purple-400 font-mono">
@@ -119,7 +119,7 @@ export default function PresetSelector({
                   </span>
                   {isSelected && (
                     <span className="absolute top-2 right-2 text-xs font-mono font-bold px-2 py-0.5 rounded bg-purple-600 text-white flex items-center gap-1 shadow-md">
-                      <CheckCircle2 className="w-3 h-3" /> Active
+                      <CheckCircle2 className="w-3 h-3" aria-hidden="true" /> Active
                     </span>
                   )}
                 </div>

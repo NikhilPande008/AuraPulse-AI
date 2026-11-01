@@ -10,10 +10,7 @@ export function reportError(err: unknown, context?: string): void {
 }
 
 export function reportWarn(msg: string, ...args: unknown[]): void {
-  if (process.env.NODE_ENV === "development") {
-    // eslint-disable-next-line no-console
-    console.warn("[AuraPulse Warning]:", msg, ...args);
-  }
+  reportError(args.length > 0 ? [msg, ...args] : msg, "AuraPulse Warning");
 }
 
 export async function parseApiError(res: Response): Promise<ApiError> {

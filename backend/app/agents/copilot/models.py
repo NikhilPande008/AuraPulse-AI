@@ -5,8 +5,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from backend.app.schemas.contingency import ContingencyDiff
-from backend.app.schemas.event_plan import MasterEventPlan
+from ...schemas.contingency import ContingencyDiff
+from ...schemas.event_plan import MasterEventPlan
 
 
 @dataclass

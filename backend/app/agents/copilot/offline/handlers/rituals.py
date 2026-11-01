@@ -1,15 +1,15 @@
 import uuid
 
-from backend.app.agents.copilot.models import CopilotResult
-from backend.app.agents.copilot.offline import messages
-from backend.app.agents.copilot.offline.handlers.base import IntentHandler
-from backend.app.schemas.event_plan import (
+from .....schemas.event_plan import (
     MasterEventPlan,
     MilestoneCategory,
     MilestonePhase,
     PlanningMilestone,
 )
-from backend.app.services.timeline import default_event_date, get_backwards_date
+from .....services.timeline import default_event_date, get_backwards_date
+from ...models import CopilotResult
+from .. import messages
+from .base import IntentHandler
 
 
 class RitualIntentHandler(IntentHandler):

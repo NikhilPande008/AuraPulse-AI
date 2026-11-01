@@ -1,11 +1,11 @@
 """Offline deterministic intent handling and replanning pipeline."""
 
-from backend.app.agents.copilot.models import CopilotResult
-from backend.app.agents.copilot.offline import messages
-from backend.app.agents.copilot.offline.intents import INTENT_HANDLERS
-from backend.app.agents.copilot.offline.language import detect_language, normalize_prompt
-from backend.app.schemas.contingency import ContingencyDiff
-from backend.app.schemas.event_plan import MasterEventPlan
+from ....schemas.contingency import ContingencyDiff
+from ....schemas.event_plan import MasterEventPlan
+from ..models import CopilotResult
+from . import messages
+from .intents import INTENT_HANDLERS
+from .language import detect_language, normalize_prompt
 
 
 def run_offline(plan: MasterEventPlan, prompt: str, lang: str | None = None) -> CopilotResult:

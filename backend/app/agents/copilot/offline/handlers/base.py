@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
-from backend.app.agents.copilot.models import CopilotResult
-from backend.app.schemas.event_plan import MasterEventPlan
+from .....schemas.event_plan import MasterEventPlan
+from ...models import CopilotResult
 
 
 class IntentHandler(ABC):

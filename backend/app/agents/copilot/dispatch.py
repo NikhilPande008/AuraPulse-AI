@@ -5,7 +5,9 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from backend.app.agents.copilot.tools import (
+from ...schemas.contingency import ContingencyDiff
+from ...schemas.event_plan import MasterEventPlan
+from .tools import (
     execute_add_item,
     execute_change_headcount,
     execute_decline_off_topic,
@@ -15,8 +17,6 @@ from backend.app.agents.copilot.tools import (
     execute_set_headcount,
     execute_update_item,
 )
-from backend.app.schemas.contingency import ContingencyDiff
-from backend.app.schemas.event_plan import MasterEventPlan
 
 
 class ScaleBudgetArgs(BaseModel):
@@ -216,5 +216,5 @@ def apply_tool_call(
     try:
         p, d, r, _ = handler(plan, args)
         return p, d, r
-    except Exception as e:  # noqa: BLE001
+    except (ValueError, TypeError, KeyError, AttributeError, RuntimeError) as e:
         return plan, None, f"Error executing tool '{tool_name}': {e}"

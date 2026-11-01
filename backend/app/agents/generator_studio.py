@@ -3,17 +3,23 @@
 import base64
 from typing import Any
 
+import google.api_core.exceptions
+
 from ..config import settings
 
-try:
-    from google import genai
-    from google.genai import types
+genai: Any = None
+types: Any = None
+_GENAI_AVAILABLE = False
 
+try:
+    import google.genai as _genai
+    import google.genai.types as _types
+
+    genai = _genai
+    types = _types
     _GENAI_AVAILABLE = True
-except ImportError:
-    genai = None  # type: ignore[assignment]
-    types = None  # type: ignore[assignment]
-    _GENAI_AVAILABLE = False
+except (ImportError, KeyError):
+    pass
 
 STOCK_REFERENCES: dict[str, str] = {
     "marquee": "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
@@ -62,7 +68,7 @@ async def _generate_with_imagen(
                 "source": "Google Imagen 3 (imagen-3.0-generate-002)",
                 "error": None,
             }
-    except Exception:  # noqa: BLE001
+    except (google.api_core.exceptions.GoogleAPIError, ValueError, KeyError, OSError, RuntimeError):
         pass
     return None
 

@@ -1,14 +1,14 @@
 import re
 from datetime import date, datetime, timedelta
 
-from backend.app.agents.copilot.diff_builder import build_contingency_diff
-from backend.app.agents.copilot.models import CopilotResult
-from backend.app.agents.copilot.offline import messages
-from backend.app.agents.copilot.offline.handlers.base import IntentHandler
-from backend.app.agents.copilot.tools import execute_set_event_date
-from backend.app.schemas.contingency import CrisisTriggerType
-from backend.app.schemas.event_plan import MasterEventPlan
-from backend.app.services.timeline import default_event_date
+from .....schemas.contingency import CrisisTriggerType
+from .....schemas.event_plan import MasterEventPlan
+from .....services.timeline import default_event_date
+from ...diff_builder import build_contingency_diff
+from ...models import CopilotResult
+from ...tools import execute_set_event_date
+from .. import messages
+from .base import IntentHandler
 
 WORD_TO_NUM: dict[str, int] = {
     "one": 1,

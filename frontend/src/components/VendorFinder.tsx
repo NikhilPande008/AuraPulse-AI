@@ -5,9 +5,8 @@ import { CheckCircle2, ListChecks, MapPin } from "lucide-react";
 import { fetchVendors } from "../lib/api";
 import { reportError } from "../lib/client";
 import type { PlaceVendor, VendorChecklistItem } from "../types/plan";
-import VendorCard from "./vendor/VendorCard";
-import VendorChecklistTable from "./vendor/VendorChecklistTable";
-import VendorFilter from "./vendor/VendorFilter";
+import PlacesSearch from "./vendor/PlacesSearch";
+import VendorChecklist from "./vendor/VendorChecklist";
 
 interface VendorFinderProps {
   city: string;
@@ -57,6 +56,21 @@ const DEFAULT_CHECKLIST: VendorChecklistItem[] = [
     notes: "100% advance paid. 2 cinematographers booked.",
   },
 ];
+
+function getStatusBadge(status: VendorChecklistItem["status"]) {
+  switch (status) {
+    case "To Contact":
+      return "bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700";
+    case "Quoted":
+      return "bg-amber-950/80 text-amber-300 border-amber-600/60 hover:bg-amber-900/80";
+    case "Booked":
+      return "bg-cyan-950/80 text-cyan-300 border-cyan-600/60 hover:bg-cyan-900/80";
+    case "Paid":
+      return "bg-emerald-950/80 text-emerald-300 border-emerald-600/60 hover:bg-emerald-900/80";
+    default:
+      return "bg-slate-800 text-slate-300 border-slate-700";
+  }
+}
 
 export default function VendorFinder({
   city,
@@ -135,25 +149,6 @@ export default function VendorFinder({
     setTimeout(() => setAddedNotice(null), 3000);
   };
 
-  const getStatusBadge = (status: VendorChecklistItem["status"]) => {
-    switch (status) {
-      case "To Contact":
-        return "bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700";
-      case "Quoted":
-        return "bg-amber-950/80 text-amber-300 border-amber-600/60 hover:bg-amber-900/80";
-      case "Booked":
-        return "bg-cyan-950/80 text-cyan-300 border-cyan-600/60 hover:bg-cyan-900/80";
-      case "Paid":
-        return "bg-emerald-950/80 text-emerald-300 border-emerald-600/60 hover:bg-emerald-900/80";
-      default:
-        return "bg-slate-800 text-slate-300 border-slate-700";
-    }
-  };
-
-  const totalCommitted = localChecklist
-    .filter((v) => v.status === "Booked" || v.status === "Paid")
-    .reduce((sum, v) => sum + v.estimated_cost, 0);
-
   return (
     <div className="glass-panel rounded-2xl p-6 shadow-xl border border-slate-800 space-y-6">
       {/* Header and Section Toggle */}
@@ -222,99 +217,25 @@ export default function VendorFinder({
 
       {/* VIEW 1: VENDOR ACTION CHECKLIST TABLE */}
       {activeTab === "checklist" && (
-        <div
-          id="panel-vendor-checklist"
-          role="tabpanel"
-          aria-labelledby="tab-vendor-checklist"
-          className="space-y-4"
-        >
-          {/* Summary Strip */}
-          <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 text-xs font-mono">
-            <div className="flex items-center gap-4">
-              <span>
-                Total Vendors: <strong className="text-white">{localChecklist.length}</strong>
-              </span>
-              <span>
-                Paid:{" "}
-                <strong className="text-emerald-400">
-                  {localChecklist.filter((v) => v.status === "Paid").length}
-                </strong>
-              </span>
-              <span>
-                Booked:{" "}
-                <strong className="text-cyan-400">
-                  {localChecklist.filter((v) => v.status === "Booked").length}
-                </strong>
-              </span>
-              <span>
-                Quoted:{" "}
-                <strong className="text-amber-400">
-                  {localChecklist.filter((v) => v.status === "Quoted").length}
-                </strong>
-              </span>
-              <span>
-                To Contact:{" "}
-                <strong className="text-slate-400">
-                  {localChecklist.filter((v) => v.status === "To Contact").length}
-                </strong>
-              </span>
-            </div>
-            <div className="text-right">
-              <span className="text-slate-400">Committed Capital: </span>
-              <strong className="text-purple-300 text-sm">
-                ₹{totalCommitted.toLocaleString("en-IN")}
-              </strong>
-            </div>
-          </div>
-
-          <VendorChecklistTable
-            items={localChecklist}
-            onStatusChange={handleStatusChange}
-            getStatusBadge={getStatusBadge}
-          />
-        </div>
+        <VendorChecklist
+          checklist={localChecklist}
+          onStatusChange={handleStatusChange}
+          getStatusBadge={getStatusBadge}
+        />
       )}
 
       {/* VIEW 2: GOOGLE MAPS VENDOR GROUNDING */}
       {activeTab === "maps" && (
-        <div
-          id="panel-vendor-maps"
-          role="tabpanel"
-          aria-labelledby="tab-vendor-maps"
-          className="space-y-4"
-        >
-          <VendorFilter
-            query={query}
-            onQueryChange={setQuery}
-            onSubmit={handleSearch}
-            loading={loading}
-            city={city}
-          />
-
-          {/* Transparent Honest Inactive Banner if key is missing or unconfigured */}
-          {(!isConfigured || vendors.length === 0) && !loading && (
-            <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3 text-xs text-amber-300 font-mono">
-              <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <p className="font-semibold text-amber-200">
-                  Live Google Maps Places grounding inactive (API key not configured). Add custom
-                  vendors manually or provide a Maps API key.
-                </p>
-                <p className="text-xs text-amber-300/80">
-                  Places API (New) endpoint:{" "}
-                  <code className="text-white">places.googleapis.com/v1/places:searchText</code>.
-                  Unverified mock businesses and phone numbers are strictly prohibited.
-                </p>
-              </div>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {vendors.map((v, i) => (
-              <VendorCard key={v.place_id || i} vendor={v} onAdd={handleAddVendorFromMaps} />
-            ))}
-          </div>
-        </div>
+        <PlacesSearch
+          city={city}
+          query={query}
+          onQueryChange={setQuery}
+          onSubmit={handleSearch}
+          loading={loading}
+          isConfigured={isConfigured}
+          vendors={vendors}
+          onAddVendor={handleAddVendorFromMaps}
+        />
       )}
     </div>
   );

@@ -8,9 +8,6 @@ from ..agents.copilot.models import CopilotResponse
 from ..schemas import MasterEventPlan
 
 __all__ = [
-    "CalendarSyncRequest",
-    "CalendarSyncResponse",
-    "CalendarSyncedEvent",
     "CopilotRequest",
     "CopilotResponse",
     "HealthApis",
@@ -68,27 +65,6 @@ class SheetsExportResponse(BaseModel):
     items_exported: int | None = None
     currency: str | None = "INR"
     message: str | None = None
-
-
-class CalendarSyncRequest(BaseModel):
-    calendar_id: str | None = "primary"
-    event_title: str = Field(..., max_length=200)
-    schedule_blocks: list[dict[str, Any]] = Field(..., max_length=100)
-
-
-class CalendarSyncedEvent(BaseModel):
-    block_id: str | None = None
-    activity: str | None = None
-    calendar_link: str | None = None
-    status: str = "READY"
-
-
-class CalendarSyncResponse(BaseModel):
-    event_title: str
-    total_blocks_synced: int
-    synced_events: list[CalendarSyncedEvent]
-    status: str
-    export_mode: str
 
 
 class VisualAlternativeRequest(BaseModel):

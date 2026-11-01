@@ -1,4 +1,4 @@
-"""Google ecosystem integrations: Maps Places, Sheets export, and Calendar sync."""
+"""Google ecosystem integrations: Maps Places and Sheets export."""
 
 import asyncio
 import logging
@@ -10,15 +10,12 @@ from ...config import settings
 from ...integrations import (
     export_event_to_google_sheets,
     fetch_verified_vendors,
-    sync_schedule_to_google_calendar,
 )
 from ...integrations.google_sheets import (
     SheetsExportError,
     SheetsNotConfiguredError,
 )
 from ..models import (
-    CalendarSyncRequest,
-    CalendarSyncResponse,
     SheetsExportRequest,
     SheetsExportResponse,
     VendorSearchResponse,
@@ -118,40 +115,3 @@ async def api_export_sheets(payload: SheetsExportRequest) -> SheetsExportRespons
         raise
     except (SheetsNotConfiguredError, SheetsExportError, ValueError, KeyError, OSError, RuntimeError) as e:
         _raise_sheets_error(e)
-
-
-def _raise_calendar_error(e: Exception) -> NoReturn:
-    logger.error("Google Calendar sync failed: %s", e, exc_info=True)
-    err_str = str(e).lower()
-    code = 503 if ("auth" in err_str or "credentials" in err_str) else 500
-    raise HTTPException(
-        status_code=code,
-        detail={"code": "CALENDAR_SYNC_FAILED", "message": "Google Calendar sync failed."},
-    ) from e
-
-
-@router.post("/calendar/sync", response_model=CalendarSyncResponse)
-async def api_sync_calendar(payload: CalendarSyncRequest) -> CalendarSyncResponse:
-    """Generate calendar web intent synchronizations for schedule blocks.
-
-    Args:
-        payload: Calendar synchronization request payload.
-
-    Returns:
-        CalendarSyncResponse containing synchronized event links.
-
-    Raises:
-        HTTPException: If calendar synchronization encounters an error.
-    """
-    try:
-        res = await asyncio.to_thread(
-            sync_schedule_to_google_calendar,
-            calendar_id=payload.calendar_id or "primary",
-            event_title=payload.event_title,
-            schedule_blocks=payload.schedule_blocks,
-        )
-        return CalendarSyncResponse.model_validate(res)
-    except HTTPException:
-        raise
-    except (ValueError, KeyError, OSError, RuntimeError) as e:
-        _raise_calendar_error(e)

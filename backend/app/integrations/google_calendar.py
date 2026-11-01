@@ -3,10 +3,8 @@
 import urllib.parse
 import uuid
 from datetime import UTC, date, datetime, timedelta
-from typing import Any
 
 from ..schemas import MasterEventPlan, PlanningMilestone, ScheduleBlock
-from ..services.timeline import default_event_date
 
 
 def _escape_text(text: str) -> str:
@@ -189,57 +187,3 @@ def generate_google_calendar_web_intent(
         "ctz": "Asia/Kolkata",
     }
     return f"https://calendar.google.com/calendar/render?{urllib.parse.urlencode(params)}"
-
-
-def sync_schedule_to_google_calendar(
-    calendar_id: str,
-    event_title: str,
-    schedule_blocks: list[dict[str, Any]],
-    event_date_prefix: str | None = None,
-) -> dict[str, Any]:
-    """Generate calendar synchronization links for run-of-show blocks.
-
-    Args:
-        calendar_id: Target calendar identifier.
-        event_title: Event title to prefix calendar entries.
-        schedule_blocks: List of schedule block dictionaries.
-        event_date_prefix: Date prefix formatted as YYYY-MM-DD.
-
-    Returns:
-        Summary dict containing synced_events with web intent URLs.
-    """
-    if not event_date_prefix:
-        event_date_prefix = default_event_date(90)
-    synced_events = []
-    clean_date = event_date_prefix.replace("-", "")
-
-    for block in schedule_blocks:
-        st = block.get("start_time_iso", "10:00")
-        et = block.get("end_time_iso", "11:00")
-        st_parts = st.split(":")
-        et_parts = et.split(":")
-        s_iso = f"{clean_date}T{st_parts[0].zfill(2)}{st_parts[1].zfill(2) if len(st_parts) > 1 else '00'}00"
-        e_iso = f"{clean_date}T{et_parts[0].zfill(2)}{et_parts[1].zfill(2) if len(et_parts) > 1 else '00'}00"
-
-        intent = generate_google_calendar_web_intent(
-            title=f"{event_title}: {block.get('activity', 'Activity')}",
-            start_iso=s_iso,
-            end_iso=e_iso,
-            details=f"Phase: {block.get('phase', 'Phase')} | Responsible: {block.get('responsible_party', 'Lead')}",
-        )
-        synced_events.append(
-            {
-                "block_id": block.get("block_id"),
-                "activity": block.get("activity"),
-                "calendar_link": intent,
-                "status": "READY",
-            }
-        )
-
-    return {
-        "event_title": event_title,
-        "total_blocks_synced": len(synced_events),
-        "synced_events": synced_events,
-        "status": "SUCCESS",
-        "export_mode": "RFC-5545 / Web Intent",
-    }

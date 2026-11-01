@@ -3,7 +3,6 @@ export type {
   ApiError,
   BOQDiffItem,
   BOQItem,
-  CalendarSyncResult,
   ContingencyDiff,
   CopilotResponse,
   CrisisTrigger,
@@ -30,5 +29,4 @@ export {
   fetchVendors,
   renderStudioAlternative,
   simulateContingency,
-  syncToCalendar,
 } from "./endpoints";

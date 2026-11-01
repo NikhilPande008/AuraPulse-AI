@@ -177,19 +177,6 @@ export interface SheetsExportResult {
   message?: string;
 }
 
-export interface CalendarSyncResult {
-  event_title: string;
-  total_blocks_synced: number;
-  synced_events: Array<{
-    block_id?: string;
-    activity?: string;
-    calendar_link?: string;
-    status: string;
-  }>;
-  status: string;
-  export_mode: string;
-}
-
 export interface ApiError extends Error {
   code?: string;
   status?: number;

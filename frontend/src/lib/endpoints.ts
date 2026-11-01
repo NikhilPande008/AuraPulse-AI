@@ -1,7 +1,6 @@
 import { FALLBACK_PRESET_1 } from "../fixtures/fallbackPlan";
 import type {
   BOQItem,
-  CalendarSyncResult,
   ContingencyDiff,
   CopilotResponse,
   CrisisTrigger,
@@ -146,20 +145,6 @@ export async function exportCalendarIcs(plan: MasterEventPlan): Promise<Blob> {
     throw new Error(`ICS export error: ${res.statusText}`);
   }
   return res.blob();
-}
-
-export async function syncToCalendar(
-  eventTitle: string,
-  scheduleBlocks: ScheduleBlock[]
-): Promise<CalendarSyncResult> {
-  return apiFetch<CalendarSyncResult>(`${API_BASE}/integrations/calendar/sync`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      event_title: eventTitle,
-      schedule_blocks: scheduleBlocks,
-    }),
-  });
 }
 
 export async function fetchHealth(): Promise<HealthStatus> {

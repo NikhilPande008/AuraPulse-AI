@@ -136,3 +136,12 @@ ehthumbs.db
 logs/
 *.tmp
 *.temp
+
+# ------------------------------------------------------------------------------
+# 8. Demo Video Production & Submission Media Artifacts
+# ------------------------------------------------------------------------------
+video_production/
+docs/submission/demo_output.mp4
+docs/submission/demo_thumbnail.jpg
+docs/submission/DEMO_VIDEO_SCRIPT.md
+

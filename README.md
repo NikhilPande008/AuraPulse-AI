@@ -14,13 +14,19 @@
 
 ---
 
-> [!NOTE]
-> **Note on live deployment**: A public demo URL has not been provisioned yet. To run the app locally, follow the Quick Start below. When deployed to Cloud Run, follow [`docs/DEPLOY.md`](docs/DEPLOY.md).
+> [!TIP]
+> **Live Production Deployment & Video Walkthrough**:
+> - 🌐 **Live Web Application**: [https://aurapulse-web-gwe45twb3q-uc.a.run.app](https://aurapulse-web-gwe45twb3q-uc.a.run.app)
+> - 🎬 **YouTube Demo Video Walkthrough**: [https://youtu.be/DQr9v43w94c](https://youtu.be/DQr9v43w94c)
+> - ⚡ **Backend API**: [https://aurapulse-backend-gwe45twb3q-uc.a.run.app](https://aurapulse-backend-gwe45twb3q-uc.a.run.app)
+> - 🩺 **API Health Check**: [https://aurapulse-backend-gwe45twb3q-uc.a.run.app/api/health](https://aurapulse-backend-gwe45twb3q-uc.a.run.app/api/health)
 
 ## ⚡ Quick Navigation for Judges
+* **Live Web App**: [https://aurapulse-web-gwe45twb3q-uc.a.run.app](https://aurapulse-web-gwe45twb3q-uc.a.run.app)
+* **Demo Video Walkthrough (YouTube)**: [https://youtu.be/DQr9v43w94c](https://youtu.be/DQr9v43w94c)
+* **Demo Video File**: [`docs/submission/demo_output.mp4`](docs/submission/demo_output.mp4) (Script: [`docs/submission/DEMO_VIDEO_SCRIPT.md`](docs/submission/DEMO_VIDEO_SCRIPT.md))
 * **Cloud Run Deployment Guide**: [`docs/DEPLOY.md`](docs/DEPLOY.md)
 * **GitHub Repository**: [https://github.com/NikhilPande008/AuraPulse-AI.git](https://github.com/NikhilPande008/AuraPulse-AI.git)
-* **Demo Video Walkthrough**: [TODO: Record demo video post-deployment]
 
 ---
 
